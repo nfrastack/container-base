@@ -1,0 +1,17 @@
+#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+source /container/base/functions/container/init
+output_off
+SERVICE_NAME="logging"
+prepare_service single
+check_container_initialized
+check_service_initialized init
+
+if var_true "${CONTAINER_ENABLE_SCHEDULING}" ; then
+    wait_for_process ${CONTAINER_SCHEDULING_BACKEND,,}*
+fi
+
+call nfra_configure_logging_${CONTAINER_LOGSHIPPING_BACKEND/-/}_run

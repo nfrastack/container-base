@@ -1,0 +1,68 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+service_down() {
+    if [ -n "${1}" ]; then
+        case "${1}" in
+            all )
+                echo "** Disabling all services"
+                for service in /var/run/s6/legacy-services/* ; do
+                    echo "** Disabling s6 service '$(basename ${service})'"
+                    s6-svc -d /var/run/s6/legacy-services/"$(basename "${service}")"
+                done
+            ;;
+            * )
+                if [ -d "/var/run/s6/legacy-services/${1}" ] ; then
+                    echo "** Disabling s6 service '${1}'"
+                    s6-svc -d /var/run/s6/legacy-services/$1
+                fi
+            ;;
+        esac
+    fi
+}
+
+service_list() {
+    ls -1 /var/run/s6/legacy-services
+}
+
+service_reset() {
+    if [ -n "${1}" ]; then
+        case "${1}" in
+            all )
+                echo "** Resetting all services"
+                for service in /var/run/s6/legacy-services/* ; do
+                    echo "** Reset s6 service '$(basename ${service})'"
+                    rm -rf /container/state/run/"$(basename ${service})"
+                    #s6-svc -u /var/run/s6/legacy-services/$(basename ${service})
+                done
+            ;;
+            * )
+                if [ -d "/var/run/s6/legacy-services/${1}" ] ; then
+                    echo "** Reset s6 service '${1}'"
+                    rm -rf /container/state/run/"${1}"
+                fi
+            ;;
+        esac
+    fi
+}
+
+service_up() {
+    if [ -n "${1}" ]; then
+        case "${1}" in
+            all )
+                echo "** Enabling all services"
+                for service in /var/run/s6/legacy-services/* ; do
+                    echo "** Enabling s6 service '$(basename "${service}")'"
+                    s6-svc -u /var/run/s6/legacy-services/"$(basename "${service}")"
+                done
+            ;;
+            * )
+                if [ -d "/var/run/s6/legacy-services/${1}" ] ; then
+                    echo "** Enabling s6 service '${1}'"
+                    s6-svc -u /var/run/s6/legacy-services/"${1}"
+                fi
+            ;;
+        esac
+    fi
+}

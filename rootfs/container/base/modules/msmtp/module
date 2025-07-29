@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+MSMTP_BINARY=/usr/bin/msmtp
+
+MSMTP_ASSETS=" \
+                    /container/base/defaults/messaging/msmtp \
+                    /container/base/functions/messaging/msmtp \
+                    /etc/msmtp* \
+                    /usr/bin/msmtp*
+                "
+
+dependencies() {
+    case "$(container_info distro)" in
+        alpine )
+            MSMTP_RUN_DEPS_ALPINE=" 	\
+                                        msmtp \
+                                  "
+        ;;
+        debian )
+            MSMTP_RUN_DEPS_DEBIAN=" \
+                                        msmtp \
+                                  "
+        ;;
+    esac
+}
+
+install() {
+    set -e
+    if [ ! -f "${MSMTP_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
+        dependencies
+        package update
+        package install \
+                        MSMTP_RUN_DEPS
+
+        if [ -d "$(dirname "$0")"/rootfs ]; then
+            cp -aR "$(dirname "$0")"/rootfs/* /
+        fi
+
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: msmtp $(${MSMTP_BINARY} --version | head -n1 | awk '{print $3}') | repositories" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: msmtp $(${MSMTP_BINARY} --version | head -n1 | awk '{print $3}') | repositories" >> /container/build/build.log
+    fi
+}
+
+remove() {
+    if [ -f "${MSMTP_BINARY}" ]; then
+        dependencies
+
+        package remove \
+                        MSMTP_RUN_DEPS
+
+        rm -rf ${MSMTP_ASSETS}
+
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: msmtp" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: msmtp" >> /container/build/build.log
+
+    fi
+}
+
+source /container/base/functions/container/build
+set -e
+$@

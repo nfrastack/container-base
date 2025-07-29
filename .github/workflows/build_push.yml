@@ -1,0 +1,24 @@
+name: "PUSH - Build on repository Push"
+on:
+  push:
+    paths:
+      - '**'
+      - '!/examples/*'
+      - '!LICENSE'
+      - '!README.md'
+jobs:
+  prepare:
+    uses: nfrastack/gha/.github/workflows/encrypt.yml@main
+    secrets: inherit
+  alpine:
+    needs: prepare
+    uses: ./.github/workflows/distro_alpine.yml
+    secrets: inherit
+  debian:
+    needs: prepare
+    uses: ./.github/workflows/distro_debian.yml
+    secrets: inherit
+  cleanup:
+    needs: [alpine, debian]
+    uses: nfrastack/gha/.github/workflows/remove_artifacts.yml@main
+    secrets: inherit

@@ -1,0 +1,180 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+create_group() {
+    # Create Group
+    # Syntax create_group $GROUP $GID
+    if [ -z "${1}" ] ; then
+        echo "[create_group] No groupname provided"
+        exit 99
+    fi
+
+    local _gid
+    local _groupname
+
+    _groupname="${1}"
+    _gid=${2:-"$(shuf -i 2000-65000 -n 1)"}
+
+    case $(container_info distro) in
+        alpine )
+            echo "Adding Group ${_groupname} with ID ${_gid}"
+            addgroup -S -g ${_gid} "${_groupname}"
+        ;;
+        debian )
+            echo "Adding Group ${_groupname} with ID ${_gid}"
+            addgroup --system --gid "${_gid}" "${_groupname}"
+        ;;
+    esac
+}
+
+create_user() {
+    # Create User and associated group
+    # Syntax create_user $USER $UID $GROUP $GID $HOME $SHELL
+    # $USER is mandatory all others will use defaults
+
+    if [ -z "${1}" ] ; then
+        echo "[create_user] No username provided"
+        exit 99
+    fi
+
+    local _gid
+    local _groupname
+    local _home
+    local _shell
+    local _uid
+    local _username
+
+    _username="${1}"
+    _groupname=${3:-"$_username"}
+    _uid=${2:-"$(shuf -i 2000-65000 -n 1)"}
+    _gid=${4:-"$_uid"}
+    _home=${5:-"/dev/null"}
+    _shell=${_shell:-"/sbin/nologin"}
+
+    case $(container_info distro) in
+        alpine )
+            echo "Adding Group ${_groupname} with ID ${_gid}"
+            addgroup -S -g ${_gid} "${_groupname}"
+            echo "Adding uid ${_uid} for user ${_user} gid ${_gid} group ${_groupname}"
+            adduser -D -S -h "${_home}" -s "${_shell}" -G "${_groupname}" -g "${_groupname}" -u "${_uid}" "${_username}"
+        ;;
+        debian )
+            echo "Adding Group ${_groupname} with ID ${_gid}"
+            addgroup --system --gid "${_gid}" "${_groupname}"
+            echo "Adding uid ${_uid} for user ${_username} gid ${_gid} group ${_groupname}"
+            adduser --disabled-password --system --home "${_home}" --shell "${_shell}" --ingroup "${_groupname}" -u "${_uid}" "${_username}"
+        ;;
+    esac
+
+    unset _username
+    unset _groupname
+    unset _uid
+    unset _gid
+    unset _home
+    unset _shell
+}
+
+add_user_group() {
+    # Add a user to a group
+    # Syntax add_user_group $USER $GROUP
+    # $USER $GROUP is mandatory
+
+    if [ -z "${1}" ] ; then
+        echo "[add_user_group] No username provided"
+        exit 99
+    fi
+
+    if [ -z "${2}" ] ; then
+        echo "[add_user_group] No group provided"
+        exit 99
+    fi
+
+    local _groupname
+    local _username
+    _username="${1}"
+    _groupname="${2}"
+
+    echo "Adding user ${_username} to group ${_groupname}"
+     case $(container_info distro) in
+        alpine )
+            addgroup "${_username}" "${_groupname}"
+        ;;
+        debian )
+            adduser "${_username}" "${_groupname}"
+        ;;
+    esac
+
+    unset _username
+    unset _groupname
+}
+
+delete_user_group() {
+    # Delete a user from a group
+    # Syntax delete_user_group $USER $GROUP
+    # $USER $GROUP is mandatory
+
+    if [ -z "${1}" ] ; then
+        echo "[delete_user_group] No username provided"
+        exit 99
+    fi
+
+    if [ -z "${2}" ] ; then
+        echo "[delete_user_group] No group provided"
+        exit 99
+    fi
+
+    local _groupname
+    local _username
+    _username="${1}"
+    _groupname="${2}"
+
+    echo "Deleting user ${_username} from group ${_groupname}"
+    delgroup "${_username}" "${_groupname}"
+
+    unset _username
+    unset _groupname
+}
+
+delete_group() {
+    # Delete a group
+    # Syntax delete_group $GROUP
+    # $GROUP is mandatory
+
+    if [ -z "${1}" ] ; then
+        echo "[delete_group] No groupname provided"
+        exit 99
+    fi
+
+    local _groupname
+    _groupname="${1}"
+
+    for g2d in "$(echo "${_groupname}" | tr ',' '\n')"; do
+        print_debug "Deleting group '${g2d}'"
+        silent delgroup "${g2d}"
+    done
+
+    unset _groupname
+}
+
+delete_user() {
+    # Delete a user
+    # Syntax delete_user $USER
+    # $USER is mandatory
+
+    if [ -z "${1}" ] ; then
+        echo "[delete_user] No username provided"
+        exit 99
+    fi
+
+    local _username
+    _username="${1}"
+
+    for u2d in "$(echo "${_username}" | tr ',' '\n')"; do
+        print_debug "Deleting username '${u2d}'"
+        silent deluser "${u2d}"
+    done
+
+    unset _username
+}
+

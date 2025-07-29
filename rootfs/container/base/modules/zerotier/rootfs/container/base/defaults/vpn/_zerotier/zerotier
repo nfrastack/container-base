@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+set_env ZEROTIER_BINARY="zerotier-one" nfrastack/base
+set_env ZEROTIER_DATA_PATH="/var/lib/zerotier-one" nfrastack/base
+set_env ZEROTIER_ENABLE_METRICS="FALSE" nfrastack/base
+set_env ZEROTIER_GROUP="root" nfrastack/base
+set_env ZEROTIER_LOG_FILE="zerotier.log" nfrastack/base
+set_env ZEROTIER_LOG_PATH="/var/log/zerotier/" nfrastack/base
+set_env ZEROTIER_LOG_TYPE="FILE" nfrastack/base
+set_env ZEROTIER_USER="root" nfrastack/base
+

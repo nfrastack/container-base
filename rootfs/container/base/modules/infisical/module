@@ -1,0 +1,106 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+INFISICAL_VERSION=${INFISICAL_VERSION:-"infisical-cli/v0.40.0"}
+INFISICAL_REPO_URL=${INFISICAL_REPO_URL:-"https://github.com/infisical/infisical"}
+
+INFISICAL_BINARY=/usr/local/bin/infisical
+INFISICAL_ASSETS=" \
+                    /container/base/defaults/secrets/infisical \
+                    /container/base/functions/secrets/infisical \
+                    ${INFISICAL_BINARY}
+                 "
+
+dependencies() {
+    case "$(container_info distro)" in
+        alpine )
+            case "$(container_info variant)" in
+                3.1[7-9]* )
+                    :
+                ;;
+                3.2[0-9]* )
+                    :
+                ;;
+                *)
+                    echo "Unsupported version"
+                    exit 5
+                ;;
+            esac
+
+            INFISICAL_BUILD_DEPS_ALPINE=" 	\
+                                            git \
+                                            musl-dev \
+                                        "
+
+            INFISICAL_RUN_DEPS_ALPINE=" \
+                                	    openssl \
+                                      "
+        ;;
+        debian )
+            case "$(container_info variant)" in
+                bookworm )
+                    debian_backport="/bookworm-backports"
+                ;;
+            esac
+
+            INFISICAL_BUILD_DEPS_DEBIAN=" \
+                                        "
+            INFISICAL_RUN_DEPS_DEBIAN=" \
+                                                libssl-dev \
+                                      "
+        ;;
+    esac
+}
+
+install() {
+    set -e
+    if [ ! -f "${INFISICAL_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
+        dependencies
+        package update
+        package install \
+                        INFISICAL_BUILD_DEPS \
+                        INFISICAL_RUN_DEPS
+
+        clone_git_repo "${INFISICAL_REPO_URL}" "${INFISICAL_VERSION}"
+        cd cli
+        sed -i \
+                    -e "s|CLI_VERSION = \".*\"|CLI_VERSION = \"${INFISICAL_VERSION}\"|g" \
+                packages/util/constants.go
+
+        go build \
+                -a \
+                -ldflags \
+                        "-w -s" \
+                .
+
+        mv infisical-merge /usr/local/bin/infisical
+
+        if [ -d "$(dirname "$0")"/rootfs ]; then
+            cp -aR "$(dirname "$0")"/rootfs/* /
+        fi
+
+        package remove \
+                        INFISICAL_BUILD_DEPS
+
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: infisical ${INFISICAL_VERSION} | ${INFISICAL_REPO_URL}" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: infisical ${INFISICAL_VERSION} | ${INFISICAL_REPO_URL}" >> /container/build/build.log
+    fi
+}
+
+remove() {
+    if [ -f "${INFISICAL_BINARY}" ]; then
+        dependencies
+        package remove \
+                        INFISICAL_RUN_DEPS
+
+        rm -rf ${INFISICAL_ASSETS}
+
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: infisical" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: infisical" >> /container/build/build.log
+    fi
+}
+
+source /container/base/functions/container/build
+set -e
+$@

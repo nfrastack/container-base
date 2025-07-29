@@ -1,0 +1,35 @@
+create_logrotate() {
+    ## Usage <Logrotate Config Name> <path> (optional logship parser) (optional user) (optional group)
+    ## e.g. create_logrotate cron /var/log/cron/cron.log cron root root
+    ## If you dont have a parser just use 'none'
+    ## If you are passing wilcard characters ie /logs/*.log make sure you 'set -f' before the function and 'set +f' afterwards.
+    if [ -n "$1" ] && [ -n "$2" ]; then
+        if [ ! -f /conntainer/state/logrotate/"$1" ] ; then
+            print_debug "Creating Logrotate Entry for ${2/\/\//\/}"
+            if [ -n "$3" ] ; then
+                if [ "${3,,}" != "none" ] ; then
+                    lrlsparser="# logship: $3"
+                fi
+            fi
+            if [ -n "$4" ] && [ -n "$5" ]; then
+                lruser="    su $4 $5"
+            fi
+
+            if [ ! -d "/container/logrotate/" ] ; then
+                mkdir -p /container/logrotate/
+            fi
+
+            cat <<EOF > /container/logrotate/"${1}"
+${lrlsparser}
+$2 {
+    missingok
+${lruser}
+}
+EOF
+            chown root:root /container/logrotate/"${1}"
+            chmod 0644 /container/logrotate/"${1}"
+        else
+            print_debug "Skipping creating automatic logrotation for ${1}"
+        fi
+    fi
+}

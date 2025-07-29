@@ -1,0 +1,117 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+TAILSCALE_VERSION=${TAILSCALE_VERSION:-"v1.84.3"}
+TAILSCALE_REPO_URL=${TAILSCALE_REPO_URL:-"https://github.com/tailscale/tailscale"}
+
+TAILSCALE_USER=${TAILSCALE_USER:-"tailscale"}
+TAILSCALE_USER_ID=${TAILSCALE_USER_ID:-"8245"}
+TAILSCALE_GROUP=${TAILSCALE_GROUP:-"tailscale"}
+TAILSCALE_GROUP_ID=${TAILSCALE_GROUP_ID:-"8245"}
+
+TAILSCALE_BINARY=/usr/local/bin/tailscale
+TAILSCALE_ASSETS=" \
+                    /container/base/defaults/vpn/tailscale \
+                    /container/base/functions/vpn/tailscale \
+                    ${TAILSCALE_BINARY}* \
+                 "
+
+dependencies() {
+    case "$(container_info distro)" in
+        alpine )
+            case "$(container_info variant)" in
+                3.1[7-9]* | 3.2[0-9]* )
+                    :
+                ;;
+                *)
+                    echo "Unsupported version"
+                    exit 5
+                ;;
+            esac
+
+            TAILSCALE_BUILD_DEPS_ALPINE=" 	\
+                                                build-base \
+                                                binutils \
+                                                git \
+                                        "
+
+            TAILSCALE_RUN_DEPS_ALPINE=" 	\
+                                      "
+
+
+        ;;
+        debian )
+            case "$(container_info variant)" in
+                bookworm )
+                    debian_backport="/bookworm-backports"
+                ;;
+            esac
+            TAILSCALE_BUILD_DEPS_DEBIAN="       \
+                                                hello \
+                                        "
+            TAILSCALE_RUN_DEPS_DEBIAN="         \
+                                                ca-certificates \
+                                                iproute2 \
+                                                iptables \
+                                      "
+        ;;
+    esac
+}
+
+install() {
+    set -e
+    if [ ! -f "${TAILSCALE_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
+        dependencies
+        package update
+        package install \
+                        TAILSCALE_BUILD_DEPS \
+                        TAILSCALE_RUN_DEPS
+        create_user "${TAILSCALE_USER}" ${TAILSCALE_USER_ID} "${TAILSCALE_GROUP}" ${TAILSCALE_GROUP_ID} /dev/null && \
+
+        clone_git_repo "${TAILSCALE_REPO_URL}" "${TAILSCALE_VERSION}"
+
+        go build \
+                -ldflags="-s -w" \
+                -o /usr/local/bin/tailscale \
+                -a \
+                ./cmd/tailscale
+
+        go build \
+                -ldflags="-s -w" \
+                -o /usr/local/bin/tailscaled \
+                -a \
+                ./cmd/tailscaled
+
+        if [ -d "$(dirname "$0")"/rootfs ]; then
+            cp -aR "$(dirname "$0")"/rootfs/* /
+        fi
+
+        package remove \
+                        TAILSCALE_BUILD_DEPS
+
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: tailscale ${TAILSCALE_VERSION} | ${TAILSCALE_REPO_URL}" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: tailscale ${TAILSCALE_VERSION} | ${TAILSCALE_REPO_URL}" >> /container/build/build.log
+    fi
+}
+
+remove() {
+    if [ -f "${TAILSCALE_BINARY}" ]; then
+        dependencies
+
+        package remove \
+                        TAILSCALE_RUN_DEPS
+
+        delete_user "${TAILSCALE_USER}"
+        delete_group "${TAILSCALE_GROUP}"
+
+        rm -rf ${TAILSCALE_ASSETS}
+
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: tailscale" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: tailscale" >> /container/build/build.log
+    fi
+}
+
+source /container/base/functions/container/build
+set -e
+$@

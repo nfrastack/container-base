@@ -1,0 +1,6 @@
+#!/bin/bash
+
+mkdir -p /container/state/startup
+source /container/base/functions/container/run
+showoff
+exec bash

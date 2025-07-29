@@ -1,0 +1,99 @@
+OPENBAO_VERSION=${OPENBAO_VERSION:-"v2.2.0"}
+OPENBAO_REPO_URL=${OPENBAO_REPO_URL:-"https://github.com/openbao/openbao"}
+OPENBAO_BINARY=/usr/local/bin/bao
+OPENBAO_ASSETS=" \
+                    /container/base/defaults/secrets/openbao \
+                    /container/base/functions/secrets/openbao \
+                    /usr/local/bin/vault \
+                    ${OPENBAO_BINARY}
+                 "
+dependencies() {
+    case "$(container_info distro)" in
+        alpine )
+            case "$(container_info variant)" in
+                3.1[7-9]* )
+                    :
+                ;;
+                3.2[0-9]* )
+                    :
+                ;;
+                *)
+                    echo "Unsupported version"
+                    exit 5
+                ;;
+            esac
+            OPENBAO_BUILD_DEPS_ALPINE=" \
+                                            git \
+                                            musl-dev \
+                                        "
+            OPENBAO_RUN_DEPS_ALPINE=" \
+                                	   openssl \
+                                      "
+        ;;
+        debian )
+            case "$(container_info variant)" in
+                bookworm )
+                    debian_backport="/bookworm-backports"
+                ;;
+            esac
+            OPENBAO_BUILD_DEPS_DEBIAN=" \
+                                                hello \
+                                        "
+            OPENBAO_RUN_DEPS_DEBIAN=" \
+                                                libssl-dev \
+                                      "
+        ;;
+    esac
+}
+install() {
+    set -e
+    if [ ! -f "${OPENBAO_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
+        dependencies
+        package update
+        package install \
+                        OPENBAO_BUILD_DEPS \
+                        OPENBAO_RUN_DEPS
+        clone_git_repo "${OPENBAO_REPO_URL}" "${OPENBAO_VERSION}"
+        sed -i \
+		    -e "s|^go 1.*$|go $(go version | awk '{print $3}' | sed "s|[aA-zZ]||g")|g" /usr/src/openbao/go.mod
+
+	    go mod tidy
+        go build \
+                        -ldflags " \
+                            -w -s \
+                            -X github.com/openbao/openbao/version.GitCommit='$(git rev-parse HEAD)' \
+                            -X github.com/openbao/openbao/version.BuildDate='$(git show --no-show-signature -s --format=%cd --date=format:"%Y-%m-%dT%H:%M:%SZ" HEAD)' \
+                        " \
+                        -o "/usr/local/bin/bao" \
+                        -tags "openbao" \
+                        .
+
+        if [ -d "$(dirname "$0")"/rootfs ]; then
+            cp -aR "$(dirname "$0")"/rootfs/* /
+        fi
+
+        ln -s ${OPENBAO_BINARY} /usr/local/bin/vault
+
+        package remove \
+                        OPENBAO_BUILD_DEPS
+
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: openbao ${OPENBAO_VERSION} | ${OPENBAO_REPO_URL}" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: openbao ${OPENBAO_VERSION} | ${OPENBAO_REPO_URL}" >> /container/build/build.log
+    fi
+}
+remove() {
+    if [ -f "${OPENBAO_BINARY}" ]; then
+        dependencies
+        package remove \
+                        OPENBAO_RUN_DEPS
+
+        rm -rf ${OPENBAO_ASSETS}
+
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: openbao" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: openbao" >> /container/build/build.log
+    fi
+}
+
+source /container/base/functions/container/build
+set -e
+$@

@@ -1,0 +1,184 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+ZABBIX_VERSION=${ZABBIX_VERSION:-"7.4.0"}
+ZABBIX_REPO_URL=${ZABBIX_REPO_URL:-"https://github.com/zabbix/zabbix"}
+
+ZABBIX_BINARY=/usr/local/bin/zabbix_agentd
+
+ZABBIX_USER=${ZABBIX_USER:-"zabbix"}
+ZABBIX_USER_ID=${ZABBIX_USER_ID:-"10050"}
+ZABBIX_GROUP=${ZABBIX_GROUP:-"zabbix"}
+ZABBIX_GROUP_ID=${ZABBIX_GROUP_ID:-"10050"}
+
+ZABBIX_ASSETS=" \
+                    /container/base/defaults/monitor/zabbix \
+                    /container/base/functions/monitor/zabbix \
+                    /etc/zabbix \
+                    /usr/local/bin/zabbix_* \
+                    /var/lib/zabbix \
+                    /var/log/zabbix/agent \
+                 "
+
+dependencies() {
+    case "$(container_info distro)" in
+        alpine )
+            case "$(container_info variant)" in
+                3.[5-9] | 3.1[1-6] )
+                    alpine_ssl=libressl
+                ;;
+                3.1[7-9]* | 3.2[0-9]* )
+                    alpine_ssl=openssl
+                    zabbixagent_buildargs=" --enable-agent2 "
+                    build_zabbixagent2=true
+                ;;
+            esac
+
+            ZABBIXAGENT_BUILD_DEPS_ALPINE=" 	\
+                                                 alpine-sdk \
+                                                 autoconf \
+                                                 automake \
+                                                 binutils \
+                                                 coreutils \
+                                                 g++ \
+                                                 linux-headers \
+                                                 openssl-dev \
+                                                 make \
+                                                 pcre2-dev \
+                                                 zlib-dev ${zabbix_agent2_packages} \
+                                          "
+
+            ZABBIXAGENT_RUN_DEPS_ALPINE=" 	\
+                                                ${alpine_ssl} \
+                                                iputils \
+                                                pcre2 \
+                                        "
+
+
+        ;;
+        debian )
+            build_zabbixagent2=true
+            zabbixagent_buildargs=" --enable-agent2 "
+            case "$(container_info variant)" in
+                bookworm )
+                    debian_backport="/bookworm-backports"
+                ;;
+            esac
+            ZABBIXAGENT_BUILD_DEPS_DEBIAN=" \
+                                                 automake \
+                                                 bison \
+                                                 build-essential \
+                                                 cmake \
+                                                 flex \
+                                                 libpcre2-dev \
+                                                 libssl-dev \
+                                                 pkg-config \
+                                                 zlib1g-dev \
+                                          "
+            ZABBIXAGENT_RUN_DEPS_DEBIAN=" \
+                                                libpcre2-8-0 \
+                                        "
+        ;;
+    esac
+}
+
+install() {
+    set -e
+    if [ ! -f "${ZABBIX_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
+        dependencies
+        package update
+        package install \
+                        ZABBIXAGENT_BUILD_DEPS \
+                        ZABBIXAGENT_RUN_DEPS
+
+        create_user "${ZABBIX_USER}" ${ZABBIX_USER_ID} "${ZABBIX_GROUP}" ${ZABBIX_GROUP_ID} /var/lib/zabbix && \
+        mkdir -p \
+                    /etc/zabbix \
+                    /etc/zabbix/zabbix_agentd.conf.d \
+                    /var/lib/zabbix \
+                    /var/lib/zabbix/enc \
+                    /var/lib/zabbix/modules \
+                    /var/lib/zabbix/run
+
+        chown --quiet -R \
+                            "${ZABBIX_USER}":root \
+                                    /etc/zabbix \
+                                    /var/lib/zabbix
+
+        chmod -R 770 /var/lib/zabbix/run
+
+        clone_git_repo "${ZABBIX_REPO_URL}" "${ZABBIX_VERSION}"
+        _zabbix_revision=$(git rev-parse --short HEAD)
+        sed -i \
+                -e "s|{ZABBIX_REVISION}|${_zabbix_revision}|g" \
+                    include/version.h \
+                    src/go/pkg/version/version.go \
+                    src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java
+
+        aclocal -I m4
+        autoconf
+        autoheader
+        automake -a
+        automake
+
+        export CFLAGS="-fPIC \
+                        -pie \
+                        -Wl,-z,relro \
+                        -Wl,-z,now \
+                        -s \
+                      "
+        sed -i \
+                    -e "s|CGO_CFLAGS=\"\${CGO_CFLAGS}\"| CGO_CFLAGS=\"-D_LARGEFILE64_SOURCE \${CGO_CFLAGS}\"|g" \
+                    -e 's|-ldflags="${AGENT_GOLDFLAGS}" \\|-ldflags="${AGENT_GOLDFLAGS} -s" \\|' \
+                /usr/src/zabbix/src/go/Makefile.am
+
+        ./configure \
+                    --datadir=/usr/lib \
+                    --disable-dependency-tracking \
+                    --enable-agent ${zabbixagent_buildargs} \
+                    --enable-ipv6 \
+                    --libdir=/usr/lib/zabbix \
+                    --prefix=/usr \
+                    --silent \
+                    --sysconfdir=/etc/zabbix \
+                    --with-openssl
+
+        make -j"$(nproc)" -s 1>/dev/null
+        cp src/zabbix_agent/zabbix_agentd /usr/local/bin/zabbix_agentd
+        cp src/zabbix_get/zabbix_get /usr/local/bin/zabbix_get
+        cp src/zabbix_sender/zabbix_sender /usr/local/bin/zabbix_sender
+        if [ "${build_zabbixagent2}" = "true" ] ; then cp src/go/bin/zabbix_agent2 /usr/local/bin/zabbix_agent2 ; fi
+
+        if [ -d "$(dirname "$0")"/rootfs ]; then
+            cp -aR "$(dirname "$0")"/rootfs/* /
+        fi
+
+        package remove \
+                      ZABBIXAGENT_BUILD_DEPS
+
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: zabbix-agent ${ZABBIX_VERSION} | ${ZABBIX_REPO_URL}" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: zabbix-agent ${ZABBIX_VERSION} | ${ZABBIX_REPO_URL}" >> /container/build/build.log
+    fi
+}
+
+remove() {
+    if [ -f "${ZABBIX_BINARY}" ]; then
+        dependencies
+
+        package remove \
+                        ZABBIXAGENT_RUN_DEPS
+
+        delete_user "${ZABBIX_USER}"
+        delete_group "${ZABBIX_GROUP}"
+
+        rm -rf ${ZABBIX_ASSETS}
+
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: zabbix-agent" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: zabbix-agent" >> /container/build/build.log
+    fi
+}
+
+source /container/base/functions/container/build
+set -e
+$@

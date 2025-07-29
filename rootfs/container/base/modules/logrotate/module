@@ -1,0 +1,68 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+LOGROTATE_BINARY=/usr/sbin/logrotate
+
+LOGROTATE_ASSETS=" \
+                    /container/base/defaults/logging/logrotate \
+                    /container/base/functions/logging/logrotate \
+                    /container/logrotate \
+                    /etc/logrotate.conf \
+                    /etc/logrotate.d \
+                    /etc/periodic/faily/logrotate \
+                    /usr/sbin/logrotate \
+                "
+
+dependencies() {
+    case "$(container_info distro)" in
+        alpine )
+            LOGROTATE_RUN_DEPS_ALPINE=" 	\
+                                            logrotate \
+                                      "
+        ;;
+        debian )
+            LOGROTATE_RUN_DEPS_DEBIAN=" \
+                                            logrotate \
+                                      "
+        ;;
+    esac
+}
+
+install() {
+    set -e
+    if [ ! -f "${LOGROTATE_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
+        dependencies
+        package update
+        package install \
+                        LOGROTATE_RUN_DEPS
+
+        mkdir -p /etc/logrotate.d
+
+        if [ -d "$(dirname "$0")"/rootfs ]; then
+            cp -aR "$(dirname "$0")"/rootfs/* /
+        fi
+
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: logrotate $(${LOGROTATE_BINARY} --version | head -n1 | awk '{print $2}') | repositories" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: logrotate $(${LOGROTATE_BINARY} --version | head -n1 | awk '{print $2}') | repositories" >> /container/build/build.log
+    fi
+}
+
+remove() {
+    if [ -f "${LOGROTATE_BINARY}" ]; then
+        dependencies
+
+        package remove \
+                        LOGROTATE_RUN_DEPS
+
+        rm -rf ${LOGROTATE_ASSETS}
+
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: logrotate" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: logrotate" >> /container/build/build.log
+
+    fi
+}
+
+source /container/base/functions/container/build
+set -e
+$@

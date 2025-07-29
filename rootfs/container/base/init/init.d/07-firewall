@@ -1,0 +1,32 @@
+#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+source /container/base/functions/container/init
+output_off
+prepare_service single
+SERVICE_NAME="firewall"
+
+firewall_command=$(which "${CONTAINER_FIREWALL_BACKEND,,}")
+
+if var_true "${CONTAINER_ENABLE_FIREWALL}" ; then
+    if ! binary_exists $(var_value ${CONTAINER_FIREWALL_BACKEND^^}_BINARY); then
+        print_debug "Disabling Firewall Backend ${CONTAINER_FIRWALL_BACKEND} - Binary '$(echo ${CONTAINER_FIREWALL_BACKEND^^}_BINARY)' not found"
+        service_stop "$(basename "$0")"
+    else
+        call nfra_configure_firewall_${CONTAINER_FIREWALL_BACKEND,,}_init
+        call nfra_configure_firewall_parserules_init
+        if var_true "${CONTAINER_ENABLE_FAIL2BAN}" ; then
+            call nfra_configure_firewall_fail2ban_init
+        else
+            service_stop "$(basename "$0")"
+        fi
+        print_notice "Container configured for firewall with '${CONTAINER_FIREWALL_BACKEND}'"
+    fi
+else
+    service_stop "$(basename "$0")"
+fi
+
+liftoff
+output_on

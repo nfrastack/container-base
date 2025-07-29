@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+ZABBIX_ALLOW_ROOT=${ZABBIX_ALLOW_ROOT:-"1"}
+ZABBIX_CERT_PATH=${ZABBIX_CERT_PATH:-"/etc/zabbix/certs/"}
+ZABBIX_DEBUGLEVEL=${ZABBIX_DEBUGLEVEL:-"1"}
+ZABBIX_ENABLE_AUTOREGISTER=${ZABBIX_ENABLE_AUTOREGISTER:-"TRUE"}
+ZABBIX_ENABLE_AUTOREGISTER_DNS=${ZABBIX_ENABLE_AUTOREGISTER_DNS:-"TRUE"}
+ZABBIX_HOSTNAME=${ZABBIX_HOSTNAME:-"${CONTAINER_NAME}"}
+ZABBIX_LISTEN_IP=${ZABBIX_LISTEN_IP:-"0.0.0.0"}
+ZABBIX_LISTEN_PORT=${ZABBIX_LISTEN_PORT:-"10050"}
+ZABBIX_REMOTECOMMANDS_ALLOW=${ZABBIX_REMOTECOMMANDS_ALLOW:-"*"}
+ZABBIX_SERVER=${ZABBIX_SERVER:-"0.0.0.0/0"}
+ZABBIX_SERVER_ACTIVE=${ZABBIX_SERVER_ACTIVE:-"zabbix-proxy"}
+ZABBIX_START_AGENTS=${ZABBIX_START_AGENTS:-"1"}
+ZABBIX_STATUS_PORT=${ZABBIX_STATUS_PORT:-"8050"}
+
+get_defaults_advanced
+
+case $(container_info distro) in
+    "alpine" )
+        if [ "$(echo "$(container_info variant)" | cut -d . -f 2 | cut -d _ -f 1)" -ge 14 ]; then
+            ZABBIX_AGENT_TYPE=${ZABBIX_AGENT_TYPE:-"modern"}
+            ZABBIX_BINARY=${ZABBIX_BINARY:-"zabbix_agent2"}
+        else
+            ZABBIX_AGENT_TYPE=${ZABBIX_AGENT_TYPE:-"classic"}
+            ZABBIX_BINARY=${ZABBIX_BINARY:-"zabbix_agent"}
+        fi
+    ;;
+    "debian" | "ubuntu" )
+        ZABBIX_AGENT_TYPE=${ZABBIX_AGENT_TYPE:-"modern"}
+        ZABBIX_BINARY=${ZABBIX_BINARY:-"zabbix_agent2"}
+    ;;
+esac

@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+set_env CONTAINER_CUSTOM_PATH="/override/custom/" nfrastack/base
+set_env CONTAINER_CUSTOM_SCRIPTS_PATH="/override/custom-scripts/" nfrastack/base
+set_env CONTAINER_ENABLE_CUSTOM_BASH_PROMPT="TRUE" nfrastack/base
+set_env CONTAINER_ENABLE_METRICS="TRUE" nfrastack/base
+set_env CONTAINER_ENABLE_PROCESS_COUNTER="TRUE" nfrastack/base
+set_env CONTAINER_ENABLE_PROCESS_HELPER="TRUE" nfrastack/base
+set_env CONTAINER_LOG_FILE_LEVEL="DEBUG" nfrastack/base
+set_env CONTAINER_LOG_FILE_NAME="container.log" nfrastack/base
+set_env CONTAINER_LOG_FILE_PATH="/var/log/container/" nfrastack/base
+set_env CONTAINER_LOG_FILE_PREFIX_DATE_FMT="%Y-%m-%d" nfrastack/base
+set_env CONTAINER_LOG_FILE_PREFIX_SEPERATOR="." nfrastack/base
+set_env CONTAINER_LOG_FILE_PREFIX_TIME_FMT="%H:%M:%S" nfrastack/base
+set_env CONTAINER_LOG_PREFIX_DATE_FMT="%Y-%m-%d" nfrastack/base
+set_env CONTAINER_LOG_PREFIX_SEPERATOR="." nfrastack/base
+set_env CONTAINER_LOG_PREFIX_TIME_FMT="%H:%M:%S" nfrastack/base
+set_env CONTAINER_PROCESS_HELPER_DATE_FMT="%Y-%m-%d" nfrastack/base
+set_env CONTAINER_PROCESS_HELPER_PATH="/container/processhelper/" nfrastack/base
+set_env CONTAINER_PROCESS_HELPER_SCRIPT="processhelper.sh" nfrastack/base
+set_env CONTAINER_PROCESS_HELPER_TIME_FMT="%H:%M:%S" nfrastack/base
+set_env CONTAINER_PROCESS_RUNAWAY_DELAY="1" nfrastack/base
+set_env CONTAINER_PROCESS_RUNAWAY_LIMIT="10" nfrastack/base
+set_env CONTAINER_PROCESS_RUNAWAY_PROTECTOR="TRUE" nfrastack/base
+set_env CONTAINER_PROCESS_RUNAWAY_SHOW_OUTPUT_FINAL="TRUE" nfrastack/base
+set_env CONTAINER_REMOVE_INIT="none" nfrastack/base
+set_env CONTAINER_REMOVE_INIT_EXCLUDE="" nfrastack/base
+set_env CONTAINER_SCHEDULING_LOCATION="/container/cron/" nfrastack/base
+set_env CONTAINER_SCHEDULING_LOCATION_OVERRIDE="/override/cron/" nfrastack/base
+

@@ -1,0 +1,146 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+S6OVERLAY_VERSION=${S6OVERLAY_VERSION:-"3.2.1.0"}
+S6OVERLAY_REPO_URL=${S6OVERLAY_REPO_URL:-"https://github.com/just-containers/s6-overlay"}
+
+S6OVERLAY_BINARY=/command/s6-svc
+S6OVERLAY_ASSETS=" \
+                    /command \
+                    /etc/s6-overlay \
+                    /init \
+                    /package \
+                 "
+
+dependencies() {
+    case "$(container_info distro)" in
+        alpine )
+            S6OVERLAY_BUILD_DEPS_ALPINE=" \
+                                              curl \
+                                        "
+
+            S6OVERLAY_RUN_DEPS_ALPINE=" 	\
+                                      "
+        ;;
+        debian )
+            S6OVERLAY_BUILD_DEPS_DEBIAN=" \
+                                              curl \
+                                        "
+            S6OVERLAY_RUN_DEPS_DEBIAN="   \
+                                      "
+        ;;
+    esac
+
+    case "$(container_info arch)" in
+        aarch64)
+            :
+        ;;
+        x86_64)
+            :
+        ;;
+        *)
+            echo >&2 "Error: unsupported architecture ($(container_info arch))";
+            exit 1
+        ;;
+    esac
+}
+
+install() {
+    set -e
+    if [ ! -f "${S6OVERLAY_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
+        dependencies
+
+        curl -sSL https://github.com/just-containers/s6-overlay/releases/download/v${S6OVERLAY_VERSION}/s6-overlay-noarch.tar.xz | tar xpfJ - -C /
+        curl -sSL https://github.com/just-containers/s6-overlay/releases/download/v${S6OVERLAY_VERSION}/s6-overlay-$(container_info arch).tar.xz | tar xpfJ - -C /
+        #curl -sSL https://github.com/just-containers/s6-overlay/releases/download/v${S6OVERLAY_VERSION}/s6-overlay-symlinks-noarch.tar.xz | tar xpfJ - -C /
+        #curl -sSL https://github.com/just-containers/s6-overlay/releases/download/v${S6OVERLAY_VERSION}/s6-overlay-symlinks-arch.tar.xz | tar xpfJ - -C /
+        #curl -sSL https://github.com/just-containers/s6-overlay/releases/download/v${S6OVERLAY_VERSION}/syslogd-overlay-noarch.tar.xz | tar xpfJ - -C /
+
+        mkdir -p \
+                    /etc/cont-init.d \
+                    /etc/cont-finish.d \
+                    /etc/services.d
+
+        chown -R 0755 \
+                        /etc/cont-init.d \
+                        /etc/cont-finish.d \
+                        /etc/services.d
+
+        sed -i \
+                -e "/exec s6-overlay-suexec/i echo 'source /container/base/functions/container/run' > /etc/bash/bashrc" \
+                -e "/export PATH/i addpath /usr/local/sbin" \
+                -e "/export PATH/i addpath /usr/local/bin" \
+                -e "/export PATH/i addpath /usr/sbin" \
+                    /init
+        sed -i \
+                "s|v=2|v=1|g" \
+                    /package/admin/s6-overlay/etc/s6-linux-init/skel/rc.init \
+                    /package/admin/s6-overlay/etc/s6-linux-init/skel/rc.shutdown
+        sed -i \
+                "s|echo|: # echo |g" \
+                    /package/admin/s6-overlay/etc/s6-rc/scripts/cont-init \
+                    /package/admin/s6-overlay/etc/s6-rc/scripts/cont-finish
+        sed -i \
+                -e "s|echo ' (no readiness notification)'|: # echo ' (no readiness notification)'|g" \
+                -e "s|s6-echo -n|: # s6-echo -n|g" \
+                    /package/admin/s6-overlay/etc/s6-rc/scripts/services-up
+
+        sed -i  \
+                "/#\!/a S6_CMD_WAIT_FOR_SERVICES_MAXTIME=\${S6_CMD_WAIT_FOR_SERVICES_MAXTIME:-\"0\"}" \
+                    /package/admin/s6-overlay/etc/s6-linux-init/skel/rc.init \
+                    /package/admin/s6-overlay/etc/s6-rc/scripts/services-up
+
+        cat << EOS6 >> /command/with-contenv
+#!/command/execlineb -S0
+
+ifelse
+{
+  importas -D 0 S6_KEEP_ENV S6_KEEP_ENV
+  eltest 0\${S6_KEEP_ENV} -eq 0
+}
+{
+  emptyenv -p
+  s6-envdir -Lfn -- /run/secrets s6-envdir -Lfn -- /run/s6/container_environment
+  exec
+  \$@
+}
+
+s6-envdir -Lfn -- /run/secrets \$@
+EOS6
+
+        if [ -d "$(dirname "$0")"/rootfs ]; then
+            cp -aR "$(dirname "$0")"/rootfs/* /
+        fi
+
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: S6 Overlay ${S6OVERLAY_VERSION} | ${S6OVERLAY_REPO_URL}" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: S6 Overlay ${S6OVERLAY_VERSION} | ${S6OVERLAY_REPO_URL}" >> /container/build/build.log
+    fi
+}
+
+remove() {
+    if [ -f "${S6OVERLAY_BINARY}" ]; then
+        dependencies
+
+        package remove \
+                        S6OVERLAY_RUN_DEPS
+
+        rm -rf ${S6OVERLAY_ASSETS}
+
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: S6 Overlay" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: S6 Overlay" >> /container/build/build.log
+
+        cat << EOF > /init
+#!/bin/bash
+
+mkdir -p /container/state/startup
+source /container/base/functions/container/run
+showoff
+exec bash
+EOF
+    fi
+}
+
+source /container/base/functions/container/build
+set -e
+$@

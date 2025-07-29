@@ -1,0 +1,111 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+ZEROTIER_VERSION=${ZEROTIER_VERSION:-"1.14.2"}
+ZEROTIER_REPO_URL=${ZEROTIER_REPO_URL:-"https://github.com/zerotier/ZeroTierOne"}
+
+ZEROTIER_USER=${ZEROTIER_USER:-"zerotier"}
+ZEROTIER_USER_ID=${ZEROTIER_USER_ID:-"9376"}
+ZEROTIER_GROUP=${ZEROTIER_GROUP:-"zerotier"}
+ZEROTIER_GROUP_ID=${ZEROTIER_GROUP_ID:-"9376"}
+
+ZEROTIER_BINARY=/usr/sbin/zerotier-one
+ZEROTIER_ASSETS=" \
+                    /container/base/defaults/vpn/zerotier \
+                    /container/base/functions/vpn/zerotier \
+                    ${ZEROTIER_BINARY} \
+                "
+
+dependencies() {
+    case "$(container_info distro)" in
+        alpine )
+            case "$(container_info variant)" in
+                3.1[7-9]* | 3.2[0-9]* )
+                    :
+                ;;
+                *)
+                    echo "Unsupported version"
+                    exit 5
+                ;;
+            esac
+
+            ZEROTIER_BUILD_DEPS_ALPINE="  \
+                                          binutils \
+                                          build-base \
+                                          git \
+                                          linux-headers \
+                                       "
+
+            ZEROTIER_RUN_DEPS_ALPINE=" 	\
+                                           iptables \
+                                           libc6-compat \
+                                           libstdc++ \
+                                     "
+        ;;
+        debian )
+            case "$(container_info variant)" in
+                bookworm )
+                    debian_backport="/bookworm-backports"
+                ;;
+            esac
+            ZEROTIER_BUILD_DEPS_DEBIAN=" \
+                                            build-essential \
+                                            clang \
+                                       "
+            ZEROTIER_RUN_DEPS_DEBIAN=" \
+                                            curl  \
+                                            iproute2 \
+                                            iputils-arping \
+                                            iputils-ping \
+                                            net-tools \
+                                            openssl \
+                                       "
+        ;;
+    esac
+}
+
+install() {
+    set -e
+    if [ ! -f "${ZEROTIER_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
+        dependencies
+        package update
+        package install \
+                        ZEROTIER_BUILD_DEPS \
+                        ZEROTIER_RUN_DEPS
+
+        create_user "${ZEROTIER_USER}" ${ZEROTIER_USER_ID} "${ZEROTIER_GROUP}" ${ZEROTIER_GROUP_ID} /dev/null
+
+        clone_git_repo "${ZEROTIER_REPO_URL}" "${ZEROTIER_VERSION}"
+        sed -i \
+                    -e "s|ZT_SSO_SUPPORTED=1|ZTG_SSO_SUPPORTED=0|g" \
+                make-linux.mk
+        make -j $(nproc) -f make-linux.mk
+        make -j $(nproc) -f make-linux.mk install
+
+        if [ -d "$(dirname "$0")"/rootfs ]; then
+            cp -aR "$(dirname "$0")"/rootfs/* /
+        fi
+
+        package remove \
+                        ZEROTIER_BUILD_DEPS
+    fi
+}
+
+remove() {
+    if [ -f "${ZEROTIER_BINARY}" ]; then
+        dependencies
+
+        package remove \
+                        ZEROTIER_RUN_DEPS
+
+        delete_user "${ZEROTIER_USER}"
+        delete_group "${ZEROTIER_GROUP}"
+
+        rm -rf "${ZEROTIER_ASSETS}"
+    fi
+}
+
+source /container/base/functions/container/build
+set -e
+$@

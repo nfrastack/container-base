@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+TAILSCALE_LISTEN_PORT=${TAILSCALE_LISTEN_PORT:-"0"}
+TAILSCALE_MODE=${TAILSCALE_MODE:-"DAEMON"}
+TAILSCALE_TUNNEL_INTERFACE=${TAILSCALE_TUNNEL_INTERFACE:-"tailscale0"}
+
+get_defaults_advanced
+
+if var_false "${TAILSCALE_ENABLE_LOGTAIL}" ; then tailscale_nologtail="-no-logs-no-support" ; fi

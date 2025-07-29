@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+set_env ZABBIX_AGENT_LOG_FILE="zabbix_agentd.log" nfrastack/base
+set_env ZABBIX_AGENT_LOG_PATH="/var/log/zabbix/agent/" nfrastack/base
+set_env ZABBIX_AGENT_TIMEOUT="3" nfrastack/base
+set_env ZABBIX_BUFFER_SEND="5" nfrastack/base
+set_env ZABBIX_BUFFER_SIZE="100" nfrastack/base
+set_env ZABBIX_CONFIG_FILE="zabbix_agentd.conf" nfrastack/base
+set_env ZABBIX_CONFIG_PATH="/etc/zabbix/" nfrastack/base
+set_env ZABBIX_ENABLE_AUTOREGISTER="TRUE" nfrastack/base
+set_env ZABBIX_ENABLE_AUTOREGISTER_DNS="TRUE" nfrastack/base
+set_env ZABBIX_LOG_FILE_SIZE="0" nfrastack/base
+set_env ZABBIX_MAXLINES_SECOND="20" nfrastack/base
+set_env ZABBIX_PID="/var/lib/zabbix/run/zabbix-agent.pid" nfrastack/base
+set_env ZABBIX_REFRESH_ACTIVE_CHECKS="120" nfrastack/base
+set_env ZABBIX_REMOTECOMMANDS_LOG="1" nfrastack/base
+set_env ZABBIX_SETUP_TYPE="AUTO" nfrastack/base
+set_env ZABBIX_SOCKET="/var/lib/zabbix/run/zabbix-agent.sock" nfrastack/base
+set_env ZABBIX_USER="zabbix" nfrastack/base
+set_env ZABBIX_USER_SUDO="TRUE" nfrastack/base

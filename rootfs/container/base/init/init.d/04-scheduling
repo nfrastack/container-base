@@ -1,0 +1,23 @@
+#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+source /container/base/functions/container/init
+output_off
+prepare_service single
+SERVICE_NAME="scheduling"
+
+if var_true "${CONTAINER_ENABLE_SCHEDULING}" ; then
+    if ! binary_exists $(var_value ${CONTAINER_SCHEDULING_BACKEND^^}_BINARY); then
+        print_debug "Disabling Scheduling Backend ${CONTAINER_SCHEDULING_BACKEND} - Binary '$(echo ${CONTAINER_SCHEDULING_BACKEND^^}_BINARY)' not found"
+        service_stop "$(basename "$0")"
+    else
+        call nfra_configure_scheduling_${CONTAINER_SCHEDULING_BACKEND,,}_init
+    fi
+else
+    service_stop "$(basename "$0")"
+fi
+
+liftoff
+output_on

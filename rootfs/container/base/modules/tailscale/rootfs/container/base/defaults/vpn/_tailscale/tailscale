@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+set_env TAILSCALE_BINARY="tailscale" nfrastack/base
+set_env TAILSCALE_DATA_PATH="/var/lib/tailscale/" nfrastack/base
+set_env TAILSCALE_LOG_FILE="tailscaled.log" nfrastack/base
+set_env TAILSCALE_LOG_LEVEL="1" nfrastack/base
+set_env TAILSCALE_LOG_TYPE="FILE" nfrastack/base
+set_env TAILSCALE_LOG_PATH="/var/log/tailscale/" nfrastack/base
+set_env TAILSCALE_SETUP_MODE="AUTO" nfrastack/base
+set_env TAILSCALE_SOCKET_PATH="/var/run/tailscale/" nfrastack/base
+set_env TAILSCALE_SOCKET_FILE="tailscaled.sock" nfrastack/base
+set_env TAILSCALE_ENABLE_LOGTAIL="FALSE" nfrastack/base
+set_env TAILSCALE_USER="root" nfrastack/base

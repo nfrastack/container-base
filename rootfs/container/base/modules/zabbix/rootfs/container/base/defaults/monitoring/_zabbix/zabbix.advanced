@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+ZABBIX_AGENT_LOG_FILE=${ZABBIX_AGENT_LOG_FILE:-"zabbix_agentd.log"}
+ZABBIX_AGENT_LOG_PATH=${ZABBIX_AGENT_LOG_PATH:-"/var/log/zabbix/agent/"}
+ZABBIX_AGENT_TIMEOUT=${ZABBIX_AGENT_TIMEOUT:-"3"}
+ZABBIX_BUFFER_SEND=${ZABBIX_BUFFER_SEND:-"5"}
+ZABBIX_BUFFER_SIZE=${ZABBIX_BUFFER_SIZE:-"100"}
+ZABBIX_CONFIG_FILE=${ZABBIX_CONFIG_FILE:-"zabbix_agentd.conf"}
+ZABBIX_CONFIG_PATH=${ZABBIX_CONFIG_PATH:-"/etc/zabbix/"}
+ZABBIX_LOG_FILE_SIZE=${ZABBIX_LOG_FILE_SIZE:-"0"}
+ZABBIX_MAXLINES_SECOND=${ZABBIX_MAXLINES_SECOND:-"20"}
+ZABBIX_PID=${ZABBIX_PID:-"/var/lib/zabbix/run/zabbix-agent.pid"}
+ZABBIX_REFRESH_ACTIVE_CHECKS=${ZABBIX_REFRESH_ACTIVE_CHECKS:-"120"}
+ZABBIX_REMOTECOMMANDS_LOG=${ZABBIX_REMOTECOMMANDS_LOG:-"1"}
+ZABBIX_SETUP_TYPE=${ZABBIX_SETUP_TYPE:-"AUTO"}
+ZABBIX_SOCKET=${ZABBIX_SOCKET:-"/var/lib/zabbix/run/zabbix-agent.sock"}
+ZABBIX_USER=${ZABBIX_USER:-"zabbix"}
+ZABBIX_USER_SUDO=${ZABBIX_USER_SUDO:-"TRUE"}
+
+case $(container_info distro) in
+    "alpine" )
+        if [ "$(echo "$(container_info variant)" | cut -d . -f 2 | cut -d _ -f 1)" -ge 14 ]; then
+            ZABBIX_AGENT_TYPE=${ZABBIX_AGENT_TYPE:-"modern"}
+            ZABBIX_BINARY=${ZABBIX_BINARY:-"zabbix_agent2"}
+        else
+            ZABBIX_AGENT_TYPE=${ZABBIX_AGENT_TYPE:-"classic"}
+            ZABBIX_BINARY=${ZABBIX_BINARY:-"zabbix_agent"}
+        fi
+    ;;
+    "debian" | "ubuntu" )
+        ZABBIX_AGENT_TYPE=${ZABBIX_AGENT_TYPE:-"modern"}
+        ZABBIX_BINARY=${ZABBIX_BINARY:-"zabbix_agent2"}
+    ;;
+esac

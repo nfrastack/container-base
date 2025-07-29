@@ -1,0 +1,262 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+FLUENTBIT_VERSION=${FLUENTBIT_VERSION:-"v4.0.5"}
+FLUENTBIT_REPO_URL=${FLUENTBIT_REPO_URL:-"https://github.com/fluent/fluent-bit"}
+
+FLUENTBIT_BINARY=/usr/bin/fluent-bit
+FLUENTBIT_ASSETS=" \
+                    /container/base/defaults/logging/fluentbit \
+                    /container/base/functions/logging/fluentbit \
+                    /etc/fluent-bit \
+                    ${FLUENTBIT_BINARY} \
+                    /usr/include/fluent-bit*
+                 "
+SCRIPT_PATH=$(dirname $(realpath "$0"))
+
+dependencies() {
+    case "$(container_info distro)" in
+        alpine )
+            case "$(container_info variant)" in
+                3.1[4-6]* )
+                    fts=fts
+                ;;
+                3.1[7-9]* | 3.2[0-9]* )
+                    fts=musl-fts
+                ;;
+                *)
+                    echo "Unsupported version"
+                    exit 5
+                ;;
+            esac
+
+            FLUENTBIT_BUILD_DEPS_ALPINE=" 	\
+                                                bison \
+                                                build-base \
+                                                cmake \
+                                                curl \
+                                                flex \
+                                                ${fts}-dev \
+                                                linux-headers \
+                                                ninja \
+                                                patch \
+                                                openssl-dev \
+                                                yaml-dev \
+                                        "
+
+            FLUENTBIT_RUN_DEPS_ALPINE=" 	\
+                                                ${fts} \
+                                                yaml \
+                                            "
+
+
+        ;;
+        debian )
+            case "$(container_info variant)" in
+                bookworm )
+                    debian_backport="/bookworm-backports"
+                ;;
+            esac
+            FLUENTBIT_BUILD_DEPS_DEBIAN=" \
+                                            automake \
+                                            bison \
+                                            build-essential \
+                                            cmake \
+                                            flex \
+                                            libssl-dev \
+                                            libsasl2-dev \
+                                            libsystemd-dev \
+                                            libyaml-dev \
+                                            ninja-build \
+                                            pkg-config \
+                                            zlib1g-dev \
+                                        "
+            FLUENTBIT_RUN_DEPS_DEBIAN=" \
+                                            libyaml-0-2 \
+                                        "
+        ;;
+    esac
+}
+
+install() {
+    set -e
+    if [ ! -f "${FLUENTBIT_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
+        dependencies
+        package update
+        package install \
+                        FLUENTBIT_BUILD_DEPS \
+                        FLUENTBIT_RUN_DEPS
+
+        clone_git_repo "${FLUENTBIT_REPO_URL}" "${FLUENTBIT_VERSION}"
+        case "$(container_info distro)" in
+            alpine )
+                if [ -d "${SCRIPT_PATH}/patches/alpine" ]; then
+                    for patch in "${SCRIPT_PATH}"/patches/alpine/*.patch; do
+                        if [ -f "$patch" ]; then
+                            echo "** Applying ${patch}"
+                            patch -p1 < "$patch"
+                        fi
+                    done
+                fi
+            ;;
+        esac
+
+        cmake \
+                -B build \
+                -G Ninja \
+                -DCMAKE_INSTALL_PREFIX=/usr \
+                -DCMAKE_INSTALL_LIBDIR=lib \
+                -DCMAKE_BUILD_TYPE=None \
+                -DFLB_AWS=Yes \
+                -DFLB_BACKTRACE=No \
+                -DFLB_BACKTRACE=No \
+                -DFLB_CHUNK_TRACE=No \
+                -DFLB_CORO_STACK_SIZE=24576\
+                -DFLB_CUSTOM_CALYPTIA=No \
+                -DFLB_DEBUG=No \
+                -DFLB_EXAMPLES=No \
+                -DFLB_FILTER_AWS=No \
+                -DFLB_FILTER_ECS=No \
+                -DFLB_FILTER_GEOIP2=No \
+                -DFLB_FILTER_KUBERNETES=No \
+                -DFLB_FILTER_LUA=No \
+                -DFLB_FILTER_NIGHTFALL=No \
+                -DFLB_FILTER_TENSORFLOW=No \
+                -DFLB_FILTER_WASM=No \
+                -DFLB_HTTP_SERVER=Yes \
+                -DFLB_IN_CALYPTIA_FLEET=No \
+                -DFLB_IN_COLLECTD=No \
+                -DFLB_IN_CPU=No \
+                -DFLB_IN_DISK=No \
+                -DFLB_IN_DOCKER_EVENTS=No \
+                -DFLB_IN_DOCKER=No \
+                -DFLB_IN_ELASTICSEARCH=No \
+                -DFLB_IN_EMITTER=Yes \
+                -DFLB_IN_EXEC_WASI=No \
+                -DFLB_IN_EXEC=Yes \
+                -DFLB_IN_FLUENTBIT_METRICS=No \
+                -DFLB_IN_HEALTH=No \
+                -DFLB_IN_KMSG=No \
+                -DFLB_IN_KUBERNETES_EVENTS=No \
+                -DFLB_IN_MEM=No \
+                -DFLB_IN_MQTT=No \
+                -DFLB_IN_NETIF=No \
+                -DFLB_IN_NGINX_EXPORTER_METRICS=No \
+                -DFLB_IN_NODE_EXPORTER_METRICS=No \
+                -DFLB_IN_OPENTELEMETRY=No \
+                -DFLB_IN_PODMAN_METRICS=No \
+                -DFLB_IN_PROC=No \
+                -DFLB_IN_PROCESS_EXPORTER_METRICS=No \
+                -DFLB_IN_PROMETHEUS_REMOTE_WRITE=No \
+                -DFLB_IN_PROMETHEUS_SCRAPE=No \
+                -DFLB_IN_SERIAL=No \
+                -DFLB_IN_SPLUNK=No \
+                -DFLB_IN_STATSD=No \
+                -DFLB_IN_SYSLOG=No \
+                -DFLB_IN_SYSTEMD=No \
+                -DFLB_IN_TCP=No \
+                -DFLB_IN_THERMAL=No \
+                -DFLB_IN_UDP=No \
+                -DFLB_IN_UNIX_SOCKET=No \
+                -DFLB_IN_WINDOWS_EXPORTER_METRICS=No \
+                -DFLB_IN_WINLOG=No \
+                -DFLB_IN_WINSTAT=No \
+                -DFLB_INOTIFY=Yes \
+                -DFLB_JEMALLOC=Yes \
+                -DFLB_KAFKA=No \
+                -DFLB_LUAJIT=No \
+                -DFLB_METRICS=No \
+                -DFLB_OUT_AZURE_BLOB=No \
+                -DFLB_OUT_AZURE_KUSTO=No \
+                -DFLB_OUT_AZURE_LOGS_INGESTION=No \
+                -DFLB_OUT_AZURE=No \
+                -DFLB_OUT_BIGQUERY=No \
+                -DFLB_OUT_CALYPTIA=No \
+                -DFLB_OUT_CHRONICLE=No \
+                -DFLB_OUT_CLOUDWATCH_LOGS=No \
+                -DFLB_OUT_COUNTER=No \
+                -DFLB_OUT_DATADOG=No \
+                -DFLB_OUT_ES=No \
+                -DFLB_OUT_FLOWCOUNTER=No \
+                -DFLB_OUT_GELF=No \
+                -DFLB_OUT_INFLUXDB=No \
+                -DFLB_OUT_KAFKA_REST=No \
+                -DFLB_OUT_KAFKA=No \
+                -DFLB_OUT_KINESIS_FIREHOSE=No \
+                -DFLB_OUT_KINESIS_STREAMS=No \
+                -DFLB_OUT_LIB=No \
+                -DFLB_OUT_LOGDNA=No \
+                -DFLB_OUT_NATS=No \
+                -DFLB_OUT_NRLOGS=No \
+                -DFLB_OUT_OPENSEARCH=No \
+                -DFLB_OUT_OPENTELEMETRY=No \
+                -DFLB_OUT_ORACLE_LOG_ANALYTICS=No \
+                -DFLB_OUT_PGSQL=No \
+                -DFLB_OUT_PLOT=No \
+                -DFLB_OUT_PROMETHEUS_EXPORTER=No \
+                -DFLB_OUT_PROMETHEUS_REMOTE_WRITE=No \
+                -DFLB_OUT_S3=No \
+                -DFLB_OUT_SKYWALKING=No \
+                -DFLB_OUT_SLACK=No \
+                -DFLB_OUT_SPLUNK=No \
+                -DFLB_OUT_STACKDRIVER=No \
+                -DFLB_OUT_TCP=No \
+                -DFLB_OUT_TD=No \
+                -DFLB_OUT_UDP=No \
+                -DFLB_OUT_VIVO_EXPORTER=No \
+                -DFLB_OUT_WEBSOCKET=No \
+                -DFLB_PROCESSOR_OPENTELEMETRY_ENVELOPE=No \
+                -DFLB_PROCESSOR_SQL=No \
+                -DFLB_PROXY_GO=No \
+                -DFLB_RELEASE=Yes \
+                -DFLB_SHARED_LIB=No \
+                -DFLB_SIGNV4=Yes \
+                -DFLB_SMALL=Yes \
+                -DFLB_TLS=Yes \
+                -DFLB_WASM=No \
+                -DFLB_WINDOWS_DEFAULTS=No \
+                -DFLB_WITHOUT_flb-it-aws_credentials_process=Yes \
+                -DFLB_WITHOUT_flb-it-aws_util=Yes \
+                -DFLB_WITHOUT_flb-it-pack=Yes \
+                -DFLB_WITHOUT_flb-it-utils=Yes \
+                -DFLB_ZIG=No \
+                .
+
+	    cmake --build build
+        cmake --install build
+
+        mv /usr/etc/fluent-bit /etc/fluent-bit
+        mkdir -p /etc/fluent-bit/parsers.d
+        mkdir -p /etc/fluent-bit/conf.d
+        strip /usr/bin/fluent-bit
+
+        if [ -d "$(dirname "$0")"/rootfs ]; then
+            cp -aR "$(dirname "$0")"/rootfs/* /
+        fi
+
+        package remove \
+                        FLUENTBIT_BUILD_DEPS
+
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: fluent-bit ${FLUENTBIT_VERSION} | ${FLUENTBIT_REPO_URL}" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: fluent-bit ${FLUENTBIT_VERSION} | ${FLUENTBIT_REPO_URL}" >> /container/build/build.log
+    fi
+}
+
+remove() {
+    if [ -f "${FLUENTBIT_BINARY}" ]; then
+        dependencies
+
+        package remove \
+                        FLUENTBIT_RUN_DEPS
+
+        rm -rf ${FLUENTBIT_ASSETS}
+
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: fluent-bit" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: fluent-bit" >> /container/build/build.log
+    fi
+}
+
+source /container/base/functions/container/build
+set -e
+$@

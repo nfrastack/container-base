@@ -1,0 +1,17 @@
+#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+source /container/base/functions/container/init
+SERVICE_NAME="scheduling"
+output_off
+prepare_service single
+check_container_initialized
+check_service_initialized init
+
+if var_true "${CONTAINER_ENABLE_LOGROTATE}" ; then
+    call nfra_configure_scheduling_logrotate_run
+fi
+
+call nfra_configure_scheduling_${CONTAINER_SCHEDULING_BACKEND,,}_run

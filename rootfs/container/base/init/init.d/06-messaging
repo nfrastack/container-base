@@ -1,0 +1,23 @@
+#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+source /container/base/functions/container/init
+output_off
+prepare_service single
+SERVICE_NAME="messaging"
+
+if var_true "${CONTAINER_ENABLE_MESSAGING}" ; then
+    if ! binary_exists $(var_value ${CONTAINER_MESSAGING_BACKEND^^}_BINARY); then
+        print_debug "Disabling Messaging Backend ${CONTAINER_MESSAGING_BACKEND} - Binary '$(echo ${CONTAINER_MESSAGING_BACKEND^^}_BINARY)' not found"
+        service_stop "$(basename "$0")"
+    else
+        call nfra_configure_messaging_${CONTAINER_MESSAGING_BACKEND,,}_init
+    fi
+else
+    service_stop "$(basename "$0")"
+fi
+
+liftoff
+output_on
