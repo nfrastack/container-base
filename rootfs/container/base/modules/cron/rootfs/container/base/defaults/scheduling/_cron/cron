@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+set_env CRON_BINARY="crond" nfrastack/base
+set_env SCHEDULING_LOG_TYPE="FILE" nfrastack/base
+set_env SCHEDULING_LOG_LOCATION="/var/log/cron/" nfrastack/base
+set_env SCHEDULING_LOG_LEVEL="8" nfrastack/base

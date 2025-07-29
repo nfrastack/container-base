@@ -1,0 +1,89 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+FAIL2BAN_BINARY=/usr/bin/fail2ban-server
+
+FAIL2BAN_GROUP=${FAIL2BAN_GROUP:-"fail2ban"}
+FAIL2BAN_GROUP_ID=${FAIL2BAN_GROUP_ID:-"65500"}
+
+FAIL2BAN_ASSETS=" \
+                    /container/base/defaults/firewall/fail2ban \
+                    /container/base/functions/firewall/fail2ban \
+                    /etc/fail2ban
+                    /run/fail2ban
+                    /var/lib/fail2ban
+                "
+
+dependencies() {
+    case "$(container_info distro)" in
+        alpine )
+            FAIL2BAN_RUN_DEPS_ALPINE=" 	\
+                                            fail2ban \
+                                            iptables \
+                                     "
+        ;;
+        debian )
+            FAIL2BAN_RUN_DEPS_DEBIAN=" \
+                                            fail2ban \
+                                            iptables \
+                                     "
+        ;;
+    esac
+}
+
+install() {
+    set -e
+    if [ ! -f "${FAIL2BAN_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
+        dependencies
+        create_group "${FAIL2BAN_GROUP}" ${FAIL2BAN_GROUP_ID}
+
+        if id -u zabbix >/dev/null 2>&1; then
+            add_user_group zabbix "${FAIL2BAN_GROUP}"
+        fi
+
+        package update
+        package install \
+                        FAIL2BAN_RUN_DEPS
+
+        rm -rf /var/run/fail2ban
+        mkdir -p /var/run/fail2ban
+        chown -R root:fail2ban /var/run/fail2ban
+        setfacl -d -m g:fail2ban:rwx /var/run/fail2ban
+        find /etc/fail2ban/action.d/ -type f -not -name 'iptables*.conf' -delete
+
+        mkdir -p /etc/fail2ban/filter.d
+
+        rm -rf \
+                /etc/fail2ban/fail2ban.d \
+                /etc/fail2ban/filter.d/* \
+                /etc/fail2ban/jail.d/* \
+                /etc/fail2ban/paths*
+
+        if [ -d "$(dirname "$0")"/rootfs ]; then
+            cp -aR "$(dirname "$0")"/rootfs/* /
+        fi
+
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: fail2ban $(fail2ban-server -V) | repositories" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: fail2ban $(fail2ban-server -V) | repositories" >> /container/build/build.log
+    fi
+}
+
+remove() {
+    if [ -f "${FAIL2BAN_BINARY}" ]; then
+        dependencies
+
+        package remove \
+                        FAIL2BAN_RUN_DEPS
+
+        rm -rf ${FAIL2BAN_ASSETS}
+
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: fail2ban" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: fail2ban" >> /container/build/build.log
+
+    fi
+}
+
+source /container/base/functions/container/build
+set -e
+$@

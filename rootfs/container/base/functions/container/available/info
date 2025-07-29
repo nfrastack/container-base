@@ -1,0 +1,134 @@
+container_info() {
+    case "${1,,}" in
+        arch )
+            if [ "${2}" = "alt" ] ; then
+                echo $(uname -m | sed -e 's|x86_64|amd64|g' -e 's|aarch64|arm64|g')
+            else
+                echo $(uname -m)
+            fi
+        ;;
+
+        distro )
+            echo $(grep -o '^ID=.*' /etc/os-release | cut -d = -f2)
+        ;;
+        variant )
+            case $(grep -o '^ID=.*' /etc/os-release | cut -d = -f2) in
+                alpine )
+                    echo $(grep -o '^VERSION_ID=.*' /etc/os-release | cut -d = -f2 | cut -d . -f1-2)
+                ;;
+                debian | ubuntu )
+                    echo $(grep -o '^VERSION_CODENAME=.*' /etc/os-release | cut -d = -f2)
+                ;;
+            esac
+        ;;
+    esac
+}
+
+get_image_version() {
+    output_off
+    if [ -n "${IMAGE_NAME}" ] ; then
+        if [ -f "/container/build/${IMAGE_NAME/\//_}/CHANGELOG.md" ] ; then
+            image_version=$(head -n1 /container/build/${IMAGE_NAME/\//_}/CHANGELOG.md | awk '{print $2}')
+            elif [ -f /container/build/docker-${IMAGE_NAME/\//_}/CHANGELOG.md ] ; then
+            image_version=$(head -n1 /container/build/docker-${IMAGE_NAME/\//_}/CHANGELOG.md | awk '{print $2}')
+        else
+            if [ -f /container/build/nfrastack_docker-${IMAGE_NAME/\//_}/CHANGELOG.md ] ; then
+                image_version=$(head -n1 /container/build/docker-${IMAGE_NAME/\//_}/CHANGELOG.md | awk '{print $2}')
+            else
+                strip_image_repo_url=$(echo ${IMAGE_REPO_URL%/} | sed "s#https://github.com/##g")
+                if [ -f /container/build/${strip_image_repo_url/\//_}/CHANGELOG.md ] ; then
+                    image_version=$(head -n1 /container/build/${strip_image_repo_url/\//_}/CHANGELOG.md | awk '{print $2}')
+                fi
+            fi
+
+            if [ -f /container/build/nfrastack_docker-${IMAGE_NAME/\//_}/CHANGELOG.md ] ; then
+                image_version=$(head -n1 /container/build/nfrastack_docker-${IMAGE_NAME/\//_}/CHANGELOG.md | awk '{print $2}')
+            fi
+        fi
+
+        if [ -n "${image_version}" ] ; then
+            echo "${image_version}"
+        fi
+    fi
+    output_on
+}
+
+image_changelog() {
+    ## Show last changelog version and details of current running image
+    if [ -f "/container/build/${IMAGE_NAME/\//_}/CHANGELOG.md" ] ; then
+        changelogname="/container/build/${IMAGE_NAME/\//_}/CHANGELOG.md"
+    elif [ -f /container/build/docker-${IMAGE_NAME/\//_}/CHANGELOG.md ] ; then
+        changelogname="/container/build/docker-${IMAGE_NAME/\//_}/CHANGELOG.md"
+    else
+        if [ -f /container/build/nfrastack_docker-${IMAGE_NAME/\//_}/CHANGELOG.md ] ; then
+            changelogname="/container/build/nfrastack_docker-${IMAGE_NAME/\//_}/CHANGELOG.md"
+        else
+            strip_image_repo_url=$(echo ${IMAGE_REPO_URL%/} | sed "s#https://github.com/##g")
+            if [ -f /container/build/${strip_image_repo_url/\//_}/CHANGELOG.md ] ; then
+                changelogname="/container/build/${strip_image_repo_url/\//_}/CHANGELOG.md"
+            fi
+        fi
+    fi
+
+    if [ -z "${changelogname// }" ] ; then
+        echo "** Sorry - I do not know what image this is. Check if there are changelogs in /container/build"
+    else
+        echo "** Showing the most recent version entry changelog for ${IMAGE_NAME} - See more at /container/build"
+        awk '/^##/{p++} p==2{print; exit} p>=1' $changelogname | sed '$d'
+    fi
+}
+
+image_license() {
+    ## Show LICENSE details current running image
+    if [ -f "/container/build/${IMAGE_NAME/\//_}/LICENSE" ] ; then
+        licensename="/container/build/${IMAGE_NAME/\//_}/LICENSE"
+    elif [ -f /container/build/docker-${IMAGE_NAME/\//_}/LICENSE ] ; then
+        licensename="/container/build/docker-${IMAGE_NAME/\//_}/CHANGELOG.md"
+    else
+        if [ -f /container/build/nfrastack_docker-${IMAGE_NAME/\//_}/LICENSE ] ; then
+            licensename="/container/build/nfrastack_docker-${IMAGE_NAME/\//_}/LICENSE"
+        else
+            strip_image_repo_url=$(echo ${IMAGE_REPO_URL%/} | sed "s#https://github.com/##g")
+            if [ -f /container/build/${strip_image_repo_url/\//_}/LICENSE ] ; then
+                licensename="/container/build/${strip_image_repo_url/\//_}/LICENSE"
+            fi
+        fi
+    fi
+
+    if [ -z "${licensename// }" ] ; then
+        echo "** Sorry - I do not know what image this is. Check if there are LICENSE files in /container/build"
+    else
+        less "${licensename}"
+    fi
+}
+
+image_readme() {
+    ## Show README.md details current running image
+    if [ -f "/container/build/${IMAGE_NAME/\//_}/README.md" ] ; then
+        readmename="/container/build/${IMAGE_NAME/\//_}/README.md"
+    elif [ -f /container/build/docker-${IMAGE_NAME/\//_}/README.md ] ; then
+        readmename="/container/build/docker-${IMAGE_NAME/\//_}/CHANGELOG.md"
+    else
+        if [ -f /container/build/nfrastack_docker-${IMAGE_NAME/\//_}/README.md ] ; then
+            readmename="/container/build/nfrastack_docker-${IMAGE_NAME/\//_}/README.md"
+        else
+            strip_image_repo_url=$(echo ${IMAGE_REPO_URL%/} | sed "s#https://github.com/##g")
+            if [ -f /container/build/${strip_image_repo_url/\//_}/README.md ] ; then
+                readmename="/container/build/${strip_image_repo_url/\//_}/README.md"
+            fi
+        fi
+    fi
+
+    if [ -z "${readmename// }" ] ; then
+        echo "** Sorry - I do not know what image this is. Check if there are README.md files in /container/build"
+    else
+        less "${readmename}"
+    fi
+}
+
+## Add Support to list all Changelogs known of all images used to build
+image_version() {
+    for clname in $(find /container/build/*/CHANGELOG.md -type f -exec ls -1rt "{}" +; 2>/dev/null) ; do
+        iver=$(head -n 1 "${clname}" | awk '{print $2}')
+        echo "Image: $(basename "$(echo "$(dirname $clname)" )") ${iver}";     done
+}

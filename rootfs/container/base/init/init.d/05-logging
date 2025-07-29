@@ -1,0 +1,27 @@
+#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+source /container/base/functions/container/init
+output_off
+prepare_service 04-scheduling 05-logging
+SERVICE_NAME="logging"
+
+if var_true "${CONTAINER_ENABLE_LOGROTATE}" ; then
+    call nfra_configure_logging_logrotate_init
+fi
+
+if var_true "${CONTAINER_ENABLE_LOGSHIPPING}" ; then
+    if ! binary_exists $(var_value ${CONTAINER_LOGSHIPPING_BACKEND^^}_BINARY); then
+            print_debug "Disabling Log Shipping Backend ${CONTAINER_LOGSHIPPIPNG_BACKEND} - Binary '$(echo ${CONTAINER_LOGSHIPPING_BACKEND^^}_BINARY)' not found"
+            service_stop "$(basename "$0")"
+    else
+        call nfra_configure_logging_${CONTAINER_LOGSHIPPING_BACKEND/-/}_init
+    fi
+else
+    service_stop "$(basename "$0")"
+fi
+
+liftoff
+output_on

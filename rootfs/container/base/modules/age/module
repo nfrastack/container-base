@@ -1,0 +1,66 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+AGE_VERSION=${AGE_VERSION:-"v1.2.1"}
+AGE_REPO_URL=${AGE_REPO_URL:-"https://github.com/FiloSottile/age"}
+
+AGE_BINARY=/usr/local/bin/age
+AGE_ASSETS=" \
+                ${AGE_BINARY} \
+           "
+
+dependencies() {
+    case "$(container_info distro)" in
+        alpine )
+            case "$(container_info variant)" in
+                3.1[7-9]* | 3.2[0-9]* )
+                    :
+                ;;
+                *)
+                    echo "Unsupported version"
+                    exit 5
+                ;;
+            esac
+       ;;
+        debian )
+        ;;
+    esac
+}
+
+install() {
+    set -e
+    if [ ! -f "${AGE_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
+        dependencies
+        package update
+
+        clone_git_repo "${AGE_REPO_URL}" "${AGE_VERSION}"
+
+        go build \
+                -ldflags "-w -s" \
+                -o /usr/local/bin/age \
+                -a ./cmd/age
+
+        if [ -d "$(dirname "$0")"/rootfs ]; then
+            cp -aR "$(dirname "$0")"/rootfs /
+        fi
+
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: age ${AGE_VERSION} | ${AGE_REPO_URL}" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: age ${AGE_VERSION} | ${AGE_REPO_URL}" >> /container/build/build.log
+    fi
+}
+
+remove() {
+    if [ -f "${AGE_BINARY}" ]; then
+        dependencies
+
+        rm -rf "${AGE_ASSETS}"
+
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: age" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: age" >> /container/build/build.log
+    fi
+}
+
+source /container/base/functions/container/build
+set -e
+$@

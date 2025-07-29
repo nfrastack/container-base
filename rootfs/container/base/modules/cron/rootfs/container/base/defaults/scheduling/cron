@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+get_defaults_advanced
+
+SCHEDULING_BINARY=${SCHEDULING_BINARY:-"${CRON_BINARY}"}

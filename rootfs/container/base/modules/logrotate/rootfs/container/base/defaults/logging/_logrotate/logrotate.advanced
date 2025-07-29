@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+case "$(container_info distro)" in
+    alpine )
+        case "$(container_info variant)" in
+            3.[58] ) LOGROTATE_COMPRESSION_TYPE="gzip" ;;
+            *) LOGROTATE_COMPRESSION_TYPE=${LOGROTATE_COMPRESSION_TYPE:-"zstd"} ;;
+        esac
+    ;;
+esac
+
+LOGSHIPPING_AUTO_CONFIG_LOGROTATE=${LOGSHIPPING_AUTO_CONFIG_LOGROTATE:-"TRUE"}
+LOGROTATE_COMPRESSION_VALUE=${LOGROTATE_COMPRESSION_VALUE:-"8"}
+LOGROTATE_RETAIN_DAYS=${LOGROTATE_RETAIN_DAYS:-"7"}
+

@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+for run_function in /container/base/functions/container/run.d/* ; do
+    if [ ! -d "${run_function}" ] ; then
+        #echo "Sourcing ${run_function}"
+        source "${run_function}"
+    fi
+done
+source /container/base/defaults/container

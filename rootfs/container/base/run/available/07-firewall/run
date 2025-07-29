@@ -1,0 +1,13 @@
+#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+source /container/base/functions/container/init
+output_off
+SERVICE_NAME="firewall"
+prepare_service single
+check_container_initialized
+check_service_initialized init
+
+call nfra_configure_firewall_fail2ban_init

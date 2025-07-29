@@ -1,0 +1,165 @@
+#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+source /container/base/functions/container/init
+showoff
+
+mkdir -p "${CONTAINER_LOG_FILE_PATH}"
+touch "${CONTAINER_LOG_FILE_PATH}"/"${CONTAINER_LOG_FILE_NAME}"
+echo "** Container Name: ${CONTAINER_NAME} - Commencing Logging - Image: ${IMAGE_NAME}" >> "${CONTAINER_LOG_FILE_PATH}"/"${CONTAINER_LOG_FILE_NAME}"
+call create_logrotate container "${CONTAINER_LOG_FILE_PATH}"/"${CONTAINER_LOG_FILE_NAME}"
+
+if var_true "${CONTAINER_ENABLE_PERMISSIONS}" ; then
+    print_debug "Enabling permissions features"
+    unames+="$(set -o posix ; set | sort | grep -e '^CONTAINER_USER_' | sed "s|^CONTAINER_USER_||g" | tr '[:upper:]' '[:lower:]' | tr ' ' '\n')"
+    for upair in $unames; do
+        uname=$(echo "${upair}" | cut -d = -f 1)
+        uid=$(echo "${upair}" | cut -d = -f 2)
+        if grep -e "^${uname}" /etc/passwd > /dev/null; then
+           _userexists=true
+        elif grep -e "^${uname/_/-}" /etc/passwd > /dev/null; then
+           _userexists=true
+           uname=${uname/_/-}
+        fi
+        if [ "${_userexists}" = true ] ; then
+            ouid=$(grep -e "^${uname}" /etc/passwd | awk -F: '{print $3}')
+
+            print_debug "Changing user '${u}' to uid '${uid}' from '${ouid}'"
+            sed -i "s|${uname}:x:${ouid}:|${uname}:x:${uid}:|g" /etc/passwd
+        fi
+    done
+    groups+="$(set -o posix ; set | sort | grep -e '^CONTAINER_GROUP_' | sed "s|^CONTAINER_GROUP_||g" | tr '[:upper:]' '[:lower:]' | tr ' ' '\n' | sed '/add_.*/d' ) "
+    for gpair in $groups; do
+        gname=$(echo "${gpair}" | cut -d = -f 1)
+        gid=$(echo "${gpair}" | cut -d = -f 2)
+        if grep -e "^${gname}" /etc/group > /dev/null; then
+           _groupexists=true
+        elif grep -e "^${gname/_/-}" /etc/group > /dev/null; then
+           _groupexists=true
+           gname=${gname/_/-}
+        fi
+
+        if [ "${_groupexists}" = true ] ; then
+            opgid=$(grep -e "^${gname}" /etc/passwd | awk -F: '{print $4}')
+            og=$(grep -e "^${gname}" /etc/group | awk -F: '{print $1}')
+            oggid=$(grep -e "^${gname}" /etc/group | awk -F: '{print $3}')
+            print_debug "Changing group '${gname}' to gid '${gid}' from '${oggid}'"
+            sed -i "s|\(.*\):\(.*\):\(.*\):${opgid}:|\1:\2:\3:${gid}:|g" /etc/passwd
+            sed -i "s|${og}:x:${oggid}|${og}:x:${gid}|g" /etc/group
+        fi
+    done
+    groupsadd+="$(set -o posix ; set | sort | grep -e '^CONTAINER_GROUP_ADD_' | sed 's|^CONTAINER_GROUP_ADD_||g' | tr '[:upper:]' '[:lower:]' )"
+    for gapair in $groupsadd; do
+        gname=$(echo "${gapair}" | cut -d = -f1 )
+        if grep -e "^${gname}" /etc/group > /dev/null; then
+           _groupexists=true
+        elif grep -e "^${gname/_/-}" /etc/group > /dev/null; then
+           _groupexists=true
+           gname=${gname/_/-}
+        else
+            _groupexists=false
+        fi
+        if [ "${_groupexists}" = true ] ; then
+            uta=$(echo ${gapair} | cut -d = -f2 | tr ',' '\n')
+            for userstogroup in ${uta} ; do
+                print_debug "Adding user '${userstogroup}' to '${gname}'"
+                silent add_user_group ${userstogroup} ${gname}
+            done
+        fi
+    done
+
+    groupsdel+="$(set -o posix ; set | sort | grep -e '^CONTAINER_GROUP_DEL_' | sed 's|^CONTAINER_GROUP_DEL_||g' | tr '[:upper:]' '[:lower:]' )"
+    for gapair in $groupsdel; do
+        gname=$(echo "${gapair}" | cut -d = -f1 )
+        if grep -e "^${gname}" /etc/group > /dev/null; then
+           _groupexists=true
+        elif grep -e "^${gname/_/-}" /etc/group > /dev/null; then
+           _groupexists=true
+           gname=${gname/_/-}
+        else
+            _groupexists=false
+        fi
+        if [ "${_groupexists}" = true ] ; then
+            utd=$(echo ${gapair} | cut -d = -f2 | tr ',' '\n')
+            for usersfromgroup in ${utd} ; do
+                print_debug "Deleting user '${usersfromgroup}' from '${gname}'"
+                silent delete_user_group ${usersfromgroup} ${gname}
+            done
+        fi
+    done
+fi
+
+output_off
+if [ "$(find /container/base/defaults /container/defaults /container/base/functions /container/functions -name *.enc* -o -name *.age -type f 2>/dev/null | wc -l)" -ge 1 ]; then
+    transform_var file $(echo "YEK_DECNAVDA_KCATSARFN" | rev)
+    if [ -v $(echo "YEK_DECNAVDA_KCATSARFN" | rev) ]; then
+        _h=$(echo "84+ 104+ 105+ 115+ 32+ 105+ 115+ 32+ 97+ 32+ 116+ 111+ 32+ 107+ 101+ 101+ 112+ 32+ 116+ 104+ 105+ 110+ 103+ 115+ 32+ 104+ 111+ 110+ 101+ 115+ 116+ 10 * 2846 + 2" | bc)
+        for _s in $(find /container/base/defaults /container/defaults /container/base/functions /container/functions -name *.enc* -o -name *.age -type f -print 2>/dev/null); do
+            if [[ "$_s" == *functions* ]]; then
+                _ss="function"
+            elif [[ "$_s" == *defaults* ]]; then
+                _ss="default"
+            fi
+
+            if [ -v $(basename "${0}" | sed "s|^[0-9]*\W*||") ]; then
+                ##_r=$(curl -sSL -w "%{http_code}" -d "$(set -o posix; set ; grep "^$(echo '_KCATSARFN' | rev)$(basename "${0}" | sed "s|^[0-9]*\W*||")$(echo '=YEK_DECNAVDA' | rev)" | cut -d = -f2- | sed -e "s|'||g" -e 's|"||g"' | rev)=esnecil&$(echo "${IMAGE_VERSION}" | rev)=noisrev_egami&$(echo "${IMAGE_NAME}" | rev)=eman_egami" -H "$(echo "dedocnelru-mrof-www-x/noitacilppa :epyT-tnetnoC" | rev)" -X POST $(echo "moc.kcatsarfn.l//:sptth" | rev))
+                _h=$(tail -n1 <<< "$_r")
+                _c=$(sed '$ d' <<< "$_r")
+                _cc="$(echo "YEK_DECNAVDA_KCATSARFN" | rev)"
+                _c="${!_cc}"
+                #_h=$(( 268 + 100 ))
+            fi
+            _cc="$(echo "YEK_DECNAVDA_KCATSARFN" | rev)"
+            _c="${!_cc}"
+            if [ "${_h}" -eq $(( 31337 )) ]; then
+                _t=$(date -r "${_s}" +%Y%m%d%H%M.%S)
+                case "${_s##*.}" in
+                    age )
+                        ( echo "${_c}" | base64 -d | gunzip ) 2>/dev/null | silent age -i - -d -o "${_s%.*}" "${_s}"
+                        _dec_x=$?
+                    ;;
+                    enc*)
+                        if echo "$_s" | grep -o \.enc.* | grep -o _pbkdf2 ; then _p="-pbkdf2" ; fi
+                        _e=$(echo "$_s" | grep -o \.enc.* | sed -e 's|.enc_||' -e 's|_pbkdf2||')
+                        silent openssl ${_e} -d -a ${_p} -in "${_s}" -out ""${_s%.*}"" -k "${_c}"
+                        _dec_x=$?
+                    ;;
+                esac
+                if [ $_dec_x != 0 ] ; then
+                    print_notice "$(echo "ytilanoitcnuf $(basename "${_s%.*}" | sed "s|^[0-9]*\W*||" | rev) $(echo "${_ss}" | rev) decnavda rof yek gnidoced melborP" | rev)"
+                    rm -rf "${_s%.*}"
+                else
+                    chmod +x "${_s%.*}"
+                    touch -t "${_t}" "${_s%.*}"
+                    print_debug "$(echo "delbane ytilanoitcnuf $(basename "${_s%.*}" | sed "s|^[0-9]*\W*||" | rev) $(echo "${_ss}" | rev) decnavdA" | rev)"
+                    rm -rf "${_s}"
+                    touch $(echo decnavda./tini/etats/reniatnoc/ | rev)
+                fi
+            else
+                print_error "$(echo "sliated rof moc.kcatsarfn.www tcatnoC - revreS esneciL gnitcatnoC rorrE" | rev)"
+            fi
+        done
+    else
+        for _s in $(find /container/base/defaults /container/defaults /container/base/functions /container/functions -name *.enc* -name *.age -type f -print 2>/dev/null) ; do
+            print_debug "$(echo "delbane ton ytilanoitcnuf $(basename "${_s%.*}" | cut -d - -f2-) decnavdA" | rev)"
+        done
+    fi
+else
+    touch $(echo decnavda./tini/etats/reniatnoc/ | rev)
+fi
+
+if [ -f $(echo decnavda./tini/etats/reniatnoc/ | rev) ]; then
+    print_notice "$(echo "delbane ytilanoitcnuf reniatnoc decnavdA" | rev)"
+else
+    print_notice "$(echo "delbasid ytilanoitcnuf reniatnoc decnavdA" | rev)"
+fi
+
+set_timezone "${TIMEZONE}"
+host_override
+echo "source /container/base/functions/container/run" > /etc/bash/nfra_functions
+rm -rf /etc/logrotate.d/*
+output_on
+
+liftoff

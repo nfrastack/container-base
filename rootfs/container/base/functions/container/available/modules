@@ -1,0 +1,117 @@
+# Usage:
+# The `_container_modules_parse` function processes a comma-separated list of modules from an environment variable.
+# Modules can be added or removed using the following syntax:
+#   - To add a module: `+module_name` or `+git:<repository_url>#<branch_or_tag>`
+#     Example: `+git:https://github.com/user/repo.git#v1.0.0`
+#   - To remove a module: `-module_name`
+#
+# The `_container_modules_install` function supports:
+#   - Installing local modules from the filesystem (located in `_container_module_path`).
+#   - Cloning and installing modules from Git repositories.
+#     - The repository is cloned into `/container/modules/<repository_name>`.
+#     - Optionally, a branch or tag can be specified using `#<branch_or_tag>` in the repository URL.
+#     - Example: `git:https://github.com/user/repo.git#main` (clones the `main` branch).
+
+if [ -n "${2}" ]; then _container_module_path:-"${2}" ; fi
+_container_module_path=${_container_module_path:-"/container/base/modules/"}
+
+_container_modules_parse() {
+    if [ -n "$(printenv ${1})" ]; then
+        for module in $(printenv "${1}" | tr "," "\n" | uniq) ; do
+            case "${module}" in
+                    -* )
+                        module=$(echo "${module}" | sed -e "s|^-||" -e "s|-|_|g")
+                        _container_modules_remove "${module}"
+                    ;;
+                    +* )
+                        module=$(echo "${module}" | sed -e "s|^+||" -e "s|-|_|g")
+                        _container_modules_install "${module}"
+                    ;;
+            esac
+
+        done
+    fi
+}
+
+_container_modules_remove() {
+    if [ -f "${_container_module_path}"/"${1}"/module ] ; then
+        bash "${_container_module_path}"/"${1}"/module remove
+    else
+        echo "[module-${1}] Can't remove '${1}' as I don't know how to"
+    fi
+}
+
+_container_modules_install() {
+    if [[ "${1}" == git:* ]]; then
+        # Handle Git-based module installation
+        local repo_url ref module_name
+        repo_url=$(echo "${1}" | sed 's|^git:||' | cut -d'#' -f1) # Extract the repo URL
+        ref=$(echo "${1}" | grep -o '#.*' | sed 's|#||')          # Extract the branch or tag (if specified)
+        module_name=$(basename "${repo_url}" .git)               # Derive module name from repo URL
+
+        # Define the target directory for the module
+        local target_dir="/container/modules/${module_name}"
+
+        # Clone the repository
+        if [ -d "${target_dir}" ]; then
+            echo "[module-${module_name}] Module already exists at ${target_dir}, skipping clone"
+        else
+            echo "[module-${module_name}] Cloning repository ${repo_url} into ${target_dir}"
+            git clone "${repo_url}" "${target_dir}"
+            if [ $? -ne 0 ]; then
+                echo "[module-${module_name}] Failed to clone repository ${repo_url}"
+                exit 99
+            fi
+
+            # If a branch or tag is specified, check it out
+            if [ -n "${ref}" ]; then
+                echo "[module-${module_name}] Checking out reference '${ref}'"
+                cd "${target_dir}" || exit 99
+                git checkout "${ref}"
+                if [ $? -ne 0 ]; then
+                    echo "[module-${module_name}] Failed to check out reference '${ref}'"
+                    exit 99
+                fi
+                cd - > /dev/null || exit 99
+            fi
+        fi
+
+        # Treat the cloned repository as a local module
+        if [ -f "${target_dir}/module" ]; then
+            bash "${target_dir}/module" install
+            case ${?} in
+                0 )
+                    :
+                ;;
+                5 )
+                    echo "[container_modules_install] Unsupported distribution or variant '${module_name}' - Skipping"
+                ;;
+                * )
+                    echo "[container_modules_install] FAILED '${module_name}'"
+                    exit 99
+                ;;
+            esac
+        else
+            echo "[module-${module_name}] Can't install '${module_name}' as no 'module' script was found"
+        fi
+    else
+        # Handle filesystem-based module installation
+        if [ -f "${_container_module_path}"/"${1}"/module ]; then
+            bash "${_container_module_path}"/"${1}"/module install
+            case ${?} in
+                0 )
+                    :
+                ;;
+                5 )
+                    echo "[container_modules_install] Unsupported distribution or variant '${1}' - Skipping"
+                ;;
+                * )
+                    echo "[container_modules_install] FAILED '${1}'"
+                    exit 99
+                ;;
+            esac
+        else
+            echo "[module-${1}] Can't install '${1}' as I don't know how to"
+        fi
+    fi
+}
