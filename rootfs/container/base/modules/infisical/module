@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-INFISICAL_VERSION=${INFISICAL_VERSION:-"infisical-cli/v0.40.0"}
+INFISICAL_VERSION=${INFISICAL_VERSION:-"infisical-cli/v0.41.90"}
 INFISICAL_REPO_URL=${INFISICAL_REPO_URL:-"https://github.com/infisical/infisical"}
 
 INFISICAL_BINARY=/usr/local/bin/infisical
