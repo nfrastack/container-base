@@ -52,7 +52,7 @@ Feature limited builds of the image are available on the [Github Container Regis
 To unlock advanced features, one must provide a code to be able to change specific environment variables from defaults. Support the development to gain access to a code.
 
 ```
-(container platform) pull ghcr.io/nfrastack-container-base:(imagetag)
+(container platform) pull ghcr.io/nfrastack/container-base:(image_tag)
 ```
 
 Image tag syntax is:
@@ -62,7 +62,7 @@ Example: `ghcr.io/nfrastack-container-base:1.0-alpine_3.22_core` or
          `ghcr.io/nfrastack-container-base:debian_trixie`
 
 * An otpional tag may exist that matches the [CHANGELOG](CHANGELOG.md)
-* Distribution can either be `alpine` or `debian
+* Distribution can either be `alpine` or `debian`
 * Disribution release varies - see the registry for availability
 * Features
   * `core` - Includes `age`, `cron`, `logrotate`, `s6overlay`, `msmtp`
