@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-ZABBIX_VERSION=${ZABBIX_VERSION:-"7.4.0"}
+ZABBIX_VERSION=${ZABBIX_VERSION:-"7.4.1"}
 ZABBIX_REPO_URL=${ZABBIX_REPO_URL:-"https://github.com/zabbix/zabbix"}
 
 ZABBIX_BINARY=/usr/local/bin/zabbix_agentd
