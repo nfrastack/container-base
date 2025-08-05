@@ -2,6 +2,32 @@
 #
 # SPDX-License-Identifier: MIT
 
+create_folder() {
+    ## Creates a folder with the specified permissions and ownership
+    ## Usage: create_folder <folder_path> <user:group> <permissions>
+    ## If the folder already exists, it will not be recreated.
+    ## If the user:group is not specified, it will not change ownership.
+    ## If the permissions are not specified, it will not change permissions.
+
+    if [ -n "${1}" ]; then
+        if [ ! -d "${1}" ] ; then
+            mkdir -p "${1}"
+        fi
+
+        if [ -n "${2}" ]; then
+            if [ "$(stat -c %U "${2}")" != "$(echo "${2}" | cut -d -f 1)" ] ; then
+                chown -R "${2}" "${1}"
+            fi
+        fi
+
+        if [ -n "${3}" ]; then
+            if [ "$(stat -c %a "${1}")" != "${3}" ] ; then
+                chmod -R "${3}" "${1}"
+            fi
+        fi
+    fi
+}
+
 custom_files() {
     ## Copy files from one lcoation to somewhere else on the file system
     ## eg. Copy all files in /override/custom (Default ENV CONTAINER_CUSTOM_PATH) to /www/html  'custom_files /www/html'
