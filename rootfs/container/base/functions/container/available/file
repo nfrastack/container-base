@@ -5,26 +5,26 @@
 create_folder() {
     ## Creates a folder with the specified permissions and ownership
     ## Usage: create_folder <folder_path> <user:group> <permissions>
+    ## If the folder path is seperated with commas, it will create all of them.
     ## If the folder already exists, it will not be recreated.
     ## If the user:group is not specified, it will not change ownership.
     ## If the permissions are not specified, it will not change permissions.
 
     if [ -n "${1}" ]; then
-        if [ ! -d "${1}" ] ; then
-            mkdir -p "${1}"
-        fi
-
-        if [ -n "${2}" ]; then
-            if [ "$(stat -c %U "${2}")" != "$(echo "${2}" | cut -d -f 1)" ] ; then
-                chown -R "${2}" "${1}"
+        for folder in $(echo "${1}" | tr ',' ' '); do
+            folder=$(echo "$folder" | xargs) # trim whitespace
+            if [ ! -d "${folder}" ] ; then
+                mkdir -p "${folder}"
             fi
-        fi
 
-        if [ -n "${3}" ]; then
-            if [ "$(stat -c %a "${1}")" != "${3}" ] ; then
-                chmod -R "${3}" "${1}"
+            if [ -n "${2}" ]; then
+                chown -R "${2}" "${folder}"
             fi
-        fi
+
+            if [ -n "${3}" ]; then
+                chmod -R "${3}" "${folder}"
+            fi
+        done
     fi
 }
 
