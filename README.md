@@ -94,7 +94,7 @@ TODO: Add overrides and custom-script info
 Below is the complete list of available options that can be used to customize your installation.
 
 * Variables showing an 'x' under the `_FILE` column can be used for storing the information inside of a file, useful for secrets.
-* Variables showing an 'x' under teh `Advanced` column can only be set if the containers advanced functionality is enabled.
+* Variables showing an 'x' under the `Advanced` column can only be set if the containers advanced functionality is enabled.
 
 #### Container Options
 
