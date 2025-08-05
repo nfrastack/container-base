@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-FLUENTBIT_VERSION=${FLUENTBIT_VERSION:-"v4.0.5"}
+FLUENTBIT_VERSION=${FLUENTBIT_VERSION:-"v4.0.6"}
 FLUENTBIT_REPO_URL=${FLUENTBIT_REPO_URL:-"https://github.com/fluent/fluent-bit"}
 
 FLUENTBIT_BINARY=/usr/bin/fluent-bit
