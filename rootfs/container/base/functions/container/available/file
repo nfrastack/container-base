@@ -12,7 +12,7 @@ create_folder() {
 
     if [ -n "${1}" ]; then
         for folder in $(echo "${1}" | tr ',' ' '); do
-            folder=$(echo "$folder" | xargs) # trim whitespace
+            folder=$(echo "$folder" | xargs)
             if [ ! -d "${folder}" ] ; then
                 mkdir -p "${folder}"
             fi

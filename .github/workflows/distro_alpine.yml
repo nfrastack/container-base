@@ -31,7 +31,6 @@ jobs:
       - name: Set Modules
         id: set_modules
         run: |
-          set -x
           case "${IMAGE_VARIANT}" in
               "core" )
                   echo "IMAGE_BASE_MODULES=+age,+cron,+logrotate,+s6overlay,+msmtp," >> $GITHUB_ENV
