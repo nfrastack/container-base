@@ -130,12 +130,14 @@ package() {
                     if [ -n "${3}" ] ; then
                         _package_repo_name="${2}"
                         shift 2
-                        echo "$@" > /etc/apt/sources.list.d/"${_package_repo_name}".list
+                        echo "$@" > /etc/apt/sources.list.d/"${_package_repo_name}".list ## TODO 20250817: apt-key is gone with trixie See key function below
                     fi
                 ;;
                 esac
             ;;
-            key )
+            key ) ## TODO 20250817 apt-key is gone with trixie
+                  ## curl -fsSL https://example.com/repo.gpg | sudo gpg --dearmor -o /usr/share/keyrings/example-archive-keyring.gpg
+                  ## deb [signed-by=/usr/share/keyrings/example-archive-keyring.gpg] https://example.com/apt stable main
                 case "${distro}" in
                     "debian" | "ubuntu" )
                         curl -sSLk "${2}" | apt-key add -
