@@ -3,12 +3,14 @@ on:
   push:
     paths:
       - '**'
+      - '!/CHANGELOG.md'
       - '!/examples/*'
       - '!LICENSE'
       - '!README.md'
+      - '!/zabbix_templates/*'
 jobs:
   prepare:
-    uses: nfrastack/gha/.github/workflows/encrypt.yml@main
+    uses: nfrastack/gha/.github/workflows/artifacts_encrypt.yml@main
     secrets: inherit
   alpine:
     needs: prepare
@@ -20,5 +22,5 @@ jobs:
     secrets: inherit
   cleanup:
     needs: [alpine, debian]
-    uses: nfrastack/gha/.github/workflows/remove_artifacts.yml@main
+    uses: nfrastack/gha/.github/workflows/artifacts_remove.yml@main
     secrets: inherit
