@@ -302,13 +302,33 @@ prepare_service() {
         case "$(dirname "$0")" in
             "/var/run/s6/etc/cont-init.d" | "/etc/cont-init.d" | /container/base/init/init* | /container/init/init* | . )
                 set -a
-                get_defaults "$1"
-                get_functions "$1"
+                case "${1,,}" in
+                    "defaults" )
+                        get_defaults
+                    ;;
+                    "functions" )
+                        get_functions
+                    ;;
+                    "single" )
+                        get_defaults single
+                        get_functions single
+                    ;;
+                    "single-defaults" )
+                        get_defaults single
+                    ;;
+                    "single-functions" )
+                        get_functions single
+                    ;;
+                    * )
+                        get_defaults "$1"
+                        get_functions "$1"
+                    ;;
+                esac
                 set +a
             ;;
             *)
-                case "${1,,{}" in
-                    "both" | "all" )
+                case "${1,,}" in
+                    "all" | "both" )
                         get_defaults "$2"
                         get_functions "$2"
                     ;;
@@ -317,6 +337,16 @@ prepare_service() {
                     ;;
                     "functions" )
                         get_functions "$2"
+                    ;;
+                    "single" )
+                        get_defaults single
+                        get_functions single
+                    ;;
+                    "single-defaults" )
+                        get_defaults single
+                    ;;
+                    "single-functions" )
+                        get_functions single
                     ;;
                 esac
             ;;
