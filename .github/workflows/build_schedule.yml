@@ -5,7 +5,7 @@ on:
 
 jobs:
   prepare:
-    uses: nfrastack/gha/.github/workflows/artifacts_encrypt.yml@main
+    uses: nfrastack/gha/.github/workflows/artifacts-encrypt.yml@main
     secrets: inherit
   alpine:
     needs: prepare
@@ -17,5 +17,5 @@ jobs:
     secrets: inherit
   cleanup:
     needs: [alpine, debian]
-    uses: nfrastack/gha/.github/workflows/artifacts_remove.yml@main
+    uses: nfrastack/gha/.github/workflows/artifacts-remove.yml@main
     secrets: inherit
