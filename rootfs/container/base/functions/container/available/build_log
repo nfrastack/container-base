@@ -3,10 +3,30 @@
 # SPDX-License-Identifier: MIT
 
 container_build_log() {
+    local cl le ts v
+    ts="$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z')"
     mkdir -p /container/build/"${IMAGE_NAME/\//_}"
-    echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ${IMAGE_NAME} | ${IMAGE_REPO_URL}" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-    echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ${IMAGE_NAME} | ${IMAGE_REPO_URL}" >> /container/build/build.log
+    cl="/container/build/${IMAGE_NAME/\//_}/CHANGELOG.md"
+    v=""
     for build_files in /usr/src/container/* ; do mv "${build_files}" /container/build/"${IMAGE_NAME/\//_}"/ ; done
+    if [ -f "${cl}" ]; then
+        v=$(grep -m1 '^## ' "${cl}" | awk '{print $2}')
+    fi
+    if [ "$#" -gt 0 ]; then
+        if [ -n "${v}" ]; then
+            le="${ts} | ${v} | $*"
+        else
+            le="${ts} | $*"
+        fi
+    else
+        if [ -n "${v}" ]; then
+            le="${ts} | ${v} | ${IMAGE_NAME} | ${IMAGE_REPO_URL}"
+        else
+            le="${ts} | ${IMAGE_NAME} | ${IMAGE_REPO_URL}"
+        fi
+    fi
+    echo "$le" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+    echo "$le" >> /container/build/build.log
 }
 
 container_replace_base() {
