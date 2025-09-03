@@ -45,6 +45,11 @@ clone_git_repo() {
             git remote add origin "${1}"${append_git_prefix}
             if [ -n "${2}" ] ; then repo_commit="${2}" ; fi
             echo "[clone_git_repo] Cloning Git Repo '${1}' '${2}' ${repo_text}"
+            local le ts
+            ts="$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z')"
+            le="${ts} | CLONE: ${2} | ${1}"
+            echo "$le" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
+            echo "$le" >> /container/build/build.log
             git fetch --depth=1 origin ${2} +refs/tags/*:refs/tags/*
             git fetch --depth 1 origin ${2}
             git -c advice.detachedHead=false checkout FETCH_HEAD
