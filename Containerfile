@@ -21,9 +21,9 @@ LABEL \
 ARG     \
         IMAGE_BASE_MODULES="+cron,+logrotate,+msmtp,+s6overlay," \
         IMAGE_MODULES \
-        IMAGE_NAME="nfrastack/base" \
+        IMAGE_NAME \
         IMAGE_BASE_VERSION \
-        IMAGE_BASE_REPO_URL="https://github.com/nfrastack/container-base/" \
+        IMAGE_BASE_REPO_URL \
         TIMEZONE=Etc/GMT \
         AGE_VERSION \
         FLUENTBIT_VERSION \
@@ -142,7 +142,7 @@ RUN echo "" && \
             && \
     \
     if [ -e "/usr/bin/envsubst" ] ; then mv /usr/bin/envsubst /usr/local/bin/envsubst ; fi && \
-    container_build_log base
+    container_build_log base && \
     rm -rf /etc/timezone && \
     ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && \
     echo "${TIMEZONE}" > /etc/timezone && \
