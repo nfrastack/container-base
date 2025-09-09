@@ -116,31 +116,45 @@ package() {
     }
 
     repo() {
+        # Usage:
+        #   package repo add <repo_name> <repo_url_and_suite> [keyring_name]
+        #     Example: package repo add myrepo "https://example.com/apt stable main" example-archive-keyring.gpg
+        #     This will create /etc/apt/sources.list.d/myrepo.list with the correct signed-by reference if keyring_name is provided.
+        #   package repo key <url> <keyring_name>
+        #     Example: package repo key https://example.com/repo.gpg example-archive-keyring.gpg
+        #     This will create /usr/share/keyrings/example-archive-keyring.gpg for use in sources.list
         case "${1}" in
             add )
                 case "${distro}" in
-                "alpine" )
-                    if [ -n "${3}" ] ; then
+                    "alpine" )
+                        if [ -n "${3}" ] ; then
+                            _package_repo_name="${2}"
+                            shift 2
+                            echo "$@" > /etc/apk/repositories/"${_package_repo_name}"
+                        fi
+                    ;;
+                    "debian" | "ubuntu" )
                         _package_repo_name="${2}"
-                        shift 2
-                        echo "$@" > /etc/apk/repositories/"${_package_repo_name}"
-                    fi
-                ;;
-                "debian" | "ubuntu" )
-                    if [ -n "${3}" ] ; then
-                        _package_repo_name="${2}"
-                        shift 2
-                        echo "$@" > /etc/apt/sources.list.d/"${_package_repo_name}".list ## TODO 20250817: apt-key is gone with trixie See key function below
-                    fi
-                ;;
+                        repo_line="${3}"
+                        keyring_name="${4}"
+                        if [ -n "${keyring_name}" ]; then
+                            echo "deb [signed-by=/usr/share/keyrings/${keyring_name}] ${repo_line}" > /etc/apt/sources.list.d/"${_package_repo_name}".list
+                        else
+                            echo "deb ${repo_line}" > /etc/apt/sources.list.d/"${_package_repo_name}".list
+                        fi
+                    ;;
                 esac
             ;;
-            key ) ## TODO 20250817 apt-key is gone with trixie
-                  ## curl -fsSL https://example.com/repo.gpg | sudo gpg --dearmor -o /usr/share/keyrings/example-archive-keyring.gpg
-                  ## deb [signed-by=/usr/share/keyrings/example-archive-keyring.gpg] https://example.com/apt stable main
+            key )
+                ## apt-key is gone with trixie and newer
+                ## Usage: package repo key <url> <keyring_name>
+                ## Example: package repo key https://example.com/repo.gpg example-archive-keyring.gpg
+                ## This will create /usr/share/keyrings/example-archive-keyring.gpg for use in sources.list
                 case "${distro}" in
                     "debian" | "ubuntu" )
-                        curl -sSLk "${2}" | apt-key add -
+                        local key_url="${2}"
+                        local keyring_name="${3:-example-archive-keyring.gpg}"
+                        curl -fsSL "${key_url}" | gpg --dearmor -o "/usr/share/keyrings/${keyring_name}"
                     ;;
                 esac
             ;;
