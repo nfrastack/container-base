@@ -20,7 +20,7 @@ LABEL \
 
 ARG     \
         IMAGE_BASE_MODULES="+cron,+logrotate,+msmtp,+s6overlay," \
-        IMAGE_MODULES \
+        IMAGE_MODULES="+fluentbit" \
         IMAGE_NAME \
         IMAGE_BASE_VERSION \
         IMAGE_BASE_REPO_URL \
