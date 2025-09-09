@@ -113,8 +113,7 @@ EOS6
             cp -aR "$(dirname "$0")"/rootfs/* /
         fi
 
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: S6 Overlay ${S6OVERLAY_VERSION} | ${S6OVERLAY_REPO_URL}" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: S6 Overlay ${S6OVERLAY_VERSION} | ${S6OVERLAY_REPO_URL}" >> /container/build/build.log
+        container_build_log add s6overlay "${S6OVERLAY_VERSION}" "${S6OVERLAY_REPO_URL}"
     fi
 }
 
@@ -127,8 +126,7 @@ remove() {
 
         rm -rf ${S6OVERLAY_ASSETS}
 
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: S6 Overlay" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: S6 Overlay" >> /container/build/build.log
+        container_build_log remove s6overlay
 
         cat << EOF > /init
 #!/bin/bash

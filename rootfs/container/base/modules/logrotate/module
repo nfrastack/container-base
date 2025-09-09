@@ -43,8 +43,7 @@ install() {
             cp -aR "$(dirname "$0")"/rootfs/* /
         fi
 
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: logrotate $(${LOGROTATE_BINARY} --version | head -n1 | awk '{print $2}') | repositories" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: logrotate $(${LOGROTATE_BINARY} --version | head -n1 | awk '{print $2}') | repositories" >> /container/build/build.log
+        container_build_log add logrotate "$(logrotate -V | head -n1 | awk '{print $2" "$3}')" repositories
     fi
 }
 
@@ -57,9 +56,7 @@ remove() {
 
         rm -rf ${LOGROTATE_ASSETS}
 
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: logrotate" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: logrotate" >> /container/build/build.log
-
+        container_build_log remove logrotate
     fi
 }
 
