@@ -3,44 +3,66 @@
 # SPDX-License-Identifier: MIT
 
 container_build_log() {
-    local cl le ts v
+    local le ts
     ts="$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z')"
     mkdir -p /container/build/"${IMAGE_NAME/\//_}"
-    cl="/container/build/${IMAGE_NAME/\//_}/CHANGELOG.md"
-    v=""
-    for build_files in /usr/src/container/* ; do mv "${build_files}" /container/build/"${IMAGE_NAME/\//_}"/ ; done
-    if [ -f "${cl}" ]; then
-        v=$(grep -m1 '^## ' "${cl}" | awk '{print $2}')
+    if [ -z "${1}" ]; then
+        set -- image
     fi
-    if [ "$#" -gt 0 ]; then
-        if [ -n "${v}" ]; then
-            le="${ts} | ${v} | $*"
-        else
-            le="${ts} | $*"
-        fi
-    else
-        if [ -n "${v}" ]; then
-            le="${ts} | ${v} | ${IMAGE_NAME} | ${IMAGE_REPO_URL}"
-        else
-            le="${ts} | ${IMAGE_NAME} | ${IMAGE_REPO_URL}"
-        fi
-    fi
-    echo "$le" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-    echo "$le" >> /container/build/build.log
+
+    case "${1}" in
+        add )
+            # Usage: container_build_log <package_name> <package_version_env> <package_repo_url_env>
+            le="${ts} | ADD: ${2} ${3} | ${4}"
+            echo "${le}" | tee -a /container/build/"${IMAGE_NAME/\//_}"/build.log /container/build/build.log > /dev/null
+        ;;
+        base )
+            IMAGE_BASE_VERSION=${IMAGE_BASE_VERSION:-"$(head -n1 /usr/src/build_image/CHANGELOG.md | awk '{print $2}')"} && \
+            echo "${ts} | IMAGE: ${IMAGE_NAME} $(container_info distro)_$(container_info variant) | ${IMAGE_BASE_VERSION} | ${IMAGE_REPO_URL}" | tee -a /container/build/"${IMAGE_NAME/\//_}"/build.log /container/build/build.log > /dev/null
+            echo "${ts} | BASE: ${IMAGE_BASE_VERSION} | ${IMAGE_BASE_REPO_URL}" | tee -a /container/build/build.log > /dev/null
+            mv /usr/src/build_image/* /container/build/"${IMAGE_NAME/\//_}"
+        ;;
+        image )
+            local cl v
+            cl="/container/build/${IMAGE_NAME/\//_}/CHANGELOG.md"
+            v=""
+            for build_files in /usr/src/container/* ; do mv "${build_files}" /container/build/"${IMAGE_NAME/\//_}"/ ; done
+            if [ -f "${cl}" ]; then
+                v=$(grep -m1 '^## ' "${cl}" | awk '{print $2}')
+            fi
+            if [ "$#" -gt 0 ]; then
+                if [ -n "${v}" ]; then
+                    le="${ts} | ${v} | $*"
+                else
+                    le="${ts} | $*"
+                fi
+            else
+                if [ -n "${v}" ]; then
+                    le="${ts} | IMAGE: ${v} | ${IMAGE_NAME} | ${IMAGE_REPO_URL}"
+                else
+                    le="${ts} | IMAGE: ${IMAGE_NAME} | ${IMAGE_REPO_URL}"
+                fi
+            fi
+
+            echo "${le}" | tee -a /container/build/"${IMAGE_NAME/\//_}"/build.log /container/build/build.log > /dev/null
+        ;;
+        remove )
+            le="${ts} | REMOVE: ${2}"
+            echo "${le}" | tee -a /container/build/"${IMAGE_NAME/\//_}"/build.log /container/build/build.log > /dev/null
+    esac
 }
 
 container_replace_base() {
-    if [ "$1" ]; then
+    if [ "${1}" ]; then
         echo "Replacing Base Scripts and Runtime"
         mkdir -p /usr/src
-        git clone ${BASE_REPO_URL} /usr/src/docker-base
-        cd /usr/src/docker-base
+        git clone ${BASE_REPO_URL} /usr/src/nfrastack_container-base
+        cd /usr/src/nfrastack_container-base
         git checkout "${1}"
         rm -rf /container/base/*
         rm -rf /container/etc/cont-{finish,init}.d/0-container
-        cp -aR /usr/src/docker-base/rootfs/* /
-        if [ "${1}" = "main" ]; then BASE_VERSION=$(git log -1 --pretty="format:%H" -- /usr/src/docker-base) ; fi
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ${BASE_VERSION} | ${BASE_REPO_URL} | Replaced " >> /container/build/nfrastack_base/fetch.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ${BASE_VERSION} | ${BASE_REPO_URL} | Replaced " >> /container/build/build.log
+        cp -aR /usr/src/nfrastack_container-base/rootfs/* /
+        if [ "${1}" = "main" ]; then BASE_VERSION=$(git log -1 --pretty="format:%H" -- /usr/src/nfrastack_container-base) ; fi
+        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | BASE: ${BASE_VERSION} | ${BASE_REPO_URL} | Replaced " | tee -a /container/build/nfrastack_base/fetch.log /container/build/build.log > /dev/null
     fi
 }
