@@ -3,7 +3,7 @@ name: "MANUAL - Build all images"
 on:
   workflow_dispatch:
     inputs:
-      Manual Build:
+      Manual_Build:
         description: 'Manual Build'
         required: false
 
