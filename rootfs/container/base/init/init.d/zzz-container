@@ -4,11 +4,10 @@
 # SPDX-License-Identifier: MIT
 
 source /container/base/functions/container/init
-
 d_e_o
 
 if var_false "${CONTAINER_SKIP_SANITY_CHECK}" ; then
-    files_init=$(find /container/base/init/init.d/ /container/init/init.d/ -maxdepth 1 ! -name *.enc* ! -name .nfrastack ! zzz-container -type f 2>/dev/null | wc -l)
+    files_init=$(find /container/base/init/init.d/ /container/init/init.d/ -maxdepth 1 ! -name *.enc* ! -name .nfrastack ! -name zzz-container -type f 2>/dev/null | wc -l)
     declare -a files_init_name
     declare -a length_of_files_init_name
     for f in /container/init/init.d/*; do
@@ -52,7 +51,7 @@ if var_false "${CONTAINER_SKIP_SANITY_CHECK}" ; then
                 image_string="Image: ${IMAGE_NAME}"
 
                 if [ -n "${image_version}" ] ; then
-                    image_string="${image_string} | Version ${image_version} Type 'changelog' for details"
+                    image_string="${image_string} | Version ${image_version} Type 'image_changelog' for details"
                 fi
 
                 image_string="${image_string}"
@@ -61,32 +60,36 @@ if var_false "${CONTAINER_SKIP_SANITY_CHECK}" ; then
                     image_url="Repository/Issues/Support: ${IMAGE_REPO_URL}"
                 fi
             fi
-            echo "**********************************************************************************************************************"
-            echo "**********************************************************************************************************************"
-            echo "****                                                                                                              ****"
-            echo "****       ERROR - Some initialization scripts haven't completed                                                  ****"
-            echo "****             - The following scripts in '/container/init/init.d' did not pass their completion check          ****"
-            echo "****             - All services are now halted                                                                    ****"
-            echo "****                                                                                                              ****"
-            echo "**********************************************************************************************************************"
-            echo "**********************************************************************************************************************"
-            echo ""
-            echo "${uninitialized_scrips[@]}" | tr ' ' '\n' | uniq -u
-            echo ""
-            echo "**********************************************************************************************************************"
-            echo "**********************************************************************************************************************"
-            echo "****                                                                                                              ****"
-            echo "****       This could have happened for a variety of reasons. Please make sure you have followed the README       ****"
-            echo "****       relating to this image and have proper configuration such as environment variables and volumes set     ****"
-            echo "****                                                                                                              ****"
-            echo "****       If you feel that you have encountered a bug, please submit an issue on the revision control system     ****"
-            echo "****       and provide full debug logs by setting the environment variable 'DEBUG_MODE=TRUE'                      ****"
-            echo "****                                                                                                              ****"
-            echo "**********************************************************************************************************************"
-            echo "**********************************************************************************************************************"
-            echo ""
-            echo "$image_string"
-            echo "$image_url"
+            cat << EOF
+
+**********************************************************************************************************************
+**********************************************************************************************************************
+****                                                                                                              ****
+****       ERROR - Some initialization scripts haven't completed                                                  ****
+****             - The following scripts in '/container/init/init.d' did not pass their completion check          ****
+****             - All services are now halted                                                                    ****
+****                                                                                                              ****
+**********************************************************************************************************************
+**********************************************************************************************************************
+
+$(echo "${uninitialized_scripts[@]}" | tr ' ' '\n' | uniq -u)
+
+**********************************************************************************************************************
+**********************************************************************************************************************
+****                                                                                                              ****
+****       This could have happened for a variety of reasons. Please make sure you have followed the README       ****
+****       relating to this image and have proper configuration such as environment variables and volumes set     ****
+****                                                                                                              ****
+****       If you feel that you have encountered a bug, please submit an issue on the revision control system     ****
+****       and provide full debug logs by setting the environment variable 'DEBUG_MODE=TRUE'                      ****
+****                                                                                                              ****
+**********************************************************************************************************************
+**********************************************************************************************************************
+
+$image_string
+$image_url
+
+EOF
             exit 1
         fi
     fi
@@ -125,10 +128,9 @@ fi
 if [ -n "${CONTAINER_POST_INIT_COMMAND}" ] ; then
     print_debug "Found Post Init Command"
     post_commands=$(echo "${CONTAINER_POST_INIT_COMMAND}" | tr "," "\n")
-    for post_command in "${post_commands}"; do
+    for post_command in ${post_commands}; do
         print_debug "Executing post init command '${post_command}'"
         eval "${post_command}"
     done
 fi
-
 liftoff
