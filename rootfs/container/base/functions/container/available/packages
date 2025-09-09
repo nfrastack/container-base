@@ -116,13 +116,13 @@ package() {
     }
 
     repo() {
-        # Usage:
-        #   package repo add <repo_name> <repo_url_and_suite> [keyring_name]
-        #     Example: package repo add myrepo "https://example.com/apt stable main" example-archive-keyring.gpg
-        #     This will create /etc/apt/sources.list.d/myrepo.list with the correct signed-by reference if keyring_name is provided.
-        #   package repo key <url> <keyring_name>
-        #     Example: package repo key https://example.com/repo.gpg example-archive-keyring.gpg
-        #     This will create /usr/share/keyrings/example-archive-keyring.gpg for use in sources.list
+        ## Usage:
+        ##   package repo add <repo_name> <repo_url_and_suite> [keyring_name]
+        ##     package repo add myrepo "https://example.com/apt stable main" example-archive-keyring.gpg
+        ##     This will create /etc/apt/sources.list.d/myrepo.list with the correct signed-by reference if keyring_name is provided.
+        ##   package repo key <url> <keyring_name>
+        ##     package repo key https://example.com/repo.gpg example-archive-keyring.gpg
+        ##     This will create /usr/share/keyrings/example-archive-keyring.gpg for use in sources.list
         case "${1}" in
             add )
                 case "${distro}" in
@@ -147,8 +147,8 @@ package() {
             ;;
             key )
                 ## apt-key is gone with trixie and newer
-                ## Usage: package repo key <url> <keyring_name>
-                ## Example: package repo key https://example.com/repo.gpg example-archive-keyring.gpg
+                ## package repo key <url> <keyring_name>
+                ## package repo key https://example.com/repo.gpg example-archive-keyring.gpg
                 ## This will create /usr/share/keyrings/example-archive-keyring.gpg for use in sources.list
                 case "${distro}" in
                     "debian" | "ubuntu" )
