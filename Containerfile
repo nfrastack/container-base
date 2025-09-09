@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: MIT
 
 ARG \
-        DISTRO=alpine \
-        DISTRO_VARIANT=3.22
+        DISTRO
+        DISTRO_VARIANT
 
 FROM docker.io/${DISTRO}:${DISTRO_VARIANT}
 
