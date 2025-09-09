@@ -45,8 +45,7 @@ install() {
             cp -aR "$(dirname "$0")"/rootfs /
         fi
 
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: age ${AGE_VERSION} | ${AGE_REPO_URL}" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: age ${AGE_VERSION} | ${AGE_REPO_URL}" >> /container/build/build.log
+        container_build_log add age "${AGE_VERSION}" "${AGE_REPO_URL}"
     fi
 }
 
@@ -56,8 +55,7 @@ remove() {
 
         rm -rf "${AGE_ASSETS}"
 
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: age" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: age" >> /container/build/build.log
+        container_build_log remove age
     fi
 }
 

@@ -64,8 +64,7 @@ install() {
             cp -aR "$(dirname "$0")"/rootfs/* /
         fi
 
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: fail2ban $(fail2ban-server -V) | repositories" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: fail2ban $(fail2ban-server -V) | repositories" >> /container/build/build.log
+        container_build_log add fail2ban "${FAIL2BAN_VERSION:-$(fail2ban-server -V | head -n1 | awk '{print $3}')}" "repositories"
     fi
 }
 
@@ -78,9 +77,7 @@ remove() {
 
         rm -rf ${FAIL2BAN_ASSETS}
 
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: fail2ban" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: fail2ban" >> /container/build/build.log
-
+        container_build_log remove fail2ban
     fi
 }
 

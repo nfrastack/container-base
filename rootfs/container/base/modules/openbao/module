@@ -77,8 +77,7 @@ install() {
         package remove \
                         OPENBAO_BUILD_DEPS
 
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: openbao ${OPENBAO_VERSION} | ${OPENBAO_REPO_URL}" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: openbao ${OPENBAO_VERSION} | ${OPENBAO_REPO_URL}" >> /container/build/build.log
+        container_build_log add openbao "${OPENBAO_VERSION}" "${OPENBAO_REPO_URL}"
     fi
 }
 remove() {
@@ -89,8 +88,7 @@ remove() {
 
         rm -rf ${OPENBAO_ASSETS}
 
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: openbao" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: openbao" >> /container/build/build.log
+        container_build_log remove openbao
     fi
 }
 

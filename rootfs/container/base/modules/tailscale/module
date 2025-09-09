@@ -90,8 +90,7 @@ install() {
         package remove \
                         TAILSCALE_BUILD_DEPS
 
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: tailscale ${TAILSCALE_VERSION} | ${TAILSCALE_REPO_URL}" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: tailscale ${TAILSCALE_VERSION} | ${TAILSCALE_REPO_URL}" >> /container/build/build.log
+        container_build_log add tailscale "${TAILSCALE_VERSION}" "${TAILSCALE_REPO_URL}"
     fi
 }
 
@@ -107,8 +106,7 @@ remove() {
 
         rm -rf ${TAILSCALE_ASSETS}
 
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: tailscale" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: tailscale" >> /container/build/build.log
+        container_build_log remove tailscale
     fi
 }
 

@@ -83,8 +83,7 @@ install() {
         package remove \
                         INFISICAL_BUILD_DEPS
 
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: infisical ${INFISICAL_VERSION} | ${INFISICAL_REPO_URL}" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: infisical ${INFISICAL_VERSION} | ${INFISICAL_REPO_URL}" >> /container/build/build.log
+        container_build_log add infisical "${INFISICAL_VERSION}" "${INFISICAL_REPO_URL}"
     fi
 }
 
@@ -96,8 +95,7 @@ remove() {
 
         rm -rf ${INFISICAL_ASSETS}
 
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: infisical" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: infisical" >> /container/build/build.log
+        container_build_log remove infisical
     fi
 }
 

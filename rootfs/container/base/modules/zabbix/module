@@ -157,8 +157,7 @@ install() {
         package remove \
                       ZABBIXAGENT_BUILD_DEPS
 
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: zabbix-agent ${ZABBIX_VERSION} | ${ZABBIX_REPO_URL}" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: zabbix-agent ${ZABBIX_VERSION} | ${ZABBIX_REPO_URL}" >> /container/build/build.log
+        container_build_log add zabbix-agent "${ZABBIX_VERSION}" "${ZABBIX_REPO_URL}"
     fi
 }
 
@@ -174,8 +173,7 @@ remove() {
 
         rm -rf ${ZABBIX_ASSETS}
 
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: zabbix-agent" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: zabbix-agent" >> /container/build/build.log
+        container_build_log remove zabbix-agent
     fi
 }
 

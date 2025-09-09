@@ -238,8 +238,7 @@ install() {
         package remove \
                         FLUENTBIT_BUILD_DEPS
 
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: fluent-bit ${FLUENTBIT_VERSION} | ${FLUENTBIT_REPO_URL}" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: fluent-bit ${FLUENTBIT_VERSION} | ${FLUENTBIT_REPO_URL}" >> /container/build/build.log
+        container_build_log add fluent-bit "${FLUENTBIT_VERSION}" "${FLUENTBIT_REPO_URL}"
     fi
 }
 
@@ -252,8 +251,7 @@ remove() {
 
         rm -rf ${FLUENTBIT_ASSETS}
 
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: fluent-bit" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: fluent-bit" >> /container/build/build.log
+        container_build_log remove fluent-bit
     fi
 }
 

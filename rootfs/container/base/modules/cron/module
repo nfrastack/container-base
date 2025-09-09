@@ -25,8 +25,7 @@ install() {
             cp -aR "$(dirname "$0")"/rootfs/* /
         fi
 
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: cron $(busybox | head -n1 | awk '{print $1" "$2}') | repositories" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ADD: cron $(busybox | head -n1 | awk '{print $1" "$2}') | repositories" >> /container/build/build.log
+        container_build_log add cron "$(busybox | head -n1 | awk '{print $1" "$2}')" repositories
     fi
 }
 
@@ -35,10 +34,7 @@ remove() {
         dependencies
 
         rm -rf "${CRON_ASSETS}"
-
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: logrotate" >> /container/build/"${IMAGE_NAME/\//_}"/build.log
-        echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | REMOVE: logrotate" >> /container/build/build.log
-
+        container_build_log remove cron
     fi
 }
 

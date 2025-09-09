@@ -142,14 +142,7 @@ RUN echo "" && \
             && \
     \
     if [ -e "/usr/bin/envsubst" ] ; then mv /usr/bin/envsubst /usr/local/bin/envsubst ; fi && \
-    \
-    IMAGE_BASE_VERSION=${IMAGE_BASE_VERSION:-"$(head -n1 /usr/src/build_image/CHANGELOG.md | awk '{print $2}')"} && \
-    mkdir -p /container/build/"${IMAGE_NAME/\//_}" && \
-    echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ${IMAGE_NAME} $(container_info distro)_$(container_info variant) | ${IMAGE_BASE_VERSION} | ${IMAGE_REPO_URL}" >> /container/build/"${IMAGE_NAME/\//_}"/build.log && \
-    echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ${IMAGE_BASE_VERSION} | ${IMAGE_BASE_REPO_URL}" >> /container/build/build.log && \
-    echo "$(TZ=$TIMEZONE date +'%Y-%m-%d %H:%M:%S %Z') | ${IMAGE_NAME} $(container_info distro)_$(container_info variant) | ${IMAGE_BASE_VERSION}  | ${IMAGE_REPO_URL}" >> /container/build/build.log && \
-    mv /usr/src/build_image/* /container/build/"${IMAGE_NAME/\//_}" && \
-    \
+    container_build_log base
     rm -rf /etc/timezone && \
     ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && \
     echo "${TIMEZONE}" > /etc/timezone && \
