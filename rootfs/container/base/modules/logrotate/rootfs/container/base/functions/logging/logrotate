@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-nfra_configure_scheduling_logrotate_init() {
+nfra_configure_logging_logrotate_init() {
     print_debug "Enabling log rotation"
     case "${LOGROTATE_COMPRESSION_TYPE,,}" in
         bz* )
