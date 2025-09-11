@@ -31,9 +31,9 @@ container_build_log() {
                 v=$(grep -m1 '^## ' "${cl}" | awk '{print $2}')
             fi
             if [ -n "${v}" ]; then
-                le="${ts} | IMAGE: ${v} | ${IMAGE_NAME} | ${IMAGE_REPO_URL}"
+                le="${ts} | IMAGE: ${IMAGE_NAME} ${v} | ${IMAGE_REPO_URL}"
             else
-                le="${ts} | IMAGE: unknown | ${IMAGE_NAME} | ${IMAGE_REPO_URL}"
+                le="${ts} | IMAGE: ${IMAGE_NAME} unknown | ${IMAGE_REPO_URL}"
             fi
             echo "${le}" | tee -a /container/build/"${IMAGE_NAME/\//_}"/build.log /container/build/build.log > /dev/null
         ;;
