@@ -97,34 +97,55 @@ install_template() {
 
 update_template() {
     ## Replace placeholders with values
-    ## Usage: 'update_template <filename> <varname>
+    ## Usage: update_template [preserve] <filename> <varname> ...
+    ## If 'preserve' is the first argument, unused {{VARIABLE}} tags will be left intact.
     ## Can have multiple varnames - Don't prefix the varname with $
-    ## You can use wildcards if you Quote the first argument eg "*.template"
+    local preserve_mode
+    local newline_mode
+    if [ "${1}" = "preserve" ]; then
+        preserve_mode=true
+        shift
+    fi
+    if [ "${1}" = "newline" ]; then
+        newline_mode=true
+        shift
+    fi
     template_files=${1}
     templates=$(echo "${template_files}" | tr " " "\n")
     shift
     for template_file in $templates; do
-
         [[ ! -f "${template_file}" ]] && return 1
-
         template_variables=($@)
         template_user=$(stat -c %U "${template_file}")
         template_tmp_file=$(mktemp)
         cp -a "${template_file}" "${template_tmp_file}"
-
-        for template_variable in ${template_variables[@]}; do
-        # Keep the compatibilty: {{VAR}} => ${VAR}
-            sed -ri "s/[{]{2}$template_variable[}]{2}/\${$template_variable}/g" "${template_tmp_file}"
-            print_debug "[update_template] Template: '${template_file}' updating field '${template_variable}'"
-        done
-
-        # Replace placeholders
-        (
-            export ${template_variables[@]}
-            local IFS=":"; sudo -HEu ${template_user} envsubst "${template_variables[*]/#/$}" < "${template_tmp_file}" > "${template_file}"
-        )
-
-        rm -f "${template_tmp_file}"
+        if var_true "${preserve_mode}" ; then
+            # Only replace variables that are set, leave others intact
+            for template_variable in ${template_variables[@]}; do
+                if [ -n "${!template_variable}" ]; then
+                    sed -ri "s/[{]{2}$template_variable[}]{2}/${!template_variable}/g" "${template_tmp_file}"
+                    print_debug "[update_template] Template: '${template_file}' updating field '${template_variable}'"
+                fi
+            done
+        else
+            # Keep the compatibilty: {{VAR}} => ${VAR}
+            for template_variable in ${template_variables[@]}; do
+                sed -ri "s/[{]{2}$template_variable[}]{2}/\{$template_variable}/g" "${template_tmp_file}"
+                print_debug "[update_template] Template: '${template_file}' updating field '${template_variable}'"
+            done
+            (
+                export ${template_variables[@]}
+                local IFS=":"; sudo -HEu ${template_user} envsubst "${template_variables[*]/#/$}" < "${template_tmp_file}" > "${template_file}"
+            )
+            if var_true "${newline_mode}" ; then
+                # Convert escaped newlines to real newlines
+                sed -i 's/\\n/\n/g' "${template_file}"
+            fi
+            rm -f "${template_tmp_file}"
+            continue
+        fi
+        # Write out the result
+        mv "${template_tmp_file}" "${template_file}"
     done
 }
 
