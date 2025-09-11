@@ -58,7 +58,9 @@ To unlock advanced features, one must provide a code to be able to change specif
 Image tag syntax is:
 <image>:<optional tag>-<distribution>_<distribution_release>_<optional_features>
 Example: `ghcr.io/nfrastack-container-base:1.0-alpine_3.22_core` or
+
          `ghcr.io/nfrastack-container-base:alpine_3.22` or
+
          `ghcr.io/nfrastack-container-base:debian_trixie`
 
 * An otpional tag may exist that matches the [CHANGELOG](CHANGELOG.md)
