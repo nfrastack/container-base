@@ -4,17 +4,24 @@
 
 create_folder() {
     ## Creates a folder with the specified permissions and ownership
-    ## Usage: create_folder <folder_path> <user:group> <permissions> [norecurse]
+    ## Usage: create_folder <folder_path> <user[:group]> <permissions> [norecurse] [force]
     ## If the folder path is seperated with commas, it will create all of them.
     ## If the folder already exists, it will not be recreated.
     ## If the user:group is not specified, it will not change ownership.
     ## If the permissions are not specified, it will not change permissions.
     ## If 'norecurse' is specified, chown/chmod will not use -R (recursive).
+    ## If 'force' is specified, chown/chmod will always run.
 
     local recurse_flag="-R"
-    if [ "${4}" = "norecurse" ] || [ "${3}" = "norecurse" ]; then
-        recurse_flag=""
-    fi
+    local force_flag=""
+    for arg in "$@"; do
+        if [ "$arg" = "norecurse" ]; then
+            recurse_flag=""
+        fi
+        if [ "$arg" = "force" ]; then
+            force=true
+        fi
+    done
 
     if [ -n "${1}" ]; then
         for folder in $(echo "${1}" | tr ',' ' '); do
@@ -24,11 +31,24 @@ create_folder() {
             fi
 
             if [ -n "${2}" ]; then
-                chown ${recurse_flag} "${2}" "${folder}"
+                if [[ "${2}" == *:* ]]; then
+                    current_owner_group=$(stat -c "%U:%G" "$folder")
+                    if [ "$current_owner_group" != "${2}" ] || [ "${force}" = "true" ]; then
+                        chown ${recurse_flag} "${2}" "$folder"
+                    fi
+                else
+                    current_owner=$(stat -c "%U" "$folder")
+                    if [ "$current_owner" != "${2}" ] || [ "${force}" = "true" ]; then
+                        chown ${recurse_flag} "${2}" "$folder"
+                    fi
+                fi
             fi
 
             if [ -n "${3}" ]; then
-                chmod ${recurse_flag} "${3}" "${folder}"
+                current_perms=$(stat -c "%a" "$folder")
+                if [ "$current_perms" != "${3}" ] || [ -n "$force_flag" ]; then
+                    chmod ${recurse_flag} "${3}" "$folder"
+                fi
             fi
         done
     fi
