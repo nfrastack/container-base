@@ -4,11 +4,17 @@
 
 create_folder() {
     ## Creates a folder with the specified permissions and ownership
-    ## Usage: create_folder <folder_path> <user:group> <permissions>
+    ## Usage: create_folder <folder_path> <user:group> <permissions> [norecurse]
     ## If the folder path is seperated with commas, it will create all of them.
     ## If the folder already exists, it will not be recreated.
     ## If the user:group is not specified, it will not change ownership.
     ## If the permissions are not specified, it will not change permissions.
+    ## If 'norecurse' is specified, chown/chmod will not use -R (recursive).
+
+    local recurse_flag="-R"
+    if [ "${4}" = "norecurse" ] || [ "${3}" = "norecurse" ]; then
+        recurse_flag=""
+    fi
 
     if [ -n "${1}" ]; then
         for folder in $(echo "${1}" | tr ',' ' '); do
@@ -18,11 +24,11 @@ create_folder() {
             fi
 
             if [ -n "${2}" ]; then
-                chown -R "${2}" "${folder}"
+                chown ${recurse_flag} "${2}" "${folder}"
             fi
 
             if [ -n "${3}" ]; then
-                chmod -R "${3}" "${folder}"
+                chmod ${recurse_flag} "${3}" "${folder}"
             fi
         done
     fi
