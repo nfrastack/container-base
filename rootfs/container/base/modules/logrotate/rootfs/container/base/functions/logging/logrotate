@@ -37,7 +37,7 @@ EOF
         ;;
     esac
 
-    cat <<EOF > /etc/logrotate.conf
+    cat <<EOF | silent tee /etc/logrotate.conf
 daily
 rotate ${LOGROTATE_RETAIN_DAYS}
 copytruncate
@@ -48,10 +48,10 @@ ${logrotate_compression}
 include /etc/logrotate.d
 EOF
 
-    chmod 0744 /etc/logrotate.conf
+    chmod 0600 /etc/logrotate.conf
     mkdir -p "${CONTAINER_SCHEDULING_LOCATION}"
-    cat <<EOF > "${CONTAINER_SCHEDULING_LOCATION}"/logrotate
-# Hardcoded in image in /container/init/init.d/$(basename "$0")
+    cat <<EOF | silent tee "${CONTAINER_SCHEDULING_LOCATION}"/logrotate
+# Logrotate - Hardcoded in image in /container/init/init.d/$(basename "$0")
 # Generated on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')
 
 59 23 * * * sleep 55; logrotate -f /etc/logrotate.conf >/dev/null 2>&1
@@ -67,10 +67,12 @@ nfra_configure_scheduling_logrotate_run() {
     fi
 
     if dir_notempty /etc/logrotate.d ; then
-        sed -i "s|rotate .*|rotate ${LOGROTATE_RETAIN_DAYS}|g" /etc/logrotate.d/*
-        sed -i "s|//|/|g" /etc/logrotate.d/*
+        sed -i \
+                    -e "s|rotate .*|rotate ${LOGROTATE_RETAIN_DAYS}|g" \
+                    -e "s|//|/|g" \
+                /etc/logrotate.d/*
     fi
 
     chown -R root:root /etc/logrotate.d
-    chmod -R 0644 /etc/logrotate.d
+    chmod -R 0600 /etc/logrotate.d
 }

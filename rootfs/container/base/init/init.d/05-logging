@@ -5,7 +5,8 @@
 
 source /container/base/functions/container/init
 output_off
-prepare_service 04-scheduling 05-logging
+prepare_service 04-scheduling
+prepare_service 05-logging
 SERVICE_NAME="logging"
 
 if var_true "${CONTAINER_ENABLE_LOGROTATE}" ; then
