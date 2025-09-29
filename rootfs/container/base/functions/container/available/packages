@@ -87,12 +87,19 @@ package() {
                     if [ -v "${_package^^}"_ALPINE ] ; then
                         _package_removal_list=$(echo "$_package_removal_list" | sed -e "s|${_package^^}_ALPINE||g" -e "s|${_package^^}||g")
                         _package_removal_list+=" .${_package,,} "
-                   else
+                    else
+                        if [[ "${_package}" =~ (_BUILD_DEPS|_RUN_DEPS)$ ]] && ! [ -v "${_package^^}_ALPINE" ]; then
+                            _package_removal_list=$(echo "$_package_removal_list" | sed -e "s/\b${_package}\b//g")
+                            continue
+                        fi
                         _package_removal_list+=" ${_package} "
                     fi
                 done
 
-                apk del $_package_removal_list
+                _package_removal_list=$(echo "${_package_removal_list}" | xargs)
+                if [ -n "${_package_removal_list}" ]; then
+                    apk del ${_package_removal_list}
+                fi
             ;;
             "debian" | "ubuntu" )
                 _package_removal_list="$@"
@@ -101,10 +108,15 @@ package() {
                         _package_removal_list+=$(set -o posix; set | grep -E "^${_package^^}_DEBIAN" | cut -d = -f 2 | sed 's/ \{1,\}/ /g' | xargs)
                         _package_removal_list=$(echo "$_package_removal_list" | sed -e "s|${_package^^}_DEBIAN||g" -e "s|${_package^^}||g")
                     else
+                        if [[ "${_package}" =~ (_BUILD_DEPS|_RUN_DEPS)$ ]] && ! [ -v "${_package^^}_DEBIAN" ]; then
+                            _package_removal_list=$(echo "$_package_removal_list" | sed -e "s/\b${_package}\b//g")
+                            continue
+                        fi
                         _package_removal_list+=" ${_package} "
                     fi
                 done
 
+                _package_removal_list=$(echo "${_package_removal_list}" | xargs)
                 if [[ "${_packages_removal_list}" =~ \..* ]] ; then
                     _package_removal_list=$(echo "${_package_removal_list}" | sed "s|\..* ||g")
                 fi
