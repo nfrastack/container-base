@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: MIT
 
 ARG \
-        DISTRO \
-        DISTRO_VARIANT
+    DISTRO \
+    DISTRO_VARIANT
 
 FROM docker.io/${DISTRO}:${DISTRO_VARIANT}
 
