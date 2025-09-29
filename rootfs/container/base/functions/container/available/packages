@@ -41,6 +41,9 @@ package() {
                     apk add -t $@
                 else
                     for _package in $_package_install_list ; do
+                        if [[ "${_package}" =~ (_BUILD_DEPS|_RUN_DEPS)$ ]] && ! [ -v "${_package^^}_ALPINE" ]; then
+                            continue
+                        fi
                         if [ -v "${_package^^}"_ALPINE ] ; then
                            local _packages
                            _packages=$(set -o posix; set | grep -E "^${_package^^}_ALPINE" | cut -d = -f 2 | sed 's/ \{1,\}/ /g' | xargs)
@@ -61,6 +64,9 @@ package() {
                     apt-get install -y --no-install-recommends $@
                 else
                     for _package in $_package_install_list ; do
+                        if [[ "${_package}" =~ (_BUILD_DEPS|_RUN_DEPS)$ ]] && ! [ -v "${_package^^}_DEBIAN" ]; then
+                            continue
+                        fi
                         if [ -v "${_package^^}"_DEBIAN ] ; then
                             local _packages
                             _packages=$(set -o posix; set | grep -E "^${_package^^}_DEBIAN" | cut -d = -f 2 | sed 's/ \{1,\}/ /g' | xargs)
