@@ -10,12 +10,13 @@ jobs:
     strategy:
       matrix:
         build:
-          - { distro: "alpine", distro_variant: "3.22", latest: "true", distro_latest: "false", arch: "linux/amd64,linux/arm64" }
+          - { distro: "alpine", distro_variant: "3.22", latest: "true", distro_latest: "true", arch: "linux/amd64,linux/arm64" }
           - { distro: "alpine", distro_variant: "3.19", latest: "false", distro_latest: "false", arch: "linux/amd64,linux/arm64" }
           - { distro: "alpine", distro_variant: "3.16", latest: "false", distro_latest: "false", arch: "linux/amd64",linux/arm64" }
           - { distro: "alpine", distro_variant: "3.15", latest: "false", distro_latest: "false", arch: "linux/amd64",linux/arm64" }
           - { distro: "alpine", distro_variant: "3.12", latest: "false", distro_latest: "false", arch: "linux/amd64",linux/arm64" }
           - { distro: "debian", distro_variant: "trixie", latest: "false", distro_latest: "true", arch: "linux/amd64,linux/arm64" }
+          - { distro: "debian", distro_variant: "bookworm", latest: "false", distro_latest: "true", arch: "linux/amd64,linux/arm64" }
         image_variant:
           - core
           - faflopza
@@ -27,7 +28,6 @@ jobs:
       DISTRO_LATEST: ${{ matrix.build.distro_latest || 'false' }}
       IMAGE_VARIANT: ${{ matrix.image_variant }}
       ARCH: ${{ matrix.build.arch || 'linux/amd64,linux/arm64' }}
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v5
