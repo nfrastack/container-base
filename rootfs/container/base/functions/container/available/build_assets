@@ -7,15 +7,16 @@ build_assets() {
             # build_assets scripts <path>
             # Executes scripts in order from path. Default path '/build-assets/scripts'
             local _buildasset_script_path
-            _buildasset_script_path=${2:-"/build-assets/scripts/"}
+            _buildasset_script_path=${2:-"/build-assets/scripts"}
             if [ -d "${_buildasset_script_path}" ]; then
                 for _buildscript in "${_buildasset_script_path}"/*.sh ; do
+                    [ -f "${_buildscript}" ] || continue
                     echo "** Applying ${_buildscript}"
                     bash "${_buildscript}"
                 done
+            else
+                echo "Script path ${_buildasset_script_path} does not exist"
             fi
-            if [ -d "/build-assets/src" ] ; then cp -Rp /build-assets/src/* /usr/src/peertube ; fi; \
-            if [ -d "/build-assets/scripts" ] ; then for script in /build-assets/scripts/*.sh; do echo "** Applying $script"; bash $script; done && \ ; fi ; \
         ;;
         src )
             # build_assets src <O: orig-path> <dest-path>
@@ -34,10 +35,17 @@ build_assets() {
                 fi
             fi
 
-            if [ -n "${_buildasset_dest_path}" ] ; then
-                if [ -d "${_buildasset_src_path}" ] ; then
-                    echo "Copying build assets from ${_buildasset_src_path} to ${_buildasset_dest_path}"
-                    cp -aR "${_buildasset_src_path}"/* "${_buildasset_dest_path}"
+            if [ -n "${_buildasset_dest_path}" ]; then
+                if [ -d "${_buildasset_src_path}" ]; then
+                    # Only copy if there are files in the source directory
+                    if compgen -G "${_buildasset_src_path}/*" > /dev/null; then
+                        echo "Copying build assets from ${_buildasset_src_path} to ${_buildasset_dest_path}"
+                        cp -aR "${_buildasset_src_path}/"* "${_buildasset_dest_path}"
+                    else
+                        echo "No files to copy from ${_buildasset_src_path}"
+                    fi
+                else
+                    echo "Source directory ${_buildasset_src_path} does not exist"
                 fi
             fi
         ;;

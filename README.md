@@ -63,7 +63,7 @@ Example: `ghcr.io/nfrastack-container-base:1.0-alpine_3.22_core` or
 
          `ghcr.io/nfrastack-container-base:debian_trixie`
 
-* An otpional tag may exist that matches the [CHANGELOG](CHANGELOG.md)
+* An optional tag may exist that matches the [CHANGELOG](CHANGELOG.md)
 * Distribution can either be `alpine` or `debian`
 * Disribution release varies - see the registry for availability
 * Features
