@@ -14,8 +14,6 @@ build_assets() {
                     echo "** Applying ${_buildscript}"
                     bash "${_buildscript}"
                 done
-            else
-                echo "Script path ${_buildasset_script_path} does not exist"
             fi
         ;;
         src )
@@ -41,11 +39,7 @@ build_assets() {
                     if compgen -G "${_buildasset_src_path}/*" > /dev/null; then
                         echo "Copying build assets from ${_buildasset_src_path} to ${_buildasset_dest_path}"
                         cp -aR "${_buildasset_src_path}/"* "${_buildasset_dest_path}"
-                    else
-                        echo "No files to copy from ${_buildasset_src_path}"
                     fi
-                else
-                    echo "Source directory ${_buildasset_src_path} does not exist"
                 fi
             fi
         ;;
