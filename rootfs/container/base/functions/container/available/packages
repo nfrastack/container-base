@@ -3,6 +3,19 @@
 # SPDX-License-Identifier: MIT
 
 package() {
+    build() {
+        case "${1}" in
+            go )
+                mkdir -p /usr/src/go
+                GOLANG_VERSION=${GOLANG_VERSION:-"$(curl -sSL https://golang.org/VERSION?m=text | head -n1 | sed "s|^go||g")"}
+                curl -sSLk https://dl.google.com/go/go${GOLANG_VERSION}.linux-$(container_info arch alt).tar.gz | tar xvfz - --strip 1 -C /usr/src/go
+                ln -sf /usr/src/go/bin/go /usr/local/bin/
+                ln -sf /usr/src/go/bin/godoc /usr/local/bin/
+                ln -sf /usr/src/go/bin/gfmt /usr/local/bin/
+            ;;
+        esac
+    }
+
     cleanup() {
         case "${distro}" in
             "alpine" )
@@ -13,6 +26,16 @@ package() {
                 rm -rf /var/lib/apt/lists/*
             ;;
         esac
+
+        for symlink in \
+                            /usr/local/bin/go \
+                            /usr/local/bin/godoc \
+                            /usr/local/bin/gfmt \
+                        ; do \
+            if [ -L "${symlink}" ] && ! [ -e "${symlink}" ]; then
+                rm -f "${symlink}"
+            fi
+        done
 
         rm -rf \
                 /build-assets \
@@ -27,6 +50,7 @@ package() {
                 /usr/src/* \
                 /var/log/* \
                 /var/tmp/*
+
     }
 
     ## Looks for environment variable suffixed with _OS and then either explodes the list or creates the package list depending on OS. If there is no match, then wait until the end of the loop and install packages.
@@ -152,13 +176,17 @@ package() {
                         fi
                     ;;
                     "debian" | "ubuntu" )
+                        # Shortcut for backports
+                        if [ "${2}" = "backports" ]; then
+                            echo "deb http://deb.debian.org/debian $(container_info variant)-backports main" >> /etc/apt/sources.list.d/backports.list
+                            return
+                        fi
                         _package_repo_name="${2}"
                         # Shift off 'add' and repo_name, so $@ is now: <repo_url_and_suite> [keyring_name]
                         shift 2
                         # If last argument ends with .gpg, treat as keyring_name
                         if [[ "${@: -1}" == *.gpg ]]; then
                             keyring_name="${@: -1}"
-                            # All but last argument is repo_line
                             repo_line="${*:1:$(($#-1))}"
                         else
                             keyring_name=""
@@ -220,6 +248,10 @@ package() {
     case "${action}" in
         add | install )
             action=install
+            "${action}" "${arguments}"
+        ;;
+        build )
+            action=build
             "${action}" "${arguments}"
         ;;
         delete | remove | uninstall )

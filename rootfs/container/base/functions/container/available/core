@@ -83,6 +83,9 @@ grant_sudo() {
     output_on
 }
 
+link_broken() {
+    [ -L "$1" ] && ! [ -e "$1" ]
+}
 
 output_off() {
     if [ "${DEBUG_MODE,,}" = "true" ] ; then
