@@ -5,6 +5,11 @@
 db_ready() {
     ## Usage db_ready <dbtype>
     output_off
+    if var_true "${SKIP_DB_READY}" ; then
+        print_warn "Skipping Database Ready Check due to SKIP_DB_READY being set"
+        output_on
+        return 0
+    fi
     print_debug "Checking to see if Database Type '${1}' is ready"
     case "${1,,}" in
         couch* )
@@ -204,6 +209,11 @@ EOF
 ## New: sanity_db (dbtype) which will test above or their own unique prefixes to be used with images that have multiuple DB connections
 sanity_db() {
     output_off
+    if var_true "${SKIP_SANITY_DB}" ; then
+        print_warn "Skipping Database Sanity Check due to SKIP_SANITY_DB being set"
+        output_on
+        return 0
+    fi
     if [ -n "$1" ] ; then
         case "${1,,}" in
             couch* )
