@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-ZEROTIER_VERSION=${ZEROTIER_VERSION:-"1.14.2"}
+ZEROTIER_VERSION=${ZEROTIER_VERSION:-"1.16.0"}
 ZEROTIER_REPO_URL=${ZEROTIER_REPO_URL:-"https://github.com/zerotier/ZeroTierOne"}
 
 ZEROTIER_USER=${ZEROTIER_USER:-"zerotier"}
