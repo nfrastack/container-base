@@ -57,6 +57,9 @@ install() {
     set -e
     if [ ! -f "${INFISICAL_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
         dependencies
+        if ! command -v go > /dev/null 2>&1 ; then
+            package build go
+        fi
         package update
         package install \
                         INFISICAL_BUILD_DEPS \

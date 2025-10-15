@@ -87,6 +87,11 @@ install() {
     set -e
     if [ ! -f "${ZABBIX_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
         dependencies
+        if [ "${build_zabbixagent2}" = "true" ] ; then
+            if ! command -v go > /dev/null 2>&1 ; then
+                package build go
+            fi
+        fi
         package update
         package install \
                         ZABBIXAGENT_BUILD_DEPS \

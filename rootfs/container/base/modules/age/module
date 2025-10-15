@@ -31,6 +31,9 @@ dependencies() {
 install() {
     set -e
     if [ ! -f "${AGE_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
+        if ! command -v go > /dev/null 2>&1 ; then
+            package build go
+        fi
         dependencies
         package update
 
