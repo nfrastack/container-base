@@ -7,12 +7,30 @@ package() {
         case "${1}" in
             go )
                 mkdir -p /usr/src/go
-                GOLANG_VERSION=${GOLANG_VERSION:-"$(curl -sSL https://golang.org/VERSION?m=text | head -n1 | sed "s|^go||g")"}
-                curl -sSLk https://dl.google.com/go/go${GOLANG_VERSION}.linux-$(container_info arch alt).tar.gz | tar xvfz - --strip 1 -C /usr/src/go
+                GOLANG_VERSION="${GOLANG_VERSION:-"$(curl -sSL https://golang.org/VERSION?m=text | head -n1 | sed "s|^go||g")"}"
+                curl -sSLk https://dl.google.com/go/go"${GOLANG_VERSION}".linux-"$(container_info arch alt)".tar.gz | tar xvfz - --strip 1 -C /usr/src/go
                 ln -sf /usr/src/go/bin/go /usr/local/bin/
                 ln -sf /usr/src/go/bin/godoc /usr/local/bin/
                 ln -sf /usr/src/go/bin/gfmt /usr/local/bin/
             ;;
+            yq )
+                YQ_REPO_URL="${YQ_REPO_URL:-"https://github.com/mikefarah/yq"}"
+                YQ_VERSION="${YQ_VERSION:-"$(curl -s ${YQ_REPO_URL/\/\/github.com/\/\/api.github.comh}/releases/latest | sed -n 's/.*"tag_name": "\([^"]*\)".*/\1/p')})"}"
+                clone_git_repo \
+                                    "${YQ_REPO_URL}" \
+                                    "${YQ_VERSION}" \
+                                /usr/src/yq
+                \
+                go build \
+                            -ldflags "\
+                                        -s \
+                                        -w \
+                                        -X ${YQ_REPO_URL/https:\/\//}/v4/version.Version=${YQ_VERSION} \
+                                      " \
+                            -o /usr/local/bin/yq \
+                            &&
+                    container_build_log add "YQ" "${YQ_VERSION}" "${YQ_REPO_URL}"
+                ;;
         esac
     }
 
@@ -40,11 +58,13 @@ package() {
         rm -rf \
                 /build-assets \
                 /etc/logrotate.d/* \
+                /root/.bundle \
                 /root/.cache \
                 /root/.cargo \
                 /root/.composer \
                 /root/.gitconfig \
                 /root/.npm \
+                /root/.profile \
                 /root/go \
                 /tmp/* \
                 /usr/src/* \
@@ -166,6 +186,13 @@ package() {
             add )
                 case "${distro}" in
                     "alpine" )
+                        case "${2,,}" in
+                            "testing" )
+                                echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
+                                return
+                            ;;
+                        esac
+
                         if [ -n "${3}" ] ; then
                             _package_repo_name="${2}"
                             shift 2
@@ -173,11 +200,42 @@ package() {
                         fi
                     ;;
                     "debian" | "ubuntu" )
-                        # Shortcut for backports
-                        if [ "${2}" = "backports" ]; then
-                            echo "deb http://deb.debian.org/debian $(container_info variant)-backports main" >> /etc/apt/sources.list.d/backports.list
-                            return
-                        fi
+                        # Shortcuts
+                        case "${2,,}" in
+                            "backports" )
+                                echo "deb http://deb.debian.org/debian $(container_info variant)-backports main" >> /etc/apt/sources.list.d/backports.list
+                                return
+                            ;;
+                            "node" )
+                                if [ -n "${3}" ] ; then
+                                    NODE_VERSION="${3}"
+                                else
+                                    NODE_VERSION="${NODE_VERSION:-"$(curl -s https://nodejs.org/dist/index.json | grep -B2 '"lts"' | grep '"version":' | head -n 1 | sed -E 's/.*"version": *"(v[^"]+)".*/\1/' | sed 's/^v//')"}"
+                                fi
+                                package repo key https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key nodesource.gpg
+                                package repo add nodejs "https://deb.nodesource.com/node_${NODE_VERSION:0:2}.x nodistro main" nodesource.gpg
+                                return
+                            ;;
+                            mariadb )
+                               if [ -n "${3}" ] ; then
+                                    MARIADB_VERSION="${3}"
+                                else
+                                    MARIADB_VERSION="${MARIADB_VERSION:-"$(curl -sSLk https://downloads.mariadb.com/MariaDB/mariadb_repo_setup | grep "mariadb_server_version=mariadb-" | head -n 1 | cut -d = -f 2 | cut -d - -f 2)"}"
+                                fi
+                                package repo key https://mariadb.org/mariadb_release_signing_key.asc mariadb.gpg
+                                package repo add mariadb "https://mirror.its.dal.ca/mariadb/repo/${MARIADB_VERSION}/debian $(container_info variant) main" mariadb.gpg
+                                return
+                            ;;
+                            postgres )
+                                package repo key https://www.postgresql.org/media/keys/ACCC4CF8.asc postgresql.gpg
+                                package repo add postgres "https://apt.postgresql.org/pub/repos/apt $(container_info variant)-pgdgmain" postgresql.gpg
+                            ;;
+                            yarn )
+                                package repo key https://dl.yarnpkg.com/debian/pubkey.gpg yarn.gpg
+                                package repo add yarn "https://dl.yarnpkg.com/debian stable main" yarn.gpg
+                                return
+                            ;;
+                        esac
                         _package_repo_name="${2}"
                         # Shift off 'add' and repo_name, so $@ is now: <repo_url_and_suite> [keyring_name]
                         shift 2
@@ -198,7 +256,7 @@ package() {
                 esac
             ;;
             key )
-                ## apt-key is gone with trixie and newer
+                ## apt-key is gone with trixie and newer - also works with bookworm
                 ## package repo key <url> <keyring_name>
                 ## package repo key https://example.com/repo.gpg example-archive-keyring.gpg
                 ## This will create /usr/share/keyrings/example-archive-keyring.gpg for use in sources.list
