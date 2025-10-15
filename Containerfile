@@ -158,13 +158,7 @@ RUN echo "" && \
         ;; \
     esac ; \
     \
-    mkdir -p /usr/local/go && \
-    GOLANG_VERSION=${GOLANG_VERSION:-"$(curl -sSL https://golang.org/VERSION?m=text | head -n1 | sed "s|^go||g")"} && \
-    curl -sSLk  https://dl.google.com/go/go${GOLANG_VERSION}.linux-$(container_info arch alt).tar.gz | tar xfz - --strip 1 -C /usr/local/go && \
-    ln -sf /usr/local/go/bin/go /usr/local/bin/ && \
-    ln -sf /usr/local/go/bin/godoc /usr/local/bin/ && \
-    ln -sf /usr/local/go/bin/gfmt /usr/local/bin/ &&  \
-    \
+    package build go && \
     _container_modules_parse IMAGE_BASE_MODULES && \
     _container_modules_parse IMAGE_MODULES && \
     package remove IMAGE_BASE_BUILD_DEPS && \
