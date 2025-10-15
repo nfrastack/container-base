@@ -174,27 +174,16 @@ RUN echo "" && \
             /etc/*.apk.new \
             /etc/cron* \
             /etc/issue \
-            /etc/logrotate.d/* \
-            /etc/periodic/* \
-            /etc/profile.d/* \
+            /etc/periodic/{*,.??*} \
+            /etc/profile.d/{*,.??*} \
             /media \
-            /root/.cache \
-            /root/.gnupg \
-            /root/go \
-            /tmp/* \
             /usr/local/bin/gfmt* \
             /usr/local/bin/go* \
             /usr/local/go \
-            /usr/share/doc/* \
-            /usr/share/doc/kde/HTML/*/* \
-            /usr/share/gnome/help/*/* \
-            /usr/share/info/* \
-            /usr/share/linda/* \
-            /usr/share/lintian/overrides/* \
-            /usr/share/locale/* \
-            /usr/share/man/* \
-            /usr/share/omf/*/*-*.emf \
-            /usr/src/* \
-            /var/log/*
+            /usr/share/gnome/help/*/{*,.??*} \
+            /usr/share/info/{*,.??*} \
+            /usr/share/linda/{*,.??*} \
+            /usr/share/lintian/overrides/{*,.??*} \
+            /usr/share/omf/*/*-*.emf
 
 ENTRYPOINT ["/init"]

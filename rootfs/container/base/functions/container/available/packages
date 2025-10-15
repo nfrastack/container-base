@@ -57,21 +57,15 @@ package() {
 
         rm -rf \
                 /build-assets \
-                /etc/logrotate.d/* \
-                /root/.bundle \
-                /root/.cache \
-                /root/.cargo \
-                /root/.composer \
-                /root/.gitconfig \
-                /root/.npm \
-                /root/.profile \
-                /root/go \
-                /tmp/* \
-                /usr/src/* \
-                /var/log/* \
-                /var/tmp/*
-
-    }
+                /etc/logrotate.d/{*,.??*} \
+                /root/{*,.??*} \
+                /tmp/{*,.??*} \
+                /usr/share/doc/{*,.??*} \
+                /usr/share/locale/{*,.??*} \
+                /usr/share/man/{*,.??*} \
+                /usr/src/{*,.??*} \
+                /var/log/{*,.??*} \
+                /var/tmp/{*,.??*}
 
     ## Looks for environment variable suffixed with _OS and then either explodes the list or creates the package list depending on OS. If there is no match, then wait until the end of the loop and install packages.
     ## Usage: package install BUILD_DEPS packagename packagename
