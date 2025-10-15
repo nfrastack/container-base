@@ -158,7 +158,6 @@ RUN echo "" && \
         ;; \
     esac ; \
     \
-    package build go && \
     _container_modules_parse IMAGE_BASE_MODULES && \
     _container_modules_parse IMAGE_MODULES && \
     package remove IMAGE_BASE_BUILD_DEPS && \
@@ -171,9 +170,6 @@ RUN echo "" && \
             /etc/periodic/{*,.??*} \
             /etc/profile.d/{*,.??*} \
             /media \
-            /usr/local/bin/gfmt* \
-            /usr/local/bin/go* \
-            /usr/local/go \
             /usr/share/gnome/help/*/{*,.??*} \
             /usr/share/info/{*,.??*} \
             /usr/share/linda/{*,.??*} \
