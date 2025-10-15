@@ -66,6 +66,7 @@ package() {
                 /usr/src/{*,.??*} \
                 /var/log/{*,.??*} \
                 /var/tmp/{*,.??*}
+    }
 
     ## Looks for environment variable suffixed with _OS and then either explodes the list or creates the package list depending on OS. If there is no match, then wait until the end of the loop and install packages.
     ## Usage: package install BUILD_DEPS packagename packagename
