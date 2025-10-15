@@ -6,12 +6,15 @@ package() {
     build() {
         case "${1}" in
             go )
-                mkdir -p /usr/src/go
-                GOLANG_VERSION="${GOLANG_VERSION:-"$(curl -sSL https://golang.org/VERSION?m=text | head -n1 | sed "s|^go||g")"}"
-                curl -sSLk https://dl.google.com/go/go"${GOLANG_VERSION}".linux-"$(container_info arch alt)".tar.gz | tar xvfz - --strip 1 -C /usr/src/go
-                ln -sf /usr/src/go/bin/go /usr/local/bin/
-                ln -sf /usr/src/go/bin/godoc /usr/local/bin/
-                ln -sf /usr/src/go/bin/gfmt /usr/local/bin/
+                if ! command -v go >/dev/null 2>&1 ; then
+                    echo "Go not installed, installing..."
+                    mkdir -p /usr/src/go
+                    GOLANG_VERSION="${GOLANG_VERSION:-"$(curl -sSL https://golang.org/VERSION?m=text | head -n1 | sed "s|^go||g")"}"
+                    curl -sSLk https://dl.google.com/go/go"${GOLANG_VERSION}".linux-"$(container_info arch alt)".tar.gz | tar xvfz - --strip 1 -C /usr/src/go
+                    ln -sf /usr/src/go/bin/go /usr/local/bin/
+                    ln -sf /usr/src/go/bin/godoc /usr/local/bin/
+                    ln -sf /usr/src/go/bin/gfmt /usr/local/bin/
+                fi
             ;;
             yq )
                 YQ_REPO_URL="${YQ_REPO_URL:-"https://github.com/mikefarah/yq"}"
@@ -197,18 +200,18 @@ package() {
                     "debian" | "ubuntu" )
                         # Shortcuts
                         case "${2,,}" in
-                            "backports" )
+                            backports )
                                 echo "deb http://deb.debian.org/debian $(container_info variant)-backports main" >> /etc/apt/sources.list.d/backports.list
                                 return
                             ;;
-                            "node" )
+                            node )
                                 if [ -n "${3}" ] ; then
                                     NODE_VERSION="${3}"
                                 else
                                     NODE_VERSION="${NODE_VERSION:-"$(curl -s https://nodejs.org/dist/index.json | grep -B2 '"lts"' | grep '"version":' | head -n 1 | sed -E 's/.*"version": *"(v[^"]+)".*/\1/' | sed 's/^v//')"}"
                                 fi
-                                package repo key https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key nodesource.gpg
-                                package repo add nodejs "https://deb.nodesource.com/node_${NODE_VERSION:0:2}.x nodistro main" nodesource.gpg
+                                package repo key https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key nodeauto.gpg
+                                package repo add nodejsauto "https://deb.nodesource.com/node_${NODE_VERSION:0:2}.x nodistro main" nodeauto.gpg
                                 return
                             ;;
                             mariadb )
@@ -217,17 +220,18 @@ package() {
                                 else
                                     MARIADB_VERSION="${MARIADB_VERSION:-"$(curl -sSLk https://downloads.mariadb.com/MariaDB/mariadb_repo_setup | grep "mariadb_server_version=mariadb-" | head -n 1 | cut -d = -f 2 | cut -d - -f 2)"}"
                                 fi
-                                package repo key https://mariadb.org/mariadb_release_signing_key.asc mariadb.gpg
-                                package repo add mariadb "https://mirror.its.dal.ca/mariadb/repo/${MARIADB_VERSION}/debian $(container_info variant) main" mariadb.gpg
+                                package repo key https://mariadb.org/mariadb_release_signing_key.asc mariadbsql.gpg
+                                package repo add mariadbsql "https://mirror.its.dal.ca/mariadb/repo/${MARIADB_VERSION}/debian $(container_info variant) main" mariadbsql.gpg
                                 return
                             ;;
                             postgres )
                                 package repo key https://www.postgresql.org/media/keys/ACCC4CF8.asc postgresql.gpg
-                                package repo add postgres "https://apt.postgresql.org/pub/repos/apt $(container_info variant)-pgdgmain" postgresql.gpg
+                                package repo add postgresql "https://apt.postgresql.org/pub/repos/apt $(container_info variant)-pgdg main" postgresql.gpg
+                                return
                             ;;
                             yarn )
-                                package repo key https://dl.yarnpkg.com/debian/pubkey.gpg yarn.gpg
-                                package repo add yarn "https://dl.yarnpkg.com/debian stable main" yarn.gpg
+                                package repo key https://dl.yarnpkg.com/debian/pubkey.gpg yarnpm.gpg
+                                package repo add yarnpm "https://dl.yarnpkg.com/debian stable main" yarnpm.gpg
                                 return
                             ;;
                         esac
@@ -259,7 +263,7 @@ package() {
                     "debian" | "ubuntu" )
                         local key_url="${2}"
                         local keyring_name="${3:-example-archive-keyring.gpg}"
-                        curl -fsSL "${key_url}" | gpg --dearmor -o "/usr/share/keyrings/${keyring_name}"
+                        curl -fsSL "${key_url}" | gpg --dearmor --batch --yes -o "/usr/share/keyrings/${keyring_name}"
                     ;;
                 esac
             ;;
