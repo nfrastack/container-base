@@ -31,10 +31,8 @@ dependencies() {
 install() {
     set -e
     if [ ! -f "${AGE_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
-        if ! command -v go > /dev/null 2>&1 ; then
-            package build go
-        fi
         dependencies
+        package build go
         package update
 
         clone_git_repo "${AGE_REPO_URL}" "${AGE_VERSION}"
