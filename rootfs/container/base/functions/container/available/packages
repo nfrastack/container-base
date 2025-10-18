@@ -90,20 +90,20 @@ package() {
 
                         if [ "${_package}" = "SCANNED_RUNTIME_DEPS" ]; then
                            local _scanned_raw _scanned_pkgs
-                            _scanned_raw=$(scanelf --needed --nobanner --recursive /usr/local \
-                                                  | awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
-                                                  | sort -u \
-                                                  | xargs -r apk info --installed 2>/dev/null || :)
-                            _scanned_pkgs=$(printf '%s\n' "${_scanned_raw}" \
-                                            | tr -s '[:space:]' '\n' \
-                                            | sed '/^$/d' \
-                                            | sort -u \
-                                            | tr '\n' ' ' \
-                                            | sed -E 's/  +/ /g; s/^ //; s/ $//')
-                            if [ -n "${_scanned_pkgs}" ]; then
-                                apk add -t .scanned_runtime_deps ${_scanned_pkgs}
-                            fi
-                            continue
+                           _scanned_raw=$(scanelf --needed --nobanner --recursive /usr/local \
+                                                 | awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
+                                                 | sort -u \
+                                                 | xargs -r apk info --installed 2>/dev/null || :)
+                           _scanned_pkgs=$(printf '%s\n' "${_scanned_raw}" \
+                                           | tr -s '[:space:]' '\n' \
+                                           | sed '/^$/d' \
+                                           | sort -u \
+                                           | tr '\n' ' ' \
+                                           | sed -E 's/  +/ /g; s/^ //; s/ $//')
+                           if [ -n "${_scanned_pkgs}" ]; then
+                               apk add -t .scanned_runtime_deps ${_scanned_pkgs}
+                           fi
+                           continue
                         fi
 
                         if [ -v "${_package^^}"_ALPINE ] ; then
@@ -128,6 +128,10 @@ package() {
                     for _package in $_package_install_list ; do
                         if [[ "${_package}" =~ (_BUILD_DEPS|_RUN_DEPS)$ ]] && ! [ -v "${_package^^}_DEBIAN" ]; then
                             continue
+                        fi
+                        if [ "${_package}" = "SCANNED_RUNTIME_DEPS" ]; then
+                           :
+                           continue
                         fi
                         if [ -v "${_package^^}"_DEBIAN ] ; then
                             local _packages
