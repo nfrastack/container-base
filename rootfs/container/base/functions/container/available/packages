@@ -73,6 +73,7 @@ package() {
 
     ## Looks for environment variable suffixed with _OS and then either explodes the list or creates the package list depending on OS. If there is no match, then wait until the end of the loop and install packages.
     ## Usage: package install BUILD_DEPS packagename packagename
+    ##                        SCANNED_RUNTIME_DEPS is a special case to scan /usr/local for shared library dependencies and install the required packages
     install() {
         local _packages_to_install
         case "${distro}" in
@@ -86,6 +87,25 @@ package() {
                         if [[ "${_package}" =~ (_BUILD_DEPS|_RUN_DEPS)$ ]] && ! [ -v "${_package^^}_ALPINE" ]; then
                             continue
                         fi
+
+                        if [ "${_package}" = "SCANNED_RUNTIME_DEPS" ]; then
+                           local _scanned_raw _scanned_pkgs
+                            _scanned_raw=$(scanelf --needed --nobanner --recursive /usr/local \
+                                                  | awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
+                                                  | sort -u \
+                                                  | xargs -r apk info --installed 2>/dev/null || :)
+                            _scanned_pkgs=$(printf '%s\n' "${_scanned_raw}" \
+                                            | tr -s '[:space:]' '\n' \
+                                            | sed '/^$/d' \
+                                            | sort -u \
+                                            | tr '\n' ' ' \
+                                            | sed -E 's/  +/ /g; s/^ //; s/ $//')
+                            if [ -n "${_scanned_pkgs}" ]; then
+                                apk add -t .scanned_runtime_deps ${_scanned_pkgs}
+                            fi
+                            continue
+                        fi
+
                         if [ -v "${_package^^}"_ALPINE ] ; then
                            local _packages
                            _packages=$(set -o posix; set | grep -E "^${_package^^}_ALPINE" | cut -d = -f 2 | sed 's/ \{1,\}/ /g' | xargs)
