@@ -128,9 +128,11 @@ EOF
         done
     fi
 
-    if var_true "${CONTAINER_ENABLE_MONITORING}" && [ "${CONTAINER_MONITORING_BACKEND,,}" = "zabbix" ]; then
-        source /container/base/defaults/defaults/*-monitoring
-        cat <<EOF > "${ZABBIX_CONFIG_PATH}"/"${ZABBIX_CONFIG_FILE}".d/nfrastack-fail2ban.conf
+    if var_true "${CONTAINER_ENABLE_MONITORING}" ; then
+        source /container/base/defaults/*-monitoring
+        case "${CONTAINER_MONITORING_BACKEND,,}" in
+            "zabbix" )
+                cat <<EOF | silent tee "${ZABBIX_CONFIG_PATH%/}"/"${ZABBIX_CONFIG_FILE}.d"/nfrastack_fail2ban.conf
 # Zabbix Fail2ban Configuration - Automatically generated based on container startup options
 # Find Companion Zabbix Server Templates at https://github.com/nfrastack/container-base
 # Autoregister=fail2ban
@@ -139,6 +141,8 @@ UserParameter=fail2ban.status[*],fail2ban-client status '$1' | grep 'Currently b
 UserParameter=fail2ban.discovery,fail2ban-client status | grep 'Jail list:' | sed -e 's/^.*:\W\+//' -e 's/\(\(\w\|-\)\+\)/{"{#JAIL}":"\1"}/g' -e 's/.*/{"data":[\0]}/'
 UserParameter=fail2ban.version,fail2ban-server -V | head -n1 | awk '{print $2}' | sed "s|v||"
 EOF
+            ;;
+        esac
     fi
 }
 
