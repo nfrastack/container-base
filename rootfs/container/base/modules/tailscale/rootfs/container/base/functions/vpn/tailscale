@@ -73,8 +73,8 @@ EOF
 
 source /container/base/functions/container/init
 SERVICE_NAME="vpn-tailscale_client"
-source /container/defaults/08-vpn
-source /container/functions/08-vpn
+source /container/base/defaults/08-vpn
+source /container/base/functions/08-vpn
 
 check_container_initialized
 
@@ -107,8 +107,8 @@ EOF
 
 source /container/base/functions/container/init
 SERVICE_NAME="vpn-tailscale_daemon"
-source /container/defaults/08-vpn
-source /container/functions/08-vpn
+source /container/base/defaults/08-vpn
+source /container/base/functions/08-vpn
 
 check_container_initialized
 

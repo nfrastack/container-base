@@ -10,7 +10,7 @@ fi
 
 if [ "${CONTAINER_ENABLE_LOGSHIPPING,,}" = "true" ]; then
     if [ -f "/container/base/defaults/logging/${CONTAINER_LOGSHIPPING_BACKEND/-/}" ]; then
-        source /container/defaults/logging/"${CONTAINER_LOGSHIPPING_BACKEND/-/}"
+        source /container/base/defaults/logging/"${CONTAINER_LOGSHIPPING_BACKEND/-/}"
     fi
 fi
 

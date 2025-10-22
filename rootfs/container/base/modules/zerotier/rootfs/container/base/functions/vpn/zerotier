@@ -137,8 +137,8 @@ EOF
 
 source /container/base/functions/container/init
 SERVICE_NAME="vpn-zerotier"
-source /container/defaults/08-vpn
-source /container/functions/08-vpn
+source /container/base/defaults/08-vpn
+source /container/base/functions/08-vpn
 
 check_container_initialized
 
