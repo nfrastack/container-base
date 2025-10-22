@@ -334,12 +334,18 @@ EOF
 EOF
     fi
     create_logrotate fluentbit "${FLUENTBIT_LOG_PATH}"/"${FLUENTBIT_LOG_FILE}"
-    if var_true "${CONTAINER_ENABLE_MONITORING}" && [ "${CONTAINER_MONITORING_BACKEND,,}" = "zabbix" ]; then
-        cat <<EOF > "${ZABBIX_CONFIG_PATH}"/"${ZABBIX_CONFIG_FILE}".d/nfrastack-fluentbit.conf
+
+    if var_true "${CONTAINER_ENABLE_MONITORING}" ; then
+        source /container/base/defaults/*-monitoring
+        case "${CONTAINER_MONITORING_BACKEND,,}" in
+            "zabbix" )
+                cat <<EOF | silent tee "${ZABBIX_CONFIG_PATH%/}"/"${ZABBIX_CONFIG_FILE}.d"/nfrastack_fluenbtbit.conf
 # Zabbix Fluentbit Configuration - Automatically generated based on container startup options
 # Find Companion Zabbix Server Templates at https://github.com/nfrastack/container-base
 # Autoregister=fluentbit
 EOF
+            ;;
+        esac
     fi
     print_notice "Container configured to ship logs via '${CONTAINER_LOGSHIPPING_BACKEND}'"
 }

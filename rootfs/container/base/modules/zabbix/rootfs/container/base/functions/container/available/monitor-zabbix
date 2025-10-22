@@ -14,12 +14,17 @@ create_zabbix() {
             autoregister="${1}"
         fi
         print_debug "Adding Zabbix Auto Register configuration for '${1}'"
-        if var_true "${CONTAINER_ENABLE_MONITORING}" && [ "${CONTAINER_MONITORING_BACKEND,,}" = "zabbix" ]; then
+
+        if var_true "${CONTAINER_ENABLE_MONITORING}" ; then
             source /container/base/defaults/*-monitoring
-            cat <<EOF > "${ZABBIX_CONFIG_PATH}"/"${ZABBIX_CONFIG_FILE}.d"/nfrastack_"$1".conf
+            case "${CONTAINER_MONITORING_BACKEND,,}" in
+                "zabbix" )
+                cat <<EOF | silent tee "${ZABBIX_CONFIG_PATH}"/"${ZABBIX_CONFIG_FILE}.d"/nfrastack_"$1".conf
 # Zabbix ${1} Configuration - Automatically Generated
 # Autoregister=$autoregister
 EOF
+                ;;
+            esac
         fi
     fi
 }
