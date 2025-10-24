@@ -158,7 +158,6 @@ fi
 
 set_timezone "${TIMEZONE}"
 host_override
-echo "source /container/base/functions/container/run" > /etc/bash/nfra_functions
 rm -rf /etc/logrotate.d/*
 output_on
 

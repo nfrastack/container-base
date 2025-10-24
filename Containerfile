@@ -9,14 +9,15 @@ ARG \
 FROM docker.io/${DISTRO}:${DISTRO_VARIANT}
 
 LABEL \
+        org.opencontainers.image.title="Base" \
+        org.opencontainers.image.description="Container Base Image" \
         org.opencontainers.image.authors="Nfrastack <code@nfrastack.com>" \
         org.opencontainers.image.url="https://hub.docker.com/r/nfrastack/base" \
         org.opencontainers.image.documentation="https://github.com/nfrastack/container-base/blob/main/README.md" \
         org.opencontainers.image.source="https://github.com/nfrastack/container-base.git" \
         org.opencontainers.image.vendor="Nfrastack <https://www.nfrastack.com>" \
-        org.opencontainers.image.licenses="MIT" \
-        org.opencontainers.image.title="Base" \
-        org.opencontainers.image.description="Container Base Image"
+        org.opencontainers.image.licenses="MIT"
+
 
 ARG     \
         IMAGE_BASE_MODULES="+cron,+logrotate,+msmtp,+s6overlay," \
