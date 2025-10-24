@@ -22,6 +22,7 @@ dependencies() {
 
             S6OVERLAY_RUN_DEPS_ALPINE=" 	\
                                       "
+            bashrc_path="/etc/bash/bashrc"
         ;;
         debian )
             S6OVERLAY_BUILD_DEPS_DEBIAN=" \
@@ -29,6 +30,7 @@ dependencies() {
                                         "
             S6OVERLAY_RUN_DEPS_DEBIAN="   \
                                       "
+            bashrc_path="/etc/bash.bashrc"
         ;;
     esac
 
@@ -68,7 +70,7 @@ install() {
                         /etc/services.d
 
         sed -i \
-                -e "/exec s6-overlay-suexec/i echo 'source /container/base/functions/container/run' > /etc/bash/bashrc" \
+                -e "/exec s6-overlay-suexec/i echo 'source /container/base/functions/container/run' > ${bashrc_path}" \
                 -e "/export PATH/i addpath /usr/local/sbin" \
                 -e "/export PATH/i addpath /usr/local/bin" \
                 -e "/export PATH/i addpath /usr/sbin" \
@@ -101,7 +103,8 @@ ifelse
 }
 {
   emptyenv -p
-  s6-envdir -Lfn -- /run/secrets s6-envdir -Lfn -- /run/s6/container_environment
+  s6-envdir -Lfn -- /run/secrets
+  s6-envdir -Lfn -- /run/s6/container_environment
   exec
   \$@
 }
