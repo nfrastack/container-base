@@ -56,7 +56,7 @@ create_user() {
         alpine )
             echo "Adding Group ${_groupname} with ID ${_gid}"
             addgroup -S -g ${_gid} "${_groupname}"
-            echo "Adding uid ${_uid} for user ${_user} gid ${_gid} group ${_groupname}"
+            echo "Adding uid ${_uid} for user ${_username} gid ${_gid} group ${_groupname}"
             adduser -D -S -h "${_home}" -s "${_shell}" -G "${_groupname}" -g "${_groupname}" -u "${_uid}" "${_username}"
         ;;
         debian )
