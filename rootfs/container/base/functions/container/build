@@ -8,5 +8,5 @@ for build_function in /container/base/functions/container/build.d/* ; do
         source "${build_function}"
     fi
 done
+export NFRASTACK_MODE="build"
 source /container/base/defaults/container
-set -x

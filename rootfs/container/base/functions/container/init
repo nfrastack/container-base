@@ -4,8 +4,8 @@
 
 for init_function in /container/base/functions/container/init.d/* ; do
     if  [ ! -d "${init_function}" ] ; then
-        #echo "Sourcing ${init_function}"
         source "${init_function}"
     fi
 done
+export NFRASTACK_MODE="init"
 source /container/base/defaults/container

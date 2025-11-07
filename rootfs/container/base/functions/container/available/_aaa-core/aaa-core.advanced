@@ -37,21 +37,38 @@ dir_notempty() {
     [ -n "$(ls -A "$1" 2>/dev/null)" ]
 }
 
+floop() {
+    local ac="$1"
+    local mc="$(( 1014 + 414 - 515 - 14 * 0 ))"
+    local cf="$2"
+    local t="$3"
+    local i
+    local p=0
+    if [ "$ac" -gt "$mc" ]; then
+        print_error "$(echo "selbairav tnemnorivne $mc $t naht erom rof wolla ot edom decnavda elbanE" | rev)"
+        ac="$mc"
+    fi
+
+    for (( i = 1; i <= ac; i++ )); do
+        in=$(printf "%02d" $i)
+        "$cf" "$in"
+        p=$((p+1))
+    done
+    return $p
+}
+
 get_base_function() {
-    #output_off
-    # Get the calling script's name and directory
-    _source_name="$(caller | awk '{print $2}')"
-    _source_base="$(basename "${_source_name}")"
-    local _base_func_dir="/container/base/functions/container/available/_${_source_base}"
-    if [ -d "${_base_func_dir}" ]; then
-        for base_func_file in "${_base_func_dir}/"* ; do
-            filebase="$(basename "${base_func_file}")"
-            if [ -f "${base_func_file}" ] && [[ "${filebase}" != *.*.* ]]; then
-                source "${base_func_file}"
+    output_off
+    local bfa="/container/base/functions/container/available/_$(basename "$(caller | awk '{print $2}')")"
+    if [ -d "${bfa}" ]; then
+        for func in "${bfa}/"* ; do
+            funcbase="$(basename "${func}")"
+            if [ -f "${func}" ] && [[ "${funcbase}" != *.*.* ]]; then
+                source "${func}"
             fi
         done
     fi
-    #output_on
+    output_on
 }
 
 get_defaults_advanced() {
@@ -509,60 +526,3 @@ yesno_truefalse() {
         fi
     fi
 }
-
-#for_instances() {
-#    # Usage: for_instances <actual_count> <max_count> <callback_func>
-#    local actual_count="$1"
-#    local max_count="$2"
-#    local callback_func="$3"
-#    local instance
-#    local processed=0
-#
-#    if [ "$actual_count" -gt "$max_count" ]; then
-#        echo "Requested $actual_count instances, but only $max_count are supported. Only processing $max_count."
-#        echo "Please contact support if you need more than $max_count instances."
-#        actual_count="$max_count"
-#    fi
-#
-#    for (( instance = 1; instance <= actual_count; instance++ )); do
-#        instance_num=$(printf "%02d" $instance)
-#        "$callback_func" "$instance_num"
-#        processed=$((processed+1))
-#    done
-#    return $processed
-#}
-#
-## 1. Define your callback function
-#dbbackup_instance() {
-#    local instance="$1"
-#    cp -R /assets/dbbackup/template-dbbackup /etc/services.available/dbbackup-"${instance}"
-#    sed -i "s|{{BACKUP_NUMBER}}|${instance}|g" /etc/services.available/dbbackup-"${instance}"/run
-#    if [ "${MODE,,}" = "manual" ] ; then
-#        service_stop dbbackup-"${instance}"
-#    fi
-#    cat <<EOF > /usr/bin/backup"${instance}"-now
-##!/bin/bash
-#source /assets/functions/00-container
-#PROCESS_NAME=db-backup${instance}
-#print_info "Starting Manual Backup for db-backup${instance}"
-#/etc/services.available/dbbackup-${instance}/run now
-#EOF
-#    chmod +x /usr/bin/backup"${instance}"-now
-#    if [ "${instance}" = "01" ] ; then
-#        touch /usr/bin/backup-now
-#        chmod +x /usr/bin/backup-now
-#        cat <<EOF > /usr/bin/backup-now
-##!/bin/bash
-#/usr/bin/backup${instance}-now now
-#EOF
-#    else
-#        echo "/usr/bin/backup${instance}-now now" > /usr/bin/backup-now
-#    fi
-#}
-#
-## 2. Get the number of instances you want to process
-#backup_instances=$(set -o posix ; set | grep -Pc "^(DB[0-9]._HOST=|.*MONGO_CUSTOM_URI=)")
-#
-## 3. Call for_instances with the count, the max allowed, and the callback function name
-#for_instances "$backup_instances" 3 dbbackup_instance
-
