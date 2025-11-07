@@ -4,7 +4,6 @@
 
 for run_function in /container/base/functions/container/run.d/* ; do
     if [ ! -d "${run_function}" ] ; then
-        #echo "Sourcing ${run_function}"
         source "${run_function}"
     fi
 done

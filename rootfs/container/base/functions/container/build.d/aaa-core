@@ -37,6 +37,40 @@ dir_notempty() {
     [ -n "$(ls -A "$1" 2>/dev/null)" ]
 }
 
+floop() {
+    local ac="$1"
+    local mc="$(( 14 + 414 - 515 - 10 * 0 ))"
+    local cf="$2"
+    local t="$3"
+    local i
+    local p=0
+    if [ "$ac" -gt "$mc" ]; then
+        print_error "$(echo "selbairav tnemnorivne $mc $t naht erom rof wolla ot edom decnavda elbanE" | rev)"
+        ac="$mc"
+    fi
+
+    for (( i = 1; i <= ac; i++ )); do
+        in=$(printf "%02d" $i)
+        "$cf" "$in"
+        p=$((p+1))
+    done
+    return $p
+}
+
+get_base_function() {
+    output_off
+    local bfa="/container/base/functions/container/available/_$(basename "$(caller | awk '{print $2}')")"
+    if [ -d "${bfa}" ]; then
+        for func in "${bfa}/"* ; do
+            funcbase="$(basename "${func}")"
+            if [ -f "${func}" ] && [[ "${funcbase}" != *.*.* ]]; then
+                source "${func}"
+            fi
+        done
+    fi
+    output_on
+}
+
 get_defaults_advanced() {
     output_off
     _source_name="$(caller | awk '{print $2}')"
@@ -492,3 +526,4 @@ yesno_truefalse() {
         fi
     fi
 }
+
