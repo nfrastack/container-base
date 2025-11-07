@@ -2,7 +2,7 @@
 
 ## About
 
-This repository allows you to build a container base image intended to be used to build downstream application images based on a series of modules in order to fast track building of other containers with commonly required features such as:
+This repository provides a modular container base image designed to accelerate the creation of downstream application containers. It includes a suite of commonly required features and modules, enabling rapid development and customization for a wide range of use cases.
 
 * Supporting [Alpine Linux](https://www.alpinelinux.org) 3.5-3.22
 * Supporting [Debian Linux](https://www.debian.org) Trixie, Bookworm, Bullseye, Buster
@@ -56,12 +56,16 @@ To unlock advanced features, one must provide a code to be able to change specif
 ```
 
 Image tag syntax is:
-<image>:<optional tag>-<distribution>_<distribution_release>_<optional_features>
-Example: `ghcr.io/nfrastack-container-base:1.0-alpine_3.22_core` or
 
-         `ghcr.io/nfrastack-container-base:alpine_3.22` or
+`<image>:<optional tag>-<distribution>_<distribution_release>_<optional_features>`
 
-         `ghcr.io/nfrastack-container-base:debian_trixie`
+Example:
+
+`ghcr.io/nfrastack-container-base:1.0-alpine_3.22_core` or
+
+`ghcr.io/nfrastack-container-base:alpine_3.22` or
+
+`ghcr.io/nfrastack-container-base:debian_trixie`
 
 * An optional tag may exist that matches the [CHANGELOG](CHANGELOG.md)
 * Distribution can either be `alpine` or `debian`
