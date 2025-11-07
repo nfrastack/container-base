@@ -35,7 +35,6 @@ build_assets() {
 
             if [ -n "${_buildasset_dest_path}" ]; then
                 if [ -d "${_buildasset_src_path}" ]; then
-                    # Only copy if there are files in the source directory
                     if compgen -G "${_buildasset_src_path}/*" > /dev/null; then
                         echo "Copying build assets from ${_buildasset_src_path} to ${_buildasset_dest_path}"
                         cp -aR "${_buildasset_src_path}/"* "${_buildasset_dest_path}"
