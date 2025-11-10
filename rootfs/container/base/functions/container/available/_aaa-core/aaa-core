@@ -45,7 +45,7 @@ floop() {
     local i
     local p=0
     if [ "$ac" -gt "$mc" ]; then
-        print_error "$(echo "selbairav tnemnorivne '$t' $mc naht erom rof wolla ot edom decnavda elbanE" | rev)"
+        print_error "$(echo "selbairav tnemnorivne '${t^^}' $mc naht erom rof wolla ot edom decnavda elbanE" | rev)"
         ac="$mc"
     fi
 

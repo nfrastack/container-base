@@ -39,13 +39,13 @@ dir_notempty() {
 
 floop() {
     local ac="$1"
-    local mc="$(( 14 + 414 - 515 - 10 * 0 ))"
+    local mc="$(( (7 * 5) - (10 + 22) ))"
     local cf="$2"
     local t="$3"
     local i
     local p=0
     if [ "$ac" -gt "$mc" ]; then
-        print_error "$(echo "selbairav tnemnorivne $mc $t naht erom rof wolla ot edom decnavda elbanE" | rev)"
+        print_error "$(echo "selbairav tnemnorivne '${t^^}' $mc naht erom rof wolla ot edom decnavda elbanE" | rev)"
         ac="$mc"
     fi
 
