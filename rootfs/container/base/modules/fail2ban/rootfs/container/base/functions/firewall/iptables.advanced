@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: MIT
 
 nfra_configure_firewall_iptables_init() {
-    if [ -f "${IPTABLES_RULES_PATH}"/"${IPTABLES_RULES_FILE}" ]; then
+    if [ -f "${IPTABLES_RULES_PATH%/}"/"${IPTABLES_RULES_FILE}" ]; then
         print_notice "Found custom iptables.rules file"
-        silent iptables-restore "${IPTABLES_RULES_PATH}"/"${IPTABLES_RULES_FILE}"
+        silent iptables-restore "${IPTABLES_RULES_PATH%/}"/"${IPTABLES_RULES_FILE}"
     fi
 }

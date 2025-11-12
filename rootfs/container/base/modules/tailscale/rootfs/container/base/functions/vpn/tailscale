@@ -86,12 +86,12 @@ EOF
     tailscale_configure_daemon() {
         case "${TAILSCALE_LOG_TYPE,,}" in
             file )
-                create_logrotate tailscaled "${TAILSCALE_LOG_PATH}"/"${TAILSCALE_LOG_FILE}" tailscale tailscale
+                create_logrotate tailscaled "${TAILSCALE_LOG_PATH%/}"/"${TAILSCALE_LOG_FILE}" tailscale tailscale
             ;;
         esac
 
         if [ -n "${TAILSCALE_MACHINEKEY}" ] ; then
-            cat <<EOF > sudo -u tailscale tee "${TAILSCALE_DATA_PATH}"/tailscaled.state
+            cat <<EOF > sudo -u tailscale tee "${TAILSCALE_DATA_PATH%/}"/tailscaled.state
 {
 "_machinekey": "${TAILSCALE_MACHINEKEY}"
 }
@@ -190,17 +190,17 @@ nfra_configure_vpn_tailscale_daemon_run() {
     exec s6-setuidgid "${TAILSCALE_USER}" \
                                     tailscaled \
                                                 -port "${TAILSCALE_LISTEN_PORT}" \
-                                                -socket "${TAILSCALE_SOCKET_PATH}"/"${TAILSCALE_SOCKET_FILE}" \
+                                                -socket "${TAILSCALE_SOCKET_PATH%/}"/"${TAILSCALE_SOCKET_FILE}" \
                                                 -statedir "${TAILSCALE_DATA_PATH}" \
                                                 -tun "${TAILSCALE_TUNNEL_INTERFACE}" \
                                                 -verbose "${TAILSCALE_LOG_LEVEL}" \
                                                 ${tailscale_nologtail} ${TAILSCALED_ARGS} \
-                                                2> "${TAILSCALE_LOG_PATH}"/"${TAILSCALE_LOG_FILE}"
+                                                2> "${TAILSCALE_LOG_PATH%/}"/"${TAILSCALE_LOG_FILE}"
 }
 
 nfra_configure_vpn_tailscale_client_run() {
     print_info "Running VPN Client"
-    wait_for_socket "${TAILSCALE_SOCKET_PATH}"/"${TAILSCALE_SOCKET_FILE}"
+    wait_for_socket "${TAILSCALE_SOCKET_PATH%/}"/"${TAILSCALE_SOCKET_FILE}"
     liftoff
 
     print_start "Starting Tailscale Client ${TAILSCALE_VERSION}"

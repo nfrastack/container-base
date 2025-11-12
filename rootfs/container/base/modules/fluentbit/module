@@ -92,7 +92,7 @@ install() {
         case "$(container_info distro)" in
             alpine )
                 if [ -d "${SCRIPT_PATH}/patches/alpine" ]; then
-                    for patch in "${SCRIPT_PATH}"/patches/alpine/*.patch; do
+                    for patch in "${SCRIPT_PATH%/}"/patches/alpine/*.patch; do
                         if [ -f "$patch" ]; then
                             echo "** Applying ${patch}"
                             patch -p1 < "$patch"

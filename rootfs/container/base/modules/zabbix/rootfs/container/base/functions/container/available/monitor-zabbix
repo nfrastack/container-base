@@ -19,7 +19,7 @@ create_zabbix() {
             source /container/base/defaults/*-monitoring
             case "${CONTAINER_MONITORING_BACKEND,,}" in
                 "zabbix" )
-                cat <<EOF | silent tee "${ZABBIX_CONFIG_PATH}"/"${ZABBIX_CONFIG_FILE}.d"/nfrastack_"$1".conf
+                cat <<EOF | silent tee "${ZABBIX_CONFIG_PATH%/}"/"${ZABBIX_CONFIG_FILE}.d"/nfrastack_"$1".conf
 # Zabbix ${1} Configuration - Automatically Generated
 # Autoregister=$autoregister
 EOF
