@@ -6,7 +6,7 @@ nfra_configure_firewall_fail2ban_init() {
     print_notice "Container configured to block hosts via 'fail2ban'"
     print_debug "Fail2ban: Configure Logging"
     mkdir -p "${FAIL2BAN_LOG_PATH}"
-    touch "${FAIL2BAN_LOG_PATH}"/"${FAIL2BAN_LOG_FILE}"
+    touch "${FAIL2BAN_LOG_PATH%/}"/"${FAIL2BAN_LOG_FILE}"
 
     print_debug "Fail2ban: Configuring Filesystem"
     if [ "${FAIL2BAN_CONFIG_PATH}" != "/etc/fail2ban/" ]; then
@@ -40,8 +40,8 @@ nfra_configure_firewall_fail2ban_init() {
         file )
             print_debug "Fail2ban: Creating Log Directory"
             mkdir -p "${FAIL2BAN_LOG_PATH}"
-            touch "${FAIL2BAN_LOG_PATH}"/"${FAIL2BAN_LOG_FILE}"
-            create_logrotate fail2ban "${FAIL2BAN_LOG_PATH}"/"${FAIL2BAN_LOG_FILE}" none
+            touch "${FAIL2BAN_LOG_PATH%/}"/"${FAIL2BAN_LOG_FILE}"
+            create_logrotate fail2ban "${FAIL2BAN_LOG_PATH%/}"/"${FAIL2BAN_LOG_FILE}" none
         ;;
         console )
             FAIL2BAN_LOG_FILE="STDOUT"
@@ -49,7 +49,7 @@ nfra_configure_firewall_fail2ban_init() {
     esac
 
     print_debug "Fail2Ban: Creating Default Jail Configuration"
-    cat <<EOF > "${FAIL2BAN_CONFIG_PATH}"/jail.conf
+    cat <<EOF > "${FAIL2BAN_CONFIG_PATH%/}"/jail.conf
 ## Custom Generated Fail2ban jail.conf Configuration! Do not edit, instead set ENV Vars
 ## Last Generated on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')
 
@@ -103,7 +103,7 @@ action = %(action_)s
 EOF
 
     print_debug "Fail2ban: Configuring main config file"
-    cat <<EOF > "${FAIL2BAN_CONFIG_PATH}"/fail2ban.conf
+    cat <<EOF > "${FAIL2BAN_CONFIG_PATH%/}"/fail2ban.conf
 ## Custom Generated fail2ban.conf Configuration! Do not edit, instead set ENV Vars
 ## Last Generated on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')
 
@@ -117,8 +117,8 @@ dbfile = ${fail2ban_db}
 dbpurgeage = ${FAIL2BAN_DB_PURGE_AGE}
 EOF
 
-    if [ -d "${FAIL2BAN_CONFIG_PATH}"/jail.d ] && dir_notempty ; then
-        for fail2ban_file in "${FAIL2BAN_CONFIG_PATH}"/jail.d/*.conf ; do
+    if [ -d "${FAIL2BAN_CONFIG_PATH%/}"/jail.d ] && dir_notempty ; then
+        for fail2ban_file in "${FAIL2BAN_CONFIG_PATH%/}"/jail.d/*.conf ; do
             if [ ! -d "$fail2ban_file" ] ; then
                 print_debug "Substituting Environment Variables for: '${fail2ban_file}'"
                 fail2ban_tmpfile=$(mktemp)

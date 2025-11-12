@@ -33,7 +33,7 @@ print_debug() {
 
     case "${CONTAINER_LOG_FILE_LEVEL,,}" in
         "debug" )
-            echo -e "$(log_prefix)[DEBUG] $SCRIPTPATH/$(basename "$0") ** [${SERVICE_NAME}] $1" >> "${CONTAINER_LOG_FILE_PATH}"/"${CONTAINER_LOG_FILE_NAME}"
+            echo -e "$(log_prefix)[DEBUG] $SCRIPTPATH/$(basename "$0") ** [${SERVICE_NAME}] $1" >> "${CONTAINER_LOG_FILE_PATH%/}"/"${CONTAINER_LOG_FILE_NAME}"
         ;;
     esac
     output_on
@@ -61,7 +61,7 @@ print_error() {
 
     case "${CONTAINER_LOG_FILE_LEVEL,,}" in
         "debug" | "notice" | "warn" | "error")
-            echo -e "$(log_prefix)[ERROR] $SCRIPTPATH/$(basename "$0") ** [${SERVICE_NAME}] $1" >> "${CONTAINER_LOG_FILE_PATH}"/"${CONTAINER_LOG_FILE_NAME}"
+            echo -e "$(log_prefix)[ERROR] $SCRIPTPATH/$(basename "$0") ** [${SERVICE_NAME}] $1" >> "${CONTAINER_LOG_FILE_PATH%/}"/"${CONTAINER_LOG_FILE_NAME}"
         ;;
     esac
     output_on
@@ -83,7 +83,7 @@ print_info() {
         fi
     fi
 
-    echo -e "$(log_prefix)[INFO] $SCRIPTPATH/$(basename "$0") ** [${SERVICE_NAME}] $1" >> "${CONTAINER_LOG_FILE_PATH}"/"${CONTAINER_LOG_FILE_NAME}"
+    echo -e "$(log_prefix)[INFO] $SCRIPTPATH/$(basename "$0") ** [${SERVICE_NAME}] $1" >> "${CONTAINER_LOG_FILE_PATH%/}"/"${CONTAINER_LOG_FILE_NAME}"
     output_on
 }
 
@@ -109,7 +109,7 @@ print_notice() {
 
     case "${CONTAINER_LOG_FILE_LEVEL,,}" in
         "debug" | "notice" )
-            echo -e "$(log_prefix)[NOTICE] $SCRIPTPATH/$(basename "$0") ** [${SERVICE_NAME}] $1" >> "${CONTAINER_LOG_FILE_PATH}"/"${CONTAINER_LOG_FILE_NAME}"
+            echo -e "$(log_prefix)[NOTICE] $SCRIPTPATH/$(basename "$0") ** [${SERVICE_NAME}] $1" >> "${CONTAINER_LOG_FILE_PATH%/}"/"${CONTAINER_LOG_FILE_NAME}"
         ;;
     esac
     output_on
@@ -127,10 +127,10 @@ print_start() {
 
         proc_help_arg="$(date +"${CONTAINER_PROCESS_HELPER_DATE_FMT}") $(date +"${CONTAINER_PROCESS_HELPER_TIME_FMT}") $(basename "$(pwd)") ${proc_start_count} $(cat /etc/hostname)"
         if [ -d "${CONTAINER_PROCESS_HELPER_PATH}" ]; then
-            if [ -f "${CONTAINER_PROCESS_HELPER_PATH}"/"$(basename $0)".sh ]; then
-                exec "${CONTAINER_PROCESS_HELPER_PATH}"/"$(basename $0)".sh "${proc_help_arg}"
-                elif [ -f "${CONTAINER_PROCESS_HELPER_PATH}"/"${CONTAINER_PROCESS_HELPER_SCRIPT}".sh ] ; then
-                exec "${CONTAINER_PROCESS_HELPER_PATH}"/"${CONTAINER_PROCESS_HELPER_SCRIPT}".sh "${proc_help_arg}"
+            if [ -f "${CONTAINER_PROCESS_HELPER_PATH%/}"/"$(basename $0)".sh ]; then
+                exec "${CONTAINER_PROCESS_HELPER_PATH%/}"/"$(basename $0)".sh "${proc_help_arg}"
+                elif [ -f "${CONTAINER_PROCESS_HELPER_PATH%/}"/"${CONTAINER_PROCESS_HELPER_SCRIPT}".sh ] ; then
+                exec "${CONTAINER_PROCESS_HELPER_PATH%/}"/"${CONTAINER_PROCESS_HELPER_SCRIPT}".sh "${proc_help_arg}"
             fi
         fi
 
@@ -159,14 +159,14 @@ print_start() {
         else
             echo -e "$(log_prefix)${bdg}[STARTING]${boff} $SCRIPTPATH/$(basename "$0") ** [${SERVICE_NAME}] ${proc_start_wrapper}$1"
         fi
-        echo -e "$(log_prefix)[STARTING] $SCRIPTPATH/$(basename "$0") ** [${SERVICE_NAME}] ${proc_start_wrapper}$1" >> "${CONTAINER_LOG_FILE_PATH}"/"${CONTAINER_LOG_FILE_NAME}"
+        echo -e "$(log_prefix)[STARTING] $SCRIPTPATH/$(basename "$0") ** [${SERVICE_NAME}] ${proc_start_wrapper}$1" >> "${CONTAINER_LOG_FILE_PATH%/}"/"${CONTAINER_LOG_FILE_NAME}"
     else
         if [ "${CONTAINER_COLORIZE_OUTPUT,,}" = "false" ] ; then
             echo -e "$(log_prefix)[STARTING] ** [${SERVICE_NAME}] ${proc_start_wrapper}$1"
         else
             echo -e "$(log_prefix)${bdg}[STARTING]${boff} ** [${SERVICE_NAME}] ${proc_start_wrapper}$1"
         fi
-        echo -e "$(log_prefix)[STARTING] $SCRIPTPATH/$(basename "$0") ** [${SERVICE_NAME}] ${proc_start_wrapper}$1" >> "${CONTAINER_LOG_FILE_PATH}"/"${CONTAINER_LOG_FILE_NAME}"
+        echo -e "$(log_prefix)[STARTING] $SCRIPTPATH/$(basename "$0") ** [${SERVICE_NAME}] ${proc_start_wrapper}$1" >> "${CONTAINER_LOG_FILE_PATH%/}"/"${CONTAINER_LOG_FILE_NAME}"
     fi
     output_on
 }
@@ -192,7 +192,7 @@ print_warn() {
 
     case "${CONTAINER_LOG_FILE_LEVEL,,}" in
         "debug" | "notice" | "warn" )
-            echo -e "$(log_prefix)[WARN] ** [${SERVICE_NAME}] $1" >> "${CONTAINER_LOG_FILE_PATH}"/"${CONTAINER_LOG_FILE_NAME}"
+            echo -e "$(log_prefix)[WARN] ** [${SERVICE_NAME}] $1" >> "${CONTAINER_LOG_FILE_PATH%/}"/"${CONTAINER_LOG_FILE_NAME}"
     esac
 
     output_on
