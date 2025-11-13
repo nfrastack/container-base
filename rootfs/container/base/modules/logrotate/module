@@ -30,7 +30,7 @@ dependencies() {
 }
 
 install() {
-    set -e
+    #set -e
     if [ ! -f "${LOGROTATE_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
         dependencies
         package update
