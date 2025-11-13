@@ -58,6 +58,10 @@ RUN echo "" && \
     source /container/base/functions/container/build && \
     case "$(container_info distro)" in \
         alpine ) \
+            if [ "$(grep -o '^PRETTY_NAME=.*' /etc/os-release | cut -d = -f2)" = '"Alpine Linux edge"' ] ; then \
+                apk add merge-usr ; \
+                merge-usr ; \
+            fi ; \
             case "$(container_info variant)" in \
                 3.[5-9] | 3.1[1-6] ) \
                     alpine_ssl=libressl ; \
@@ -79,8 +83,8 @@ RUN echo "" && \
             IMAGE_BASE_BUILD_DEPS_ALPINE=" \
                                             gettext \
                                             musl-dev \
-                                        " \
-                                        ; \
+                                         " \
+                                         ; \
             IMAGE_BASE_RUN_DEPS_ALPINE=" \
                                             acl \
                                             ${alpine_ssl} \
