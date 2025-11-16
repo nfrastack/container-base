@@ -109,7 +109,7 @@ ifelse
   \$@
 }
 
-s6-envdir -Lfn -- /run/secrets \$@
+\$@
 EOS6
 
         if [ -d "$(dirname "$0")"/rootfs ]; then
