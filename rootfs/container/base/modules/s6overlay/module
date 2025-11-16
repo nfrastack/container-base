@@ -93,7 +93,7 @@ install() {
                     /package/admin/s6-overlay/etc/s6-linux-init/skel/rc.init \
                     /package/admin/s6-overlay/etc/s6-rc/scripts/services-up
 
-        cat << EOS6 >> /command/with-contenv
+        cat << EOS6 | silent tee /command/with-contenv
 #!/command/execlineb -S0
 
 ifelse
@@ -111,6 +111,7 @@ ifelse
 
 \$@
 EOS6
+        chmod +x /command/with-contenv
 
         if [ -d "$(dirname "$0")"/rootfs ]; then
             cp -aR "$(dirname "$0")"/rootfs/* /
