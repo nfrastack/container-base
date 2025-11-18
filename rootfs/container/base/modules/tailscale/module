@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-TAILSCALE_VERSION=${TAILSCALE_VERSION:-"v1.90.7"}
+TAILSCALE_VERSION=${TAILSCALE_VERSION:-"v1.90.8"}
 TAILSCALE_REPO_URL=${TAILSCALE_REPO_URL:-"https://github.com/tailscale/tailscale"}
 
 TAILSCALE_USER=${TAILSCALE_USER:-"tailscale"}
