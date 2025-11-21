@@ -13,9 +13,9 @@ jobs:
           - { distro: "alpine", distro_variant: "edge", latest: "false", distro_latest: "false", arch: "linux/amd64,linux/arm64" }
           - { distro: "alpine", distro_variant: "3.22", latest: "true", distro_latest: "true", arch: "linux/amd64,linux/arm64" }
           - { distro: "alpine", distro_variant: "3.19", latest: "false", distro_latest: "false", arch: "linux/amd64,linux/arm64" }
-          - { distro: "alpine", distro_variant: "3.16", latest: "false", distro_latest: "false", arch: "linux/amd64",linux/arm64" }
-          - { distro: "alpine", distro_variant: "3.15", latest: "false", distro_latest: "false", arch: "linux/amd64",linux/arm64" }
-          - { distro: "alpine", distro_variant: "3.12", latest: "false", distro_latest: "false", arch: "linux/amd64",linux/arm64" }
+          - { distro: "alpine", distro_variant: "3.16", latest: "false", distro_latest: "false", arch: "linux/amd64,linux/arm64" }
+          - { distro: "alpine", distro_variant: "3.15", latest: "false", distro_latest: "false", arch: "linux/amd64,linux/arm64" }
+          - { distro: "alpine", distro_variant: "3.12", latest: "false", distro_latest: "false", arch: "linux/amd64,linux/arm64" }
           - { distro: "debian", distro_variant: "trixie", latest: "false", distro_latest: "true", arch: "linux/amd64,linux/arm64" }
           - { distro: "debian", distro_variant: "bookworm", latest: "false", distro_latest: "false", arch: "linux/amd64,linux/arm64" }
         image_variant:
