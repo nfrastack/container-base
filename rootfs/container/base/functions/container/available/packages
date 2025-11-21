@@ -210,7 +210,7 @@ package() {
                     "alpine" )
                         case "${2,,}" in
                             "testing" )
-                                echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
+                                echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
                                 return
                             ;;
                         esac
