@@ -297,4 +297,32 @@ package() {
     }
 
     output_off
+    local distro
+    distro=$(container_info distro)
+    local action="${1}"
+    shift
+    local arguments=("$@")
+
+    case "${action}" in
+        add | install )
+            action=install
+            "${action}" "${arguments[@]}"
+        ;;
+        build )
+            action=build
+            "${action}" "${arguments[@]}"
+        ;;
+        delete | remove | uninstall )
+            action=remove
+            "${action}" "${arguments[@]}"
+        ;;
+        repo )
+            action=repo
+            "${action}" "${arguments[@]}"
+        ;;
+        * )
+            "${action}" "${arguments[@]}"
+        ;;
+    esac
+    output_on
 }
