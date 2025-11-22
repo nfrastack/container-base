@@ -3,6 +3,47 @@
 # SPDX-License-Identifier: MIT
 
 package() {
+    build() {
+        case "${IMAGE_BUILD_MODE}" in
+            develop )
+                echo "** Not performing cleanup of temporary files and package manager caches in develop mode **"
+            ;;
+            * )
+                case "${1}" in
+                    go )
+                        if ! command -v go >/dev/null 2>&1 ; then
+                            echo "Go not installed, installing..."
+                            mkdir -p /usr/src/go
+                            GOLANG_VERSION="${GOLANG_VERSION:-"$(curl -sSL https://golang.org/VERSION?m=text | head -n1 | sed "s|^go||g")"}"
+                            curl -sSLk https://dl.google.com/go/go"${GOLANG_VERSION}".linux-"$(container_info arch alt)".tar.gz | tar xvfz - --strip 1 -C /usr/src/go
+                            ln -sf /usr/src/go/bin/go /usr/local/bin/
+                            ln -sf /usr/src/go/bin/godoc /usr/local/bin/
+                            ln -sf /usr/src/go/bin/gfmt /usr/local/bin/
+                        fi
+                    ;;
+                    yq )
+                        YQ_REPO_URL=${YQ_REPO_URL:-"https://github.com/mikefarah/yq"}
+                        YQ_VERSION=${YQ_VERSION:-$(curl -s ${YQ_REPO_URL/github.com/api.github.com\/repos}/releases/latest | sed -n 's/.*"tag_name": "\([^"]*\)".*/\1/p')}
+                        clone_git_repo \
+                                            "${YQ_REPO_URL}" \
+                                            "${YQ_VERSION}" \
+                                        /usr/src/yq
+                        \
+                        go build \
+                                    -ldflags "\
+                                                -s \
+                                                -w \
+                                                -X ${YQ_REPO_URL/https:\/\//}/v4/version.Version=${YQ_VERSION} \
+                                              " \
+                                    -o /usr/local/bin/yq \
+                                    &&
+                            container_build_log add "YQ" "${YQ_VERSION}" "${YQ_REPO_URL}"
+                        ;;
+                esac
+            ;;
+        esac
+    }
+
     cleanup() {
         case "${IMAGE_BUILD_MODE}" in
             develop )
@@ -125,53 +166,46 @@ package() {
     ## Looks for environment variable suffixed with _OS and then either explodes the list or references the package list depending on OS. If there is no match, then wait until the end of the loop and uninstall
     ## Usage: package remove BUILD_DEPS packagename packagename
     remove() {
-        case "${IMAGE_BUILD_MODE}" in
-            develop )
-                echo "** Not performing package manager removals in develop mode **"
+        case "${distro}" in
+            "alpine" )
+                # Use an array to avoid mutating the list while iterating
+                local _removal_args=("$@")
+                local _final_removal_list=""
+                for _package in "${_removal_args[@]}"; do
+                    if [ -v "${_package^^}_ALPINE" ]; then
+                        _final_removal_list+=" .${_package,,}"
+                    elif [[ "${_package}" =~ (_BUILD_DEPS|_RUN_DEPS)$ ]] && ! [ -v "${_package^^}_ALPINE" ]; then
+                        continue
+                    else
+                        _final_removal_list+=" ${_package}"
+                    fi
+                done
+
+                _final_removal_list=$(echo "${_final_removal_list}" | xargs)
+                if [ -n "${_final_removal_list}" ]; then
+                    apk del ${_final_removal_list}
+                fi
             ;;
-            * )
-                case "${distro}" in
-                    "alpine" )
-                        # Use an array to avoid mutating the list while iterating
-                        local _removal_args=("$@")
-                        local _final_removal_list=""
-                        for _package in "${_removal_args[@]}"; do
-                            if [ -v "${_package^^}_ALPINE" ]; then
-                                _final_removal_list+=" .${_package,,}"
-                            elif [[ "${_package}" =~ (_BUILD_DEPS|_RUN_DEPS)$ ]] && ! [ -v "${_package^^}_ALPINE" ]; then
-                                continue
-                            else
-                                _final_removal_list+=" ${_package}"
-                            fi
-                        done
+            "debian" | "ubuntu" )
+                local _removal_args=("$@")
+                local _final_removal_list=""
+                for _package in "${_removal_args[@]}"; do
+                    if [ -v "${_package^^}_DEBIAN" ]; then
+                        local _packages
+                        _packages=$(set -o posix; set | grep -E "^${_package^^}_DEBIAN" | cut -d = -f 2 | sed 's/ \{1,\}/ /g' | xargs)
+                        _final_removal_list+=" ${_packages}"
+                    elif [[ "${_package}" =~ (_BUILD_DEPS|_RUN_DEPS)$ ]] && ! [ -v "${_package^^}_DEBIAN" ]; then
+                        continue
+                    else
+                        _final_removal_list+=" ${_package}"
+                    fi
+                done
 
-                        _final_removal_list=$(echo "${_final_removal_list}" | xargs)
-                        if [ -n "${_final_removal_list}" ]; then
-                            apk del ${_final_removal_list}
-                        fi
-                    ;;
-                    "debian" | "ubuntu" )
-                        local _removal_args=("$@")
-                        local _final_removal_list=""
-                        for _package in "${_removal_args[@]}"; do
-                            if [ -v "${_package^^}_DEBIAN" ]; then
-                                local _packages
-                                _packages=$(set -o posix; set | grep -E "^${_package^^}_DEBIAN" | cut -d = -f 2 | sed 's/ \{1,\}/ /g' | xargs)
-                                _final_removal_list+=" ${_packages}"
-                            elif [[ "${_package}" =~ (_BUILD_DEPS|_RUN_DEPS)$ ]] && ! [ -v "${_package^^}_DEBIAN" ]; then
-                                continue
-                            else
-                                _final_removal_list+=" ${_package}"
-                            fi
-                        done
-
-                        _final_removal_list=$(echo "${_final_removal_list}" | xargs)
-                        if [ -n "${_final_removal_list}" ]; then
-                            apt-get purge -y ${_final_removal_list}
-                            apt-get autoremove -y
-                        fi
-                    ;;
-                esac
+                _final_removal_list=$(echo "${_final_removal_list}" | xargs)
+                if [ -n "${_final_removal_list}" ]; then
+                    apt-get purge -y ${_final_removal_list}
+                    apt-get autoremove -y
+                fi
             ;;
         esac
     }
@@ -198,7 +232,7 @@ package() {
                         if [ -n "${3}" ] ; then
                             _package_repo_name="${2}"
                             shift 2
-                            echo "$@" >> /etc/apk/repositories
+                            echo "$@" > /etc/apk/repositories/"${_package_repo_name}"
                         fi
                     ;;
                     "debian" | "ubuntu" )
