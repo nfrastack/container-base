@@ -156,7 +156,7 @@ sanity_var() {
     output_off
     print_debug "Looking for existence of $1 environment variable"
     if [ ! -v "$1" ]; then
-        print_error "No '$2' Entered! - Set '\$$1'"
+        print_error "No $2 Entered! - Set '\$$1'"
         exit 1
     fi
     output_on
