@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-TAILSCALE_VERSION=${TAILSCALE_VERSION:-"v1.90.8"}
+TAILSCALE_VERSION=${TAILSCALE_VERSION:-"v1.90.9"}
 TAILSCALE_REPO_URL=${TAILSCALE_REPO_URL:-"https://github.com/tailscale/tailscale"}
 
 TAILSCALE_USER=${TAILSCALE_USER:-"tailscale"}
@@ -30,13 +30,13 @@ dependencies() {
                 ;;
             esac
 
-            TAILSCALE_BUILD_DEPS_ALPINE=" 	\
+            TAILSCALE_BUILD_DEPS_ALPINE="	\
                                                 build-base \
                                                 binutils \
                                                 git \
                                         "
 
-            TAILSCALE_RUN_DEPS_ALPINE=" 	\
+            TAILSCALE_RUN_DEPS_ALPINE="	\
                                       "
 
 
