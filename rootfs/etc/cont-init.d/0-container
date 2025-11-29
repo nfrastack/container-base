@@ -36,7 +36,7 @@ for fullpath_baseinit in /container/base/init/init.d/* ; do
             if [ -f /override/base/init/init.d/"${baseinit}" ] && [ -x /override/base/init/init.d/"${baseinit}" ] ; then
                 /override/base/init/init.d/"${baseinit}"
             else
-                "${fullpath_baseinit}"
+                if [ -f "${fullpath_baseinit}" ]; then "${fullpath_baseinit}" ; fi
             fi
             if [ -f /override/base/init/post/"${baseinit}" ] && [ -x /override/base/init/post/"${baseinit}" ] ; then
                 /override/base/init/post/"${baseinit}"
