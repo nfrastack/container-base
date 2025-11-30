@@ -24,10 +24,27 @@ mkdir -p /container/state/{init,run}
 
 source /container/base/functions/container/init
 
+if [ -n "${CONTAINER_INIT_PRE_COMMAND}" ]; then
+    if [ -f "${CONTAINER_INIT_PRE_COMMAND}" ] && [ ! -x "${CONTAINER_INIT_PRE_COMMAND}" ]; then
+        chmod +x "${CONTAINER_INIT_PRE_COMMAND}"
+    fi
+    print_debug "Executing pre init command '${CONTAINER_INIT_PRE_COMMAND}'"
+    eval "${CONTAINER_INIT_PRE_COMMAND}"
+fi
+
 for fullpath_baseinit in /container/base/init/init.d/* ; do
     if [ -x "${fullpath_baseinit}" ] && [ ! -d "${fullpath_baseinit}" ] ; then
         baseinit=$(basename $fullpath_baseinit)
+        command_name=$(echo "${baseinit}" | sed -E 's/^[0-9]+-//' | tr ' -' '__')
         if [ "${baseinit}" != "zzz-container" ] ; then
+            pre_command="CONTAINER_INIT_PRE_COMMAND_${command_name}"
+            if [ -n "${!pre_command}" ]; then
+                if [ -f "${!pre_command}" ] && [ ! -x "${!pre_command}" ]; then
+                    chmod +x "${!pre_command}"
+                fi
+                print_debug "Executing command from ${pre_command}"
+                eval "${!pre_command}"
+            fi
             if [ -f /override/base/init/pre/"${baseinit}" ] && [ -x /override/base/init/pre/"${baseinit}" ] ; then
                 /override/base/init/pre/"${baseinit}"
             elif [ -f /container/base/init/pre/"${baseinit}" ] && [ -x /container/base/init/pre/"${baseinit}" ] ; then
@@ -37,6 +54,13 @@ for fullpath_baseinit in /container/base/init/init.d/* ; do
                 /override/base/init/init.d/"${baseinit}"
             else
                 if [ -f "${fullpath_baseinit}" ]; then "${fullpath_baseinit}" ; fi
+            fi
+            if [ -n "${!post_command}" ]; then
+                if [ -f "${!post_command}" ] && [ ! -x "${!post_command}" ]; then
+                    chmod +x "${!post_command}"
+                fi
+                print_debug "Executing command from ${post_script}"
+                eval "${!post_command}"
             fi
             if [ -f /override/base/init/post/"${baseinit}" ] && [ -x /override/base/init/post/"${baseinit}" ] ; then
                 /override/base/init/post/"${baseinit}"
@@ -50,6 +74,15 @@ done
 for fullpath_continit in /container/init/init.d/* ; do
     if [ -x "${fullpath_continit}" ] && [ ! -d "${fullpath_continit}" ] ; then
         continit=$(basename $fullpath_continit)
+        command_name=$(echo "${continit}" | sed -E 's/^[0-9]+-//' | tr ' -' '__')
+        pre_command="CONTAINER_INIT_PRE_COMMAND_${command_name}"
+        if [ -n "${!pre_command}" ]; then
+            if [ -f "${!pre_command}" ] && [ ! -x "${!pre_command}" ]; then
+                chmod +x "${!pre_command}"
+            fi
+            print_debug "Executing command from ${pre_command}"
+            eval "${!pre_command}"
+        fi
         if [ -f /override/init/pre/"${continit}" ] && [ -x /override/init/pre/"${continit}" ] ; then
             /override/init/pre/"${continit}"
         elif [ -f /container/init/pre/"${continit}" ] && [ -x /container/init/pre/"${continit}" ] ; then
@@ -59,6 +92,14 @@ for fullpath_continit in /container/init/init.d/* ; do
             /override/init/init.d/"${continit}"
         else
             if [ -f "${fullpath_continit}" ]; then "${fullpath_continit}" ; fi
+        fi
+        post_command="CONTAINER_INIT_POST_COMMAND_${command_name}"
+        if [ -n "${!post_command}" ]; then
+            if [ -f "${!post_command}" ] && [ ! -x "${!post_command}" ]; then
+                chmod +x "${!post_command}"
+            fi
+            print_debug "Executing command from ${post_command}"
+            eval "${!post_command}"
         fi
         if [ -f /override/init/post/"${continit}" ] && [ -x /override/init/post/"${continit}" ] ; then
             /override/init/post/"${continit}"

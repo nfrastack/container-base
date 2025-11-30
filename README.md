@@ -224,14 +224,31 @@ If you omit an IP Address and instead use a domain name it will attempt to look 
 
 This image can execute commands or scripts after the container initializes so that you can perform commands without having to rebuild the entire image or maintain a new codebase. Simply pass the command you wish to execute, or execute a script from the location from a mapped volume.
 
-| Parameter                       | Description                                                                           | Default                    | Advanced |
-| ------------------------------- | ------------------------------------------------------------------------------------- | -------------------------- | -------- |
-| `CONTAINER_CUSTOM_PATH`         | Used for adding custom files into the image upon startup                              | `/override/custom`         | x        |
-| `CONTAINER_CUSTOM_SCRIPTS_PATH` | Used for adding custom scripts to execute upon startup                                | `/override/custom-scripts` | x        |
-| `CONTAINER_POST_INIT_COMMAND`   | If you wish to execute a command in the container after all services have initialized |                            |          |
-|                                 | enter it here. Seperate multiple by commas.                                           |                            |          |
-| `CONTAINER_POST_INIT_SCRIPT`    | If you wish to execute a script in the container after all services have initialized  |                            |          |
-|                                 | enter it here. Seperate multiple by commas.                                           |                            |          |
+| Parameter                                      | Description                                                                                     | Default                    | Advanced |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------- | -------------------------- | -------- |
+| `CONTAINER_CUSTOM_PATH`                        | Used for adding custom files into the image upon startup                                        | `/override/custom`         | x        |
+| `CONTAINER_CUSTOM_SCRIPTS_PATH`                | Used for adding custom scripts to execute upon startup                                          | `/override/custom-scripts` | x        |
+| `CONTAINER_INIT_PRE_COMMAND_<SCRIPTNAME>`      | If you wish to execute a command in the container before the service has initialized            |                            |          |
+|                                                | enter it here, eg `CONTAINER_INIT_PRE_COMMAND_NGINX=echo 'pre nfrastack'`. If you pass a        |                            |          |
+|                                                | filename as value , it will execute the file                                                    |                            |          |
+| `CONTAINER_INIT_POST_COMMAND_<SCRIPTNAME>`     | If you wish to execute a command in the container after the service has initialized             |                            |          |
+|                                                | enter it here, eg `CONTAINER_INIT_POST_COMMAND_NGINX=echo 'post nfrastack'`. If you pass a      |                            |          |
+|                                                | filename as value , it will execute the file                                                    |                            |          |
+| `CONTAINER_INIT_PRE_COMMAND`                   | If you wish to execute a command in the container before all services have initialized          |                            |          |
+|                                                | enter it here.                                                                                  |                            |          |
+| `CONTAINER_INIT_POST_COMMAND`                  | If you wish to execute a command in the container after all services have initialized           |                            |          |
+|                                                | enter it here.                                                                                  |                            |          |
+| `CONTAINER_SHUTDOWN_PRE_COMMAND`               | If you wish to execute a command in the container before the shutdown sequence starts           |                            |          |
+|                                                | enter it here.                                                                                  |                            |          |
+| `CONTAINER_SHUTDOWN_POST_COMMAND`              | If you wish to execute a command in the container after the shutdown sequence has completed     |                            |          |
+|                                                | enter it here.                                                                                  |                            |          |
+| `CONTAINER_SHUTDOWN_PRE_COMMAND_<SCRIPTNAME>`  | If you wish to execute a command in the container before the shutdown routines have initialized |                            |          |
+|                                                | enter it here, eg `CONTAINER_SHUTDOWN_PRE_COMMAND_NGINX=echo 'pre nfrastack'`. If you pass a    |                            |          |
+|                                                | filename as value , it will execute the file                                                    |                            |          |
+| `CONTAINER_SHUTDOWN_POST_COMMAND_<SCRIPTNAME>` | If you wish to execute a command in the container after the shutdown routines have completed    |                            |          |
+|                                                | enter it here, eg `CONTAINER_SHUTDOWN_POST_COMMAND_NGINX=echo 'post nfrastack'`. If you pass a  |                            |          |
+|                                                | filename as value , it will execute the file                                                    |                            |          |
+
 
 #### Permissions Options
 
