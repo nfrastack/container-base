@@ -10,4 +10,4 @@ prepare_service single
 check_container_initialized
 check_service_initialized init
 
-call nfra_configure_firewall_fail2ban_init
+call nfra_configure_firewall_fail2ban_run

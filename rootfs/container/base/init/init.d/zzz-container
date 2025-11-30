@@ -111,26 +111,12 @@ for services in /container/base/run/available/*/ /container/run/available/*/ ; d
     fi
 done
 
-if [ -n "${CONTAINER_POST_INIT_SCRIPT}" ] ; then
-    print_debug "Found Post Init Scripts"
-    post_scripts=$(echo "${CONTAINER_POST_INIT_SCRIPT}" | tr "," "\n")
-    for post_script in $post_scripts; do
-        if [ -f "${post_script}" ] ; then
-            print_debug "Executing post init script '${post_script}'"
-            chmod +x "${post_script}"
-            "${post_script}"
-        else
-            print_error "Tried to run post script '${post_script}' but it does not exist!"
-        fi
-    done
+if [ -n "${CONTAINER_INIT_POST_COMMAND}" ]; then
+    if [ -f "${CONTAINER_INIT_POST_COMMAND}" ] && [ ! -x "${CONTAINER_INIT_POST_COMMAND}" ]; then
+        chmod +x "${CONTAINER_INIT_POST_COMMAND}"
+    fi
+    print_debug "Executing post init command '${CONTAINER_INIT_POST_COMMAND}'"
+    eval "${CONTAINER_INIT_POST_COMMAND}"
 fi
 
-if [ -n "${CONTAINER_POST_INIT_COMMAND}" ] ; then
-    print_debug "Found Post Init Command"
-    post_commands=$(echo "${CONTAINER_POST_INIT_COMMAND}" | tr "," "\n")
-    for post_command in ${post_commands}; do
-        print_debug "Executing post init command '${post_command}'"
-        eval "${post_command}"
-    done
-fi
 liftoff

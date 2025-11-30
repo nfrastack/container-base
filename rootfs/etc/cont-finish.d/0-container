@@ -6,10 +6,28 @@
 source /container/base/functions/container/init
 
 print_debug "Commencing container shutdown sequence"
+
+if [ -n "${CONTAINER_SHUTDOWN_PRE_COMMAND}" ]; then
+    if [ -f "${CONTAINER_SHUTDOWN_PRE_COMMAND}" ] && [ ! -x "${CONTAINER_SHUTDOWN_PRE_COMMAND}" ]; then
+        chmod +x "${CONTAINER_SHUTDOWN_PRE_COMMAND}"
+    fi
+    print_debug "Executing pre shutdown command '${CONTAINER_SHUTDOWN_PRE_COMMAND}'"
+    eval "${CONTAINER_SHUTDOWN_PRE_COMMAND}"
+fi
+
 for fullpath_basefinish in /container/base/finish/finish.d/* ; do
     if [ -x "${fullpath_basefinish}" ] && [ ! -d "${fullpath_basefinish}" ] ; then
         basefinish=$(basename $fullpath_basefinish)
+        command_name=$(echo "${basefinish}" | sed -E 's/^[0-9]+-//' | tr ' -' '__')
         if [ "${basefinish}" != "zzz-container" ] ; then
+            pre_command="CONTAINER_SHUTDOWN_PRE_COMMAND_${command_name}"
+            if [ -n "${!pre_command}" ]; then
+                if [ -f "${!pre_command}" ] && [ ! -x "${!pre_command}" ]; then
+                    chmod +x "${!pre_command}"
+                fi
+                print_debug "Executing command from ${pre_command}"
+                eval "${!pre_command}"
+            fi
             if [ -f /override/base/finish/pre/${basefinish} ] && [ -x /override/base/finish/pre/${basefinish} ] ; then
                 /override/base/finish/pre/${basefinish}
             elif [ -f /container/base/finish/pre/${basefinish} ] && [ -x /container/base/finish/pre/${basefinish} ] ; then
@@ -19,6 +37,14 @@ for fullpath_basefinish in /container/base/finish/finish.d/* ; do
                 /override/base/finish/init.d/"${basefinish}"
             else
                 "${fullpath_basefinish}"
+            fi
+            post_command="CONTAINER_SHUTDOWN_POST_COMMAND_${command_name}"
+            if [ -n "${!post_command}" ]; then
+                if [ -f "${!post_command}" ] && [ ! -x "${!post_command}" ]; then
+                    chmod +x "${!post_command}"
+                fi
+                print_debug "Executing command from ${post_command}"
+                eval "${!post_command}"
             fi
             if [ -f /override/base/inint/post/${basefinish} ] && [ -x /override/base/finish/post/${basefinish} ] ; then
                 /override/base/finish/post/${basefinish}
@@ -32,6 +58,15 @@ done
 for fullpath_contfinish in /container/finish/finish.d/* ; do
     if [ -x "${fullpath_contfinish}" ] && [ ! -d "${fullpath_contfinish}" ] ; then
         contfinish=$(basename $fullpath_contfinish)
+        command_name=$(echo "${contfinish}" | sed -E 's/^[0-9]+-//' | tr ' -' '__')
+        pre_command="CONTAINER_SHUTDOWN_PRE_COMMAND_${command_name}"
+            if [ -n "${!pre_command}" ]; then
+                if [ -f "${!pre_command}" ] && [ ! -x "${!pre_command}" ]; then
+                    chmod +x "${!pre_command}"
+                fi
+                print_debug "Executing command from ${pre_command}"
+                eval "${!pre_command}"
+            fi
         if [ -f /override/finish/pre/${contfinish} ] && [ -x /override/finish/pre/${contfinish} ] ; then
             /override/finish/pre/${contfinish}
         elif [ -f /container/finish/pre/${contfinish} ] && [ -x /container/finish/pre/${contfinish} ] ; then
@@ -42,6 +77,14 @@ for fullpath_contfinish in /container/finish/finish.d/* ; do
         else
             "${fullpath_contfinish}"
         fi
+        post_command="CONTAINER_SHUTDOWN_POST_COMMAND_${command_name}"
+        if [ -n "${!post_command}" ]; then
+            if [ -f "${!post_command}" ] && [ ! -x "${!post_command}" ]; then
+                chmod +x "${!post_command}"
+            fi
+            print_debug "Executing command from ${post_command}"
+            eval "${!post_command}"
+        fi
         if [ -f /override/inint/post/${contfinish} ] && [ -x /override/finish/post/${contfinish} ] ; then
             /override/finish/post/${contfinish}
         elif [ -f /container/finish/post/${contfinish} ] && [ -x /container/finish/post/${contfinish} ] ; then
@@ -50,25 +93,10 @@ for fullpath_contfinish in /container/finish/finish.d/* ; do
     fi
 done
 
-if [ -n "${CONTAINER_PRE_FINISH_SCRIPT}" ] ; then
-    print_debug "Found Pre Finish Scripts"
-    finish_scripts=$(echo "${CONTAINER_PRE_FINISH_SCRIPT}" | tr "," "\n")
-    for finish_script in $finish_scripts; do
-        if [ -f "${finish_script}" ] ; then
-            print_debug "Executing pre finish script '${finish_script}'"
-            chmod +x "${finish_script}"
-            "${finish_script}"
-        else
-            print_error "Tried to run pre finish script '${finish_script}' but it does not exist!"
-        fi
-    done
-fi
-
-if [ -n "${CONTAINER_PRE_FINISH_COMMAND}" ] ; then
-    print_debug "Found Pre Finish Command"
-    finish_commands=$(echo "${CONTAINER_PRE_FINISH_COMMAND}" | tr "," "\n")
-    for finish_command in "${finish_commands}"; do
-        print_debug "Executing pre finish command '${finish_command}'"
-        eval "${finish_command}"
-    done
+if [ -n "${CONTAINER_SHUTDOWN_POST_COMMAND}" ]; then
+    if [ -f "${CONTAINER_SHUTDOWN_POST_COMMAND}" ] && [ ! -x "${CONTAINER_SHUTDOWN_POST_COMMAND}" ]; then
+        chmod +x "${CONTAINER_SHUTDOWN_POST_COMMAND}"
+    fi
+    print_debug "Executing post shutdown command '${CONTAINER_SHUTDOWN_POST_COMMAND}'"
+    eval "${CONTAINER_SHUTDOWN_POST_COMMAND}"
 fi
