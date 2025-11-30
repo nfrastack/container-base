@@ -58,7 +58,7 @@ for fullpath_continit in /container/init/init.d/* ; do
         if [ -f /override/init/init.d/"${continit}" ] && [ -x /override/init/init.d/"${continit}" ] ; then
             /override/init/init.d/"${continit}"
         else
-            "${fullpath_continit}"
+            if [ -f "${fullpath_continit}" ]; then "${fullpath_continit}" ; fi
         fi
         if [ -f /override/init/post/"${continit}" ] && [ -x /override/init/post/"${continit}" ] ; then
             /override/init/post/"${continit}"
