@@ -21,7 +21,6 @@ else
 fi
 
 mkdir -p /container/state/{init,run}
-
 source /container/base/functions/container/init
 
 if [ -n "${CONTAINER_INIT_PRE_COMMAND}" ]; then

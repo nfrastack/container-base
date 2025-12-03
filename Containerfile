@@ -100,8 +100,8 @@ RUN echo "" && \
                                             tzdata \
                                             xz \
                                             ${zstd_package} \
-                                      " \
-                                      ; \
+                                       " \
+                                       ; \
         ;; \
         debian ) \
             \
@@ -126,8 +126,8 @@ RUN echo "" && \
                                             tar \
                                             tzdata \
                                             zstd \
-                                      " \
-                                      ; \
+                                       " \
+                                       ; \
         ;; \
     esac ; \
     \
