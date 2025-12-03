@@ -55,11 +55,12 @@ for fullpath_baseinit in /container/base/init/init.d/* ; do
             else
                 if [ -f "${fullpath_baseinit}" ]; then "${fullpath_baseinit}" ; fi
             fi
+            post_command="CONTAINER_INIT_POST_COMMAND_${command_name}"
             if [ -n "${!post_command}" ]; then
                 if [ -f "${!post_command}" ] && [ ! -x "${!post_command}" ]; then
                     chmod +x "${!post_command}"
                 fi
-                print_debug "Executing command from ${post_script}"
+                print_debug "Executing command from ${post_command}"
                 eval "${!post_command}"
             fi
             if [ -f /override/base/init/post/"${baseinit}" ] && [ -x /override/base/init/post/"${baseinit}" ] ; then
