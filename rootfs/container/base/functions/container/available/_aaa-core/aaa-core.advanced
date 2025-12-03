@@ -105,14 +105,14 @@ grant_sudo() {
     ## Grant sudo priveleges to a user
     ## grant_sudo (username) (command) | If no command set will be ALL
     output_off
-    if [ -n "$1" ] ; then
-        if [ -n "$2" ] ; then
-            sudo_command="$2"
+    if [ -n "${1}" ] ; then
+        if [ -n "${2}" ] ; then
+            sudo_command="${2}"
         else
             sudo_command="ALL"
         fi
-        print_debug "Adding Sudo privileges to '$1' for '${sudo_command}' command"
-        echo "%$1 ALL=(ALL) NOPASSWD:${sudo_command}" >> /etc/sudoers
+        print_debug "Adding Sudo privileges to '${1}' for '${sudo_command}' command"
+        echo "%$1 ALL=(ALL) NOPASSWD:${sudo_command}" | silent tee -a /etc/sudoers
     fi
     output_on
 }
@@ -164,6 +164,7 @@ sanity_var() {
 
 set_env() {
     ## Function to set an environment variable with a new value
+    output_off
     local var_input="${1}"
     local var_name="${var_input%%=*}"
     local var_value="${var_input#*=}"
@@ -185,6 +186,7 @@ set_env() {
     fi
 
     export "${var_name}"="${var_value}"
+    output_on
 }
 
 set_timezone() {
@@ -228,6 +230,7 @@ truefalse_yesno() {
     ## Usage: 'truefalse_yesno varname'
     ## Don't prefix it with a $
     ## Optionally add "uppercase" / "lowercase" as second value on how you wish it to be replaced
+    output_off
     value=$(set | grep "${1}"= | cut -d '=' -f2)
     var=$(set | grep "${1}"= | sed "s/=.*//g")
 
@@ -262,10 +265,12 @@ truefalse_yesno() {
             export "$1=no"
         fi
     fi
+    output_on
 }
 
 
 transform_var() {
+    output_off
     case "${1,,}" in
         "file" )
             ## Docker Secrets Support with recursive search in /run/secrets
@@ -348,6 +353,7 @@ transform_var() {
             unset variables
         ;;
     esac
+    output_on
 }
 
 truefalse_onoff() {
@@ -355,6 +361,7 @@ truefalse_onoff() {
     ## Usage: 'truefalse_yesno varname'
     ## Don't prefix it with a $
     ## Optionally add "uppercase" / "lowercase" as second value on how you wish it to be replaced
+    output_off
     value=$(set | grep "${1}"= | cut -d '=' -f2)
     var=$(set | grep "${1}"= | sed "s/=.*//g")
 
@@ -389,12 +396,14 @@ truefalse_onoff() {
             export "$1=off"
         fi
     fi
+    output_on
 }
 
 truefalse_onezero() {
     ## Convert TRUE or FALSE statements to either 1 or 0
     ## Usage: 'truefalse_onezero varname'
     ## Don't prefix it with a $
+    output_off
     value=$(set | grep "${1}"= | cut -d '=' -f2)
     var=$(set | grep "${1}"= | sed "s/=.*//g")
 
@@ -407,6 +416,7 @@ truefalse_onezero() {
         unset "$1"
         export "$1=0"
     fi
+    output_on
 }
 
 var_false() {
@@ -438,24 +448,29 @@ var_value() {
 wait_for_directory() {
     ## Wait for Directory to exist
     ## Usage: wait_for_directory socketname
+    output_off
     print_debug "Looking for existence of directory: $1"
     while [ ! -d "${1}" ] ; do
         sleep 1
     done
+    output_on
 }
 
 wait_for_file() {
     ## Wait for File to exist
     ## Usage: wait_for_file filename
+    output_off
     print_debug "Looking for existence of file: $1"
     while [ ! -f "${1}" ] ; do
         sleep 1
     done
+    output_on
 }
 
 wait_for_process() {
     ## Wait for Process to start
     ## Usage: wait_for_process hostname port
+    output_off
     print_debug "Looking for existence of process: $1"
     counter=0
     while ! pgrep "${1}" > /dev/null ; do
@@ -463,11 +478,13 @@ wait_for_process() {
         (( counter+=5 ))
         print_warn "Waiting for '${1}' to start, retrying.. ($counter seconds so far)"
     done
+    output_on
 }
 
 wait_for_port() {
     ## Wait for Port to exist
     ## Usage: wait_for_port hostname port
+    output_off
     print_debug "Looking for existence of listening port on $1:$2"
     counter=0
     while ! (nc -z "${1}" "${2}") ; do
@@ -475,15 +492,18 @@ wait_for_port() {
         (( counter+=5 ))
         print_warn "Host '${1}' is not listening on port '${2}', retrying.. ($counter seconds so far)"
     done
+    output_on
 }
 
 wait_for_socket() {
     ## Wait for Socket to exist
     ## Usage: wait_for_socket socketname
+    output_off
     print_debug "Looking for existence of socket: $1"
     while [ ! -S "${1}" ] ; do
         sleep 1
     done
+    output_on
 }
 
 yesno_truefalse() {
@@ -491,6 +511,7 @@ yesno_truefalse() {
     ## Usage: 'yesno_truefalse varname'
     ## Don't prefix it with a $
     ## Optionally add "uppercase" / "lowercase" as second value on how you wish it to be replaced
+    output_off
     value=$(set | grep "${1}"= | cut -d '=' -f2)
     var=$(set | grep "${1}"= | sed "s/=.*//g")
 
@@ -525,4 +546,6 @@ yesno_truefalse() {
             export "$1=FALSE"
         fi
     fi
+    output_on
 }
+
