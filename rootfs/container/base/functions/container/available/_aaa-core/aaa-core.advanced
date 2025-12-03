@@ -38,6 +38,7 @@ dir_notempty() {
 }
 
 floop() {
+    output_off
     local ac="$1"
     local mc="$(( (50 * 2) - (2 * 1) + (1 * 1) ))"
     local cf="$2"
@@ -48,12 +49,13 @@ floop() {
         print_error "$(echo "selbairav tnemnorivne '$t' $mc naht erom rof wolla ot edom decnavda elbanE" | rev)"
         ac="$mc"
     fi
-
+    output_on
     for (( i = 1; i <= ac; i++ )); do
         in=$(printf "%02d" $i)
         "$cf" "$in"
         p=$((p+1))
     done
+
     return $p
 }
 
