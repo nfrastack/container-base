@@ -8,4 +8,5 @@ for run_function in /container/base/functions/container/run.d/* ; do
     fi
 done
 export NFRASTACK_MODE="run"
+output_off
 source /container/base/defaults/container
