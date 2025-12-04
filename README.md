@@ -4,7 +4,7 @@
 
 This repository provides a modular container base image designed to accelerate the creation of downstream application containers. It includes a suite of commonly required features and modules, enabling rapid development and customization for a wide range of use cases.
 
-* Supporting [Alpine Linux](https://www.alpinelinux.org) 3.5-3.22
+* Supporting [Alpine Linux](https://www.alpinelinux.org) 3.5-3.23
 * Supporting [Debian Linux](https://www.debian.org) Trixie, Bookworm, Bullseye, Buster
 * Multi Processes - Utilize an initialization system to self contain entire application within the image.
 * User Management - Update User ID and Group ID permissions dynamically
