@@ -30,7 +30,7 @@ dependencies() {
 }
 
 install() {
-    #set -e
+    set -e
     if [ ! -f "${LOGROTATE_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
         dependencies
         package update
@@ -43,7 +43,7 @@ install() {
             cp -aR "$(dirname "$0")"/rootfs/* /
         fi
 
-        container_build_log add logrotate "$(logrotate -V | head -n1 | awk '{print $2" "$3}')" repositories
+        container_build_log add logrotate "$(logrotate --version | head -n1 | awk '{print $2" "$3}')" repositories
     fi
 }
 
