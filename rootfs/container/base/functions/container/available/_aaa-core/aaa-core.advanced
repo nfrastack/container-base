@@ -55,7 +55,6 @@ floop() {
         "$cf" "$in"
         p=$((p+1))
     done
-
     return $p
 }
 
