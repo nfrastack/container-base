@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-if [ "${DEBUG_MODE,,}" = "trace" ] ; then
+if [ "${DEBUG_MODE,,}" = "true" ] ; then
     set +x
 fi
 
