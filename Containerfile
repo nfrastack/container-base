@@ -66,7 +66,7 @@ RUN echo "" && \
                 3.[5-9] | 3.1[1-6] ) \
                     alpine_ssl=libressl ; \
                 ;; \
-                3.1[7-9] | 3.2[0-2] ) \
+                3.1[7-9] | 3.2[0-9] ) \
                     alpine_ssl=openssl ; \
                 ;; \
             esac ; \

@@ -135,6 +135,9 @@ output_on() {
             0*-* | 99-* )
                 :
             ;;
+            bash | aaa-* | zzz-* )
+                :
+            ;;
             run )
                 case "$PWD" in
                     */0*-* | 99-* )

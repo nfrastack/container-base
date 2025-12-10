@@ -4,9 +4,11 @@
 # SPDX-License-Identifier: MIT
 
 source /container/base/functions/container/init
+output_off
 d_e_o
 
 if var_false "${CONTAINER_SKIP_SANITY_CHECK}" ; then
+    output_off
     files_init=$(find /container/base/init/init.d/ /container/init/init.d/ -maxdepth 1 ! -name *.enc* ! -name .nfrastack ! -name zzz-container -type f 2>/dev/null | wc -l)
     declare -a files_init_name
     declare -a length_of_files_init_name
@@ -81,7 +83,7 @@ $(echo "${uninitialized_scripts[@]}" | tr ' ' '\n' | uniq -u)
 ****       relating to this image and have proper configuration such as environment variables and volumes set     ****
 ****                                                                                                              ****
 ****       If you feel that you have encountered a bug, please submit an issue on the revision control system     ****
-****       and provide full debug logs by setting the environment variable 'DEBUG_MODE=TRUE'                      ****
+****       and provide full debug logs by setting the environment variable 'CONTAINER_LOG_LEVEL=TRACE'            ****
 ****                                                                                                              ****
 **********************************************************************************************************************
 **********************************************************************************************************************

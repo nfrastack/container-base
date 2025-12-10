@@ -2,11 +2,16 @@
 #
 # SPDX-License-Identifier: MIT
 
+if [ "${CONTAINER_LOG_LEVEL,,}" = "trace" ] ; then
+    set +x
+fi
+
+export NFRASTACK_MODE="run"
 for run_function in /container/base/functions/container/run.d/* ; do
     if [ ! -d "${run_function}" ] ; then
         source "${run_function}"
     fi
 done
-export NFRASTACK_MODE="run"
+
 output_off
 source /container/base/defaults/container
