@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-if [ "${DEBUG_MODE,,}" = "trace" ] ; then
+if [ "${DEBUG_MODE,,}" = "true" ] ; then
     set +x
 fi
 
@@ -12,7 +12,7 @@ for init_function in /container/base/functions/container/init.d/* ; do
             output_on
         fi
         source "${init_function}"
-        output_off
+        set +x
     fi
 done
 

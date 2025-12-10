@@ -201,7 +201,27 @@ print_warn() {
 silent() {
     ## Quiet down output
     if [ "${DEBUG_MODE}" = "true" ] || [ "${SHOW_OUTPUT,,}" = "true" ] || [ "${CONTAINER_LOG_LEVEL,,}" = "debug" ] ;  then
-        "$@"
+        case "$(basename "$0")" in
+            0*-* | 99-* )
+                :
+            ;;
+            bash | aaa-* | zzz-* )
+                :
+            ;;
+            run )
+                case "$PWD" in
+                    */0*-* | 99-* )
+                        :
+                    ;;
+                    * )
+                        "$@"
+                    ;;
+                esac
+            ;;
+            * )
+                "$@"
+            ;;
+        esac
     else
         "$@" > /dev/null 2>&1
     fi
