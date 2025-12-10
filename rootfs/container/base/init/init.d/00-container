@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: MIT
 
 source /container/base/functions/container/init
+output_off
 showoff
 
 mkdir -p "${CONTAINER_LOG_FILE_PATH}"

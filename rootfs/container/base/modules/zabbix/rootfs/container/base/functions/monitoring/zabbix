@@ -5,10 +5,6 @@
 nfra_configure_monitoring_zabbix_init() {
     print_debug "Using Zabbix Backend"
 
-    if var_true "${DEBUG_MODE}" ; then
-        ZABBIX_DEBUGLEVEL=4
-    fi
-
     if var_true "${ZABBIX_USER_SUDO}" ; then
         grant_sudo zabbix
     fi
