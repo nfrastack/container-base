@@ -2,11 +2,9 @@
 #
 # SPDX-License-Identifier: MIT
 
-if [ "${CONTAINER_LOG_LEVEL,,}" = "trace" ] ; then
+if [ "${DEBUG_MODE,,}" = "trace" ] ; then
     set +x
 fi
-
-export NFRASTACK_MODE="init"
 
 for init_function in /container/base/functions/container/init.d/* ; do
     if [ ! -d "${init_function}" ]; then
