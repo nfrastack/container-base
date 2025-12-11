@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: MIT
 
+output_off
 set_env IPTABLES_BINARY="iptables" nfrastack/base
 set_env IPTABLES_RULES_PATH="/override/iptables/" nfrastack/base
 set_env IPTABLES_RULES_FILE="iptables.rules" nfrastack/base
+output_on

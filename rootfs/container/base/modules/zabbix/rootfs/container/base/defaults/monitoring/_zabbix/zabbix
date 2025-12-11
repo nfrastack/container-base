@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
+output_off
 set_env ZABBIX_AGENT_LOG_FILE="zabbix_agentd.log" nfrastack/base
 set_env ZABBIX_AGENT_LOG_PATH="/var/log/zabbix/agent/" nfrastack/base
 set_env ZABBIX_AGENT_TIMEOUT="3" nfrastack/base
@@ -20,3 +21,4 @@ set_env ZABBIX_SETUP_TYPE="AUTO" nfrastack/base
 set_env ZABBIX_SOCKET="/var/lib/zabbix/run/zabbix-agent.sock" nfrastack/base
 set_env ZABBIX_USER="zabbix" nfrastack/base
 set_env ZABBIX_USER_SUDO="TRUE" nfrastack/base
+output_on

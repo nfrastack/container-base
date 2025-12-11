@@ -2,7 +2,9 @@
 #
 # SPDX-License-Identifier: MIT
 
+output_off
 set_env CRON_BINARY="crond" nfrastack/base
 set_env SCHEDULING_LOG_TYPE="FILE" nfrastack/base
 set_env SCHEDULING_LOG_LOCATION="/var/log/cron/" nfrastack/base
 set_env SCHEDULING_LOG_LEVEL="8" nfrastack/base
+output_on

@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
+output_off
 set_env TAILSCALE_BINARY="tailscale" nfrastack/base
 set_env TAILSCALE_DATA_PATH="/var/lib/tailscale/" nfrastack/base
 set_env TAILSCALE_LOG_FILE="tailscaled.log" nfrastack/base
@@ -13,3 +14,4 @@ set_env TAILSCALE_SOCKET_PATH="/var/run/tailscale/" nfrastack/base
 set_env TAILSCALE_SOCKET_FILE="tailscaled.sock" nfrastack/base
 set_env TAILSCALE_ENABLE_LOGTAIL="FALSE" nfrastack/base
 set_env TAILSCALE_USER="root" nfrastack/base
+output_on

@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
+output_off
 set_env FLUENTBIT_BINARY="fluent-bit" nfrastack/base
 set_env FLUENTBIT_CONFIG_PARSERS="parsers.conf" nfrastack/base
 set_env FLUENTBIT_CONFIG_PLUGINS="plugins.conf" nfrastack/base
@@ -17,3 +18,4 @@ set_env FLUENTBIT_STORAGE_SYNC="normal" nfrastack/base
 set_env FLUENTBIT_TAIL_BUFFER_CHUNK_SIZE="32k" nfrastack/base
 set_env FLUENTBIT_TAIL_BUFFER_MAX_SIZE="32k" nfrastack/base
 set_env FLUENTBIT_TAIL_DB_JOURNAL_MODE="WAL" nfrastack/base
+output_on
