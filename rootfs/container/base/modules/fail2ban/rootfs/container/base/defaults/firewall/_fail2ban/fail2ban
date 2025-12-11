@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
+output_off
 set_env FAIL2BAN_BACKEND="AUTO" nfrastack/base
 set_env FAIL2BAN_BINARY="fail2ban-server" nfrastack/base
 set_env FAIL2BAN_CONFIG_PATH="/etc/fail2ban/" nfrastack/base
@@ -19,3 +20,4 @@ set_env FAIL2BAN_MAX_RETRY="5" nfrastack/base
 set_env FAIL2BAN_STARTUP_DELAY="15" nfrastack/base
 set_env FAIL2BAN_TIME_BAN="10m" nfrastack/base
 set_env FAIL2BAN_TIME_FIND="10m" nfrastack/base
+output_on
