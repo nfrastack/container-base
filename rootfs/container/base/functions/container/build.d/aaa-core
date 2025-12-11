@@ -169,7 +169,6 @@ sanity_var() {
 
 set_env() {
     ## Function to set an environment variable with a new value
-    output_off
     local var_input="${1}"
     local var_name="${var_input%%=*}"
     local var_value="${var_input#*=}"
@@ -191,7 +190,6 @@ set_env() {
     fi
 
     export "${var_name}"="${var_value}"
-    output_on
 }
 
 set_timezone() {

@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
+output_off
 set_env CONTAINER_CUSTOM_PATH="/override/custom/" nfrastack/base
 set_env CONTAINER_CUSTOM_SCRIPTS_PATH="/override/custom-scripts/" nfrastack/base
 set_env CONTAINER_ENABLE_CUSTOM_BASH_PROMPT="TRUE" nfrastack/base
@@ -29,4 +30,4 @@ set_env CONTAINER_REMOVE_INIT="none" nfrastack/base
 set_env CONTAINER_REMOVE_INIT_EXCLUDE="" nfrastack/base
 set_env CONTAINER_SCHEDULING_LOCATION="/container/cron/" nfrastack/base
 set_env CONTAINER_SCHEDULING_LOCATION_OVERRIDE="/override/cron/" nfrastack/base
-
+output_on

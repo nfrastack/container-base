@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
+output_off
 case "$(container_info distro)" in
     alpine )
         case "$(container_info variant)" in
@@ -14,3 +15,4 @@ esac
 set_env LOGSHIPPING_AUTO_CONFIG_LOGROTATE="TRUE" nfrastack/base
 set_env LOGROTATE_COMPRESSION_VALUE="8" nfrastack/base
 set_env LOGROTATE_RETAIN_DAYS="7" nfrastack/base
+output_on
