@@ -122,6 +122,7 @@ RUN echo "" && \
                                             git \
                                             gnupg \
                                             nano \
+                                            procps \
                                             sudo \
                                             tar \
                                             tzdata \
