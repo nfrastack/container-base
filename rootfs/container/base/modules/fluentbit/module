@@ -230,6 +230,7 @@ install() {
         mkdir -p /etc/fluent-bit/parsers.d
         mkdir -p /etc/fluent-bit/conf.d
         strip /usr/bin/fluent-bit
+        ln -s /usr/bin/fluent-bit /usr/local/bin/fluentbit
 
         if [ -d "$(dirname "$0")"/rootfs ]; then
             cp -aR "$(dirname "$0")"/rootfs/* /
