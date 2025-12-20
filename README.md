@@ -164,20 +164,20 @@ Change time and date and settings with these environment variables
 
 Only valid if appropriate module has been installed within the image. See [MODULES documentation](/rootfs/container/base/modules) for more information to see other configurable options.
 
-| Parameter                       | Description                                  | Default      | Advanced |
-| ------------------------------- | -------------------------------------------- | ------------ | -------- |
-| `CONTAINER_ENABLE_METRICS`      | Enable Metrics                               | `TRUE`       | x        |
-| `CONTAINER_ENABLE_MONITORING`   | Enable Monitoring of applications or metrics | `TRUE`       |          |
-| `CONTAINR_MONITORING_BACKEND`   | What monitoring agent to use `zabbix`        | `zabbix`     |          |
-| `CONTAINER_ENABLE_MESSAGING`    | Enable Messaging services like SMTP          | `TRUE`       |          |
-| `CONTAINER_MESSAGING_BACKEND`   | Messaging Backend - presently only `msmtp`   | `msmtp`      |          |
-| `CONTAINER_ENABLE_SCHEDULING`   | Enable Scheduled Tasks                       | `TRUE`       |          |
-| `CONTAINR_SCHEDULING_BACKEND`   | What scheduling tool to use `cron`           | `cron`       |          |
-| `CONTAINER_ENABLE_LOGROTATE`    | Enable Logrotate (if scheduling enabled)     | `TRUE`       |          |
-| `CONTAINER_ENABLE_LOGSHIPPING`  | Enable Log Shipping                          | `FALSE`      |          |
-| `CONTAINER_LOGSHIPPING_BACKEND` | Log shipping backend `fluent-bit`            | `fluent-bit` |          |
-| `CONTAINER_ENABLE_FIREWALL`     | Enable Firewall Functionality                | `FALSE`      |          |
-| `CONTAINER_FIREWALL_BACKEND`    | What Firewall backend to use `iptables`      | `iptables`   |          |
+| Parameter                       | Description                                  | Default     | Advanced |
+| ------------------------------- | -------------------------------------------- | ----------- | -------- |
+| `CONTAINER_ENABLE_METRICS`      | Enable Metrics                               | `TRUE`      | x        |
+| `CONTAINER_ENABLE_MONITORING`   | Enable Monitoring of applications or metrics | `TRUE`      |          |
+| `CONTAINR_MONITORING_BACKEND`   | What monitoring agent to use `zabbix`        | `zabbix`    |          |
+| `CONTAINER_ENABLE_MESSAGING`    | Enable Messaging services like SMTP          | `TRUE`      |          |
+| `CONTAINER_MESSAGING_BACKEND`   | Messaging Backend - presently only `msmtp`   | `msmtp`     |          |
+| `CONTAINER_ENABLE_SCHEDULING`   | Enable Scheduled Tasks                       | `TRUE`      |          |
+| `CONTAINR_SCHEDULING_BACKEND`   | What scheduling tool to use `cron`           | `cron`      |          |
+| `CONTAINER_ENABLE_LOGROTATE`    | Enable Logrotate (if scheduling enabled)     | `TRUE`      |          |
+| `CONTAINER_ENABLE_LOGSHIPPING`  | Enable Log Shipping                          | `FALSE`     |          |
+| `CONTAINER_LOGSHIPPING_BACKEND` | Log shipping backend `fluentbit`             | `fluentbit` |          |
+| `CONTAINER_ENABLE_FIREWALL`     | Enable Firewall Functionality                | `FALSE`     |          |
+| `CONTAINER_FIREWALL_BACKEND`    | What Firewall backend to use `iptables`      | `iptables`  |          |
 
 #### Networking Options
 ##### Firewall Options

@@ -60,16 +60,6 @@ package() {
                     ;;
                 esac
 
-                for symlink in \
-                                    /usr/local/bin/go \
-                                    /usr/local/bin/godoc \
-                                    /usr/local/bin/gfmt \
-                                ; do \
-                    if [ -L "${symlink}" ] && ! [ -e "${symlink}" ]; then
-                        rm -f "${symlink}"
-                    fi
-                done
-
                 rm -rf \
                         /build-assets \
                         /etc/logrotate.d/{*,.??*} \
@@ -81,6 +71,16 @@ package() {
                         /usr/src/{*,.??*} \
                         /var/log/{*,.??*} \
                         /var/tmp/{*,.??*}
+
+                for symlink in \
+                                    /usr/local/bin/go \
+                                    /usr/local/bin/godoc \
+                                    /usr/local/bin/gfmt \
+                                ; do \
+                    if [ -L "${symlink}" ] && ! [ -e "${symlink}" ]; then
+                        rm -f "${symlink}"
+                    fi
+                done
             ;;
         esac
     }
