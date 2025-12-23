@@ -90,6 +90,7 @@ RUN echo "" && \
                                             ${alpine_ssl} \
                                             bash \
                                             ${busybox_extras} \
+                                            ca-certificates \
                                             curl \
                                             git \
                                             grep \
