@@ -5,11 +5,12 @@
    - Binary Check for Logshipping not working due to hyphens
    - Fluent-bit module not executing properly
    - Add ca-certificates for alpine variant
+   - Properly output Zabbix Agent versions
+   - Fluent-bit 4.2.2
 
 ## 2025.12.0 2025-12-19 <code at nfrastack dot com>
 
    - Initial Tagged release
    - Alpine 3.5 -> 3.23 support
    - Debian Bookworm and Trixie Support
-
 
