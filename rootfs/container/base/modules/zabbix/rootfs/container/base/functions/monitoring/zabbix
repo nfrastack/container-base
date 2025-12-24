@@ -148,7 +148,7 @@ EOF
     chown -R "${ZABBIX_USER}":root \
                                     "${ZABBIX_AGENT_LOG_PATH}" \
                                     "${ZABBIX_CONFIG_PATH}"
-    chmod 775 "${ZABBIX_CONFIG_PATH}"
+    chmod 770 "${ZABBIX_CONFIG_PATH}"
     create_logrotate zabbix-agent "${ZABBIX_AGENT_LOG_PATH%/}"/"${ZABBIX_AGENT_LOG_FILE}" zabbix-agent-${logship_version} "${ZABBIX_USER}" root
     print_notice "Container configured for monitoring with '${CONTAINER_MONITORING_BACKEND} ${ZABBIX_AGENT_TYPE}'"
 }
@@ -160,11 +160,13 @@ nfra_configure_monitoring_zabbix_run() {
             print_debug "Starting classic Zabbix Agent"
             zabbix_command="zabbix_agentd"
             zabbix_agent_type="classic"
+            ZABBIX_VERSION=$(${zabbix_command} --version | head -n1 | awk '{print $4}')
         ;;
         "2" | "m" | "n" | "modern" | "new" )
             print_debug "Starting modern Zabbix agent"
             zabbix_command="zabbix_agent2"
             zabbix_agent_type="modern"
+            ZABBIX_VERSION=$(${zabbix_command} -V | head -n1 | awk '{print $3}')
         ;;
         * )
             print_debug "No known Zabbix agent type selected"
@@ -198,7 +200,7 @@ nfra_configure_monitoring_zabbix_run() {
             setfacl -m g:fail2ban:rwx /var/run/fail2ban/fail2ban.sock
     fi
 
-    print_start "Starting Zabbix Agent (${zabbix_agent_type}) ${ZABBIX_VERSION}"
+    print_start "Starting Zabbix Agent ${ZABBIX_VERSION} (${zabbix_agent_type})"
     output_on
     silent exec s6-setuidgid "${ZABBIX_USER}" ${zabbix_command}  -c "${ZABBIX_CONFIG_PATH%/}"/"${ZABBIX_CONFIG_FILE}" -f
 }
