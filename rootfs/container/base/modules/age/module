@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-AGE_VERSION=${AGE_VERSION:-"v1.2.1"}
+AGE_VERSION=${AGE_VERSION:-"v1.3.0"}
 AGE_REPO_URL=${AGE_REPO_URL:-"https://github.com/FiloSottile/age"}
 
 AGE_BINARY=/usr/local/bin/age
