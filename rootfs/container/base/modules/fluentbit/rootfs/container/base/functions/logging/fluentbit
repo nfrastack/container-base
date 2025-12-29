@@ -45,9 +45,11 @@ nfra_configure_logging_fluentbit_init() {
         truefalse_onoff FLUENTBIT_ENABLE_HTTP_SERVER
         truefalse_onoff FLUENTBIT_ENABLE_STORAGE_METRICS
         truefalse_onoff FLUENTBIT_STORAGE_CHECKSUM
-        mkdir -p "${FLUENTBIT_STORAGE_PATH}"
-        mkdir -p "${FLUENTBIT_LOG_PATH}"
-        mkdir -p /etc/fluent-bit/conf.d
+        mkdir -p \
+                    "${FLUENTBIT_STORAGE_PATH}" \
+                    "${FLUENTBIT_LOG_PATH}" \
+                    /etc/fluent-bit/conf.d
+
         cat <<EOF | silent tee /etc/fluent-bit/conf.d/do_not_delete.conf
 # Don't delete this configuration file otherwise execution of fluent-bit will fail. It will not affect operation of your system or impact resources
 [INPUT]
