@@ -170,6 +170,7 @@ RUN echo "" && \
     package cleanup && \
     \
     rm -rf \
+            /container/base/modules \
             /etc/*.apk.new \
             /etc/cron* \
             /etc/issue \

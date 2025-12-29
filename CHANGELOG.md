@@ -8,6 +8,7 @@
    - Properly output Zabbix Agent versions
    - Fluent-bit 4.2.2
    - Age 1.3.0
+   - Zerotier 1.16.1
 
 ## 2025.12.0 2025-12-19 <code at nfrastack dot com>
 
