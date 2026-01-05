@@ -19,7 +19,7 @@ LABEL \
         org.opencontainers.image.licenses="MIT"
 
 ARG     \
-        IMAGE_BASE_MODULES="+cron,+logrotate,+msmtp,+s6overlay," \
+        IMAGE_BASE_MODULES="+cron,+logrotate,+msmtp,+s6overlay" \
         IMAGE_MODULES \
         IMAGE_NAME \
         IMAGE_BASE_VERSION \
