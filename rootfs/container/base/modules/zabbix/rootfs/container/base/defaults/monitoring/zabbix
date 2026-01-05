@@ -16,11 +16,9 @@ ZABBIX_SERVER_ACTIVE=${ZABBIX_SERVER_ACTIVE:-"zabbix-proxy"}
 ZABBIX_START_AGENTS=${ZABBIX_START_AGENTS:-"1"}
 ZABBIX_STATUS_PORT=${ZABBIX_STATUS_PORT:-"8050"}
 
-get_defaults_advanced
-
 case $(container_info distro) in
     "alpine" )
-        if [ "$(echo "$(container_info variant)" | cut -d . -f 2 | cut -d _ -f 1)" -ge 14 ]; then
+        if [ "$(container_info variant | cut -d . -f 2 | cut -d _ -f 1)" -ge 14 ]; then
             ZABBIX_AGENT_TYPE=${ZABBIX_AGENT_TYPE:-"modern"}
             ZABBIX_BINARY=${ZABBIX_BINARY:-"zabbix_agent2"}
         else
@@ -33,3 +31,5 @@ case $(container_info distro) in
         ZABBIX_BINARY=${ZABBIX_BINARY:-"zabbix_agent2"}
     ;;
 esac
+
+get_defaults_advanced
