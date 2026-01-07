@@ -3,6 +3,8 @@
    ### Changed
       - Age 1.3.1
       - Zabbix Monitoring configuration cleanup
+      - Tailscale 1.92.5
+      - Changed redirections to use tee
 
 ## 2025.12.1 2025-12-31 <code at nfastack dot com>
 

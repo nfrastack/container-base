@@ -185,7 +185,7 @@ set_env() {
             touch "${var_override_log_file}"
         fi
         if ! grep -q "^.* | .* | ${var_name}" ${var_override_log_file}; then
-            echo "$(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z') | ${image_name} | $(caller | awk '{print $2}') | ${var_name} | ${!var_name} | ${var_value}" >> ${var_override_log_file}
+            echo "$(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z') | ${image_name} | $(caller | awk '{print $2}') | ${var_name} | ${!var_name} | ${var_value}" | silent tee -a ${var_override_log_file}
         fi
     fi
 

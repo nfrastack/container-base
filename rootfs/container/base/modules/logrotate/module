@@ -5,8 +5,9 @@
 LOGROTATE_BINARY=/usr/sbin/logrotate
 
 LOGROTATE_ASSETS=" \
-                    /container/base/defaults/logging/logrotate \
-                    /container/base/functions/logging/logrotate \
+                    /container/base/defaults/logging/_logrotate* \
+                    /container/base/defaults/logging/logrotate* \
+                    /container/base/functions/logging/logrotate* \
                     /container/logrotate \
                     /etc/logrotate.conf \
                     /etc/logrotate.d \
