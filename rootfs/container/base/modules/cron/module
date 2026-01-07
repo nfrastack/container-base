@@ -3,8 +3,9 @@
 # SPDX-License-Identifier: MIT
 
 CRON_ASSETS=" \
-                    /container/base/defaults/scheduling/cron \
-                    /container/base/functions/scheduling/cron \
+                    /container/base/defaults/scheduling/_cron \
+                    /container/base/defaults/scheduling/cron* \
+                    /container/base/functions/scheduling/cron* \
                 "
 
 dependencies() {

@@ -2,8 +2,9 @@ OPENBAO_VERSION=${OPENBAO_VERSION:-"v2.4.4"}
 OPENBAO_REPO_URL=${OPENBAO_REPO_URL:-"https://github.com/openbao/openbao"}
 OPENBAO_BINARY=/usr/local/bin/bao
 OPENBAO_ASSETS=" \
-                    /container/base/defaults/secrets/openbao \
-                    /container/base/functions/secrets/openbao \
+                    /container/base/defaults/secrets/_openbao \
+                    /container/base/defaults/secrets/openbao* \
+                    /container/base/functions/secrets/openbao* \
                     /usr/local/bin/vault \
                     ${OPENBAO_BINARY}
                  "

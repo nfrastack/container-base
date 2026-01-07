@@ -5,8 +5,9 @@
 MSMTP_BINARY=/usr/bin/msmtp
 
 MSMTP_ASSETS=" \
-                    /container/base/defaults/messaging/msmtp \
-                    /container/base/functions/messaging/msmtp \
+                    /container/base/defaults/messaging/msmtp* \
+                    /container/base/defaults/messaging/_msmtp* \
+                    /container/base/functions/messaging/msmtp* \
                     /etc/msmtp* \
                     /usr/bin/msmtp*
                 "

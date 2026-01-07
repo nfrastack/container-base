@@ -7,8 +7,9 @@ FLUENTBIT_REPO_URL=${FLUENTBIT_REPO_URL:-"https://github.com/fluent/fluent-bit"}
 
 FLUENTBIT_BINARY=/usr/bin/fluent-bit
 FLUENTBIT_ASSETS=" \
-                    /container/base/defaults/logging/fluentbit \
-                    /container/base/functions/logging/fluentbit \
+                    /container/base/defaults/logging/_fluentbit \
+                    /container/base/defaults/logging/fluentbit* \
+                    /container/base/functions/logging/fluentbit* \
                     /etc/fluent-bit \
                     ${FLUENTBIT_BINARY} \
                     /usr/include/fluent-bit*

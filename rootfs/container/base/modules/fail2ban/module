@@ -9,7 +9,8 @@ FAIL2BAN_GROUP_ID=${FAIL2BAN_GROUP_ID:-"65500"}
 
 FAIL2BAN_ASSETS=" \
                     /container/base/defaults/firewall/fail2ban \
-                    /container/base/functions/firewall/fail2ban \
+                    /container/base/defaults/firewall/_fail2ban \
+                    /container/base/functions/firewall/fail2ban* \
                     /etc/fail2ban
                     /run/fail2ban
                     /var/lib/fail2ban

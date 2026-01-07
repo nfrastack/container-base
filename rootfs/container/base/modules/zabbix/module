@@ -13,8 +13,9 @@ ZABBIX_GROUP=${ZABBIX_GROUP:-"zabbix"}
 ZABBIX_GROUP_ID=${ZABBIX_GROUP_ID:-"10050"}
 
 ZABBIX_ASSETS=" \
-                    /container/base/defaults/monitor/zabbix \
-                    /container/base/functions/monitor/zabbix \
+                    /container/base/defaults/monitor/_zabbix \
+                    /container/base/defaults/monitor/zabbix* \
+                    /container/base/functions/monitor/zabbix* \
                     /etc/zabbix \
                     /usr/local/bin/zabbix_* \
                     /var/lib/zabbix \

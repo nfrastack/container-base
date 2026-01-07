@@ -12,5 +12,5 @@ service_start() {
 
 service_stop() {
     mkdir -p /container/state/init/
-    echo "DONOTSTART added by $(basename "$0")" >> /container/state/init/"${1}"
+    echo "DONOTSTART added by $(basename "$0")" | silent tee -a /container/state/init/"${1}"
 }

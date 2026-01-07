@@ -128,15 +128,15 @@ EOF
                 case "${mode,,}" in
                     "client" )
                         print_debug "Enabling Container Mode for: CLIENT"
-                        echo "ENABLE_CLIENT=TRUE" >> /container/state/vpn/tailscale/CONTAINER_MODE
+                        echo "ENABLE_CLIENT=TRUE" | silent tee -a /container/state/vpn/tailscale/CONTAINER_MODE
                     ;;
                     "daemon" )
                         print_debug "Enabling Container Mode for: DAEMON"
-                        echo "ENABLE_DAEMON=TRUE" >> /container/state/vpn/tailscale/CONTAINER_MODE
+                        echo "ENABLE_DAEMON=TRUE" | silent tee -a /container/state/vpn/tailscale/CONTAINER_MODE
                     ;;
                     "standalone" | "manual" )
                         print_debug "Enabling Container Mode for: STANDALONE"
-                        echo "ENABLE_STANDALONE=TRUE" >> /container/state/vpn/tailscale/CONTAINER_MODE
+                        echo "ENABLE_STANDALONE=TRUE" | silent tee -a /container/state/vpn/tailscale/CONTAINER_MODE
                     ;;
                     *)
                         print_error "Unknown 'MODE' environment variable - exitting.."

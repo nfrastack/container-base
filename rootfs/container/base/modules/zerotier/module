@@ -12,7 +12,8 @@ ZEROTIER_GROUP_ID=${ZEROTIER_GROUP_ID:-"9376"}
 
 ZEROTIER_BINARY=/usr/sbin/zerotier-one
 ZEROTIER_ASSETS=" \
-                    /container/base/defaults/vpn/zerotier \
+                    /container/base/defaults/vpn/_zerotier \
+                    /container/base/defaults/vpn/zerotier* \
                     /container/base/functions/vpn/zerotier \
                     ${ZEROTIER_BINARY} \
                 "

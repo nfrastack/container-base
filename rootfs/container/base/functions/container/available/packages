@@ -224,7 +224,7 @@ package() {
                     "alpine" )
                         case "${2,,}" in
                             "testing" )
-                                echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
+                                echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" | slient tee -a /etc/apk/repositories
                                 return
                             ;;
                         esac
@@ -239,7 +239,7 @@ package() {
                         # Shortcuts
                         case "${2,,}" in
                             backports )
-                                echo "deb http://deb.debian.org/debian $(container_info variant)-backports main" >> /etc/apt/sources.list.d/backports.list
+                                echo "deb http://deb.debian.org/debian $(container_info variant)-backports main" | silent tee -a /etc/apt/sources.list.d/backports.list
                                 return
                             ;;
                             node )

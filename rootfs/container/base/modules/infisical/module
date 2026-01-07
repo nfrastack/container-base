@@ -7,8 +7,9 @@ INFISICAL_REPO_URL=${INFISICAL_REPO_URL:-"https://github.com/infisical/infisical
 
 INFISICAL_BINARY=/usr/local/bin/infisical
 INFISICAL_ASSETS=" \
-                    /container/base/defaults/secrets/infisical \
-                    /container/base/functions/secrets/infisical \
+                    /container/base/defaults/secrets/_infisical \
+                    /container/base/defaults/secrets/infisical* \
+                    /container/base/functions/secrets/infisical* \
                     ${INFISICAL_BINARY}
                  "
 

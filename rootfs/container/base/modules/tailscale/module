@@ -12,8 +12,9 @@ TAILSCALE_GROUP_ID=${TAILSCALE_GROUP_ID:-"8245"}
 
 TAILSCALE_BINARY=/usr/local/bin/tailscale
 TAILSCALE_ASSETS=" \
-                    /container/base/defaults/vpn/tailscale \
-                    /container/base/functions/vpn/tailscale \
+                    /container/base/defaults/vpn/_tailscale \
+                    /container/base/defaults/vpn/tailscale* \
+                    /container/base/functions/vpn/tailscale* \
                     ${TAILSCALE_BINARY}* \
                  "
 
