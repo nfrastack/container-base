@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-S6OVERLAY_VERSION=${S6OVERLAY_VERSION:-"3.2.1.0"}
+S6OVERLAY_VERSION=${S6OVERLAY_VERSION:-"3.2.2.0"}
 S6OVERLAY_REPO_URL=${S6OVERLAY_REPO_URL:-"https://github.com/just-containers/s6-overlay"}
 
 S6OVERLAY_BINARY=/command/s6-svc
@@ -76,7 +76,7 @@ install() {
                 -e "/export PATH/i addpath /usr/sbin" \
                     /init
         sed -i \
-                "s|v=2|v=1|g" \
+                "s|v=2|v=0|g" \
                     /package/admin/s6-overlay/etc/s6-linux-init/skel/rc.init \
                     /package/admin/s6-overlay/etc/s6-linux-init/skel/rc.shutdown
         sed -i \
