@@ -1,10 +1,12 @@
-## 2026.1.0pre 2026-01-01 <code at nfastack dot com>
+## 2026.1.0 2026-01-25 <code at nfastack dot com>
 
    ### Changed
       - Age 1.3.1
       - Zabbix Monitoring configuration cleanup
       - Tailscale 1.92.5
       - Changed redirections to use tee
+      - S6 Overlay 3.2.2.0
+
 
 ## 2025.12.1 2025-12-31 <code at nfastack dot com>
 
