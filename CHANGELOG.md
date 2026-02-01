@@ -1,3 +1,9 @@
+## 2026.2.0pre 2026-02-01 <code at nfastack dot com>
+
+   ### Changed
+      - render_template
+
+
 ## 2026.1.0 2026-01-25 <code at nfastack dot com>
 
    ### Changed
