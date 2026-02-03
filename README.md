@@ -48,8 +48,9 @@ This repository provides a modular container base image designed to accelerate t
 ## Installation
 
 ### Prebuilt Images
-Feature limited builds of the image are available on the [Github Container Registry](https://github.com/nfrastack/container-base/pkgs/container/container-base)
-To unlock advanced features, one must provide a code to be able to change specific environment variables from defaults. Support the development to gain access to a code.
+Feature limited builds of the image are available on the [Github Container Registry](https://github.com/nfrastack/container-base/pkgs/container/container-base).
+
+To unlock advanced features, provide a code to be able to change specific environment variables from defaults. Support the development to gain access to a code.
 
 ```
 (container platform) pull ghcr.io/nfrastack/container-base:(image_tag)
@@ -61,9 +62,9 @@ Image tag syntax is:
 
 Example:
 
-`ghcr.io/nfrastack-container-base:1.0-alpine_3.22_core` or
+`ghcr.io/nfrastack-container-base:20261.0-alpine_3.23_core` or
 
-`ghcr.io/nfrastack-container-base:alpine_3.22` or
+`ghcr.io/nfrastack-container-base:alpine_3.23` or
 
 `ghcr.io/nfrastack-container-base:debian_trixie`
 
@@ -81,7 +82,9 @@ Images are built for `amd64` by default, with optional support for `arm64` and o
 
 ### Build from Source
 
-Clone this repository and build the image with your preferred container builder. Customize modules as needed—see the [MODULES documentation](/rootfs/container/base/modules) for details. Building the image from source enables all advanced functionality.
+Clone this repository and build the image with your preferred container builder. Customize modules as needed - see the [MODULES documentation](/rootfs/container/base/modules) for details.
+
+Building the image from source enables all advanced functionality.
 
 ## Configuration
 
