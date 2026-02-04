@@ -126,47 +126,41 @@ render_template() {
     ## Usage: render_template [newline] <source_file> <destination_file> <varname> ...
     ## If 'newline' is the first argument, \n will be replaced with real newlines
     ## Can have multiple varnames - Don't prefix the varname with $
-    local newline_mode
-    if [ "${1,,}" = "newline" ]; then
+    local newline_mode=false
+    if [ "${1:-}" = "newline" ] || [ "${1:-}" = "NEWLINE" ]; then
         newline_mode=true
         shift
     fi
-    source_file=${1}
-    dest_file=${2}
-    shift 2
+    local source_file=${1:-} dest_file=${2:-}
+    shift 2 || true
     if [ -z "${source_file}" ] || [ -z "${dest_file}" ] ; then
         print_error "[render_template] Missing source or destination"
         return 1
     fi
 
-    template_variables=($@)
-
-    # Ensure destination directory exists
     if [ ! -d "$(dirname "${dest_file}")" ]; then
         mkdir -p "$(dirname "${dest_file}")"
     fi
 
-    # Copy source to destination (overwrite)
     cp -a "${source_file}" "${dest_file}"
 
-    template_user=$(stat -c %U "${dest_file}" 2>/dev/null || stat -c %U "${source_file}")
+    local template_tmp_file
     template_tmp_file=$(mktemp)
     cp -a "${dest_file}" "${template_tmp_file}"
 
-    # Keep the compatibilty: {{VAR}} => ${VAR}
-    for template_variable in ${template_variables[@]}; do
-        sed -ri "s/[{]{2}$template_variable[}]{2}/\\${$template_variable}/g" "${template_tmp_file}"
-        print_debug "[render_template] Template: '${dest_file}' updating field '${template_variable}'"
+    for template_variable in "${@}"; do
+        eval "val=\"\${${template_variable}-}\""
+        esc_val=$(printf '%s' "${val}" | sed -e 's/\\/\\\\/g' -e 's/|/\\|/g' -e 's/&/\\&/g')
+        sed -i "s|{{${template_variable}}}|${esc_val}|g" "${template_tmp_file}" || true
+        print_debug "[render_template_local] Template: '${dest_file}' updating field '${template_variable}'"
     done
-    (
-        export ${template_variables[@]}
-        local IFS=":"; sudo -HEu ${template_user} envsubst "${template_variables[*]/#/$}" < "${template_tmp_file}" > "${dest_file}"
-    )
-    if var_true "${newline_mode}" ; then
-        # Convert escaped newlines to real newlines
-        sed -i 's/\\n/\n/g' "${dest_file}"
+
+    if [ "${newline_mode,,}" = true ] ; then
+        awk '{ gsub(/\\n/, "\n"); print }' "${template_tmp_file}" > "${template_tmp_file}.new" && mv "${template_tmp_file}.new" "${template_tmp_file}"
     fi
-    rm -f "${template_tmp_file}"
+
+    mv "${template_tmp_file}" "${dest_file}"
+    chmod 644 "${dest_file}"
 }
 
 update_template() {
