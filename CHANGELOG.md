@@ -2,6 +2,7 @@
 
    ### Changed
       - render_template
+      - Openbao 2.5.0
 
 
 ## 2026.1.0 2026-01-25 <code at nfastack dot com>
