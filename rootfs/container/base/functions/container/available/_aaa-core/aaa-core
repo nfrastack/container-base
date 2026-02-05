@@ -221,7 +221,7 @@ showoff() {
     echo "H4sIAAAAAAAAA4VRuxLDMAjb+QrOS9qFWZ/hNZsv553/38ojSUnv0jAQbMlCEOIaooAKP8UdQy3ocgOAR3uSU9wgw96TiYpxwpf5g2p24onNH2tCe6UxRJB+oCjdUPp07d5WuEheZ7/W0Hl05ndAE3gxN5ykC7TYdCsSEvSFdlLN36/56C0OIxpLAU/oJEdpIf9Fp/vLseRwln4KlORYdPwSb06xJ645ZgoBHmvuQtmzrWphX4PdFciqTadjRYWIPqXeelFWAgAA" | base64 -d | gunzip
     echo "${is}"
     echo "${ir}"
-    echo "H4sIAAAAAAAAA/PJTE7NK061UvD1DFHQVTAyMDJVOLRSwS+tKLG4JDE5W6FGwTe/KFUhMy8t30oho6SkoNhKX7+8vFwvD6ZELzk/lwsAiFzB8EgAAAA=" | base64 -d | gunzip
+    echo "H4sIAAAAAAAAA/PJTE7NK061UvD1DFHQVTAyMDJTOLRSwS+tKLG4JDE5W6FGwTe/KFUhMy8t30oho6SkoNhKX7+8vFwvD6ZELzk/lwsAUqYv8kgAAAA=" | base64 -d | gunzip
     echo ""
     echo "H4sIAAAAAAAAAyXK0QmAMAwFwH+nyADFMdyj0BcQUxPTRHF7C34e3KZOI83Uo1DDDVHrOCfSWg2MQvVsxKiRDnJciRHEKbyL/JNzjv7So36syweBXN0TUgAAAA==" | base64 -d | gunzip
     echo ""

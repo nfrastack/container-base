@@ -126,11 +126,13 @@ render_template() {
     ## Usage: render_template [newline] <source_file> <destination_file> <varname> ...
     ## If 'newline' is the first argument, \n will be replaced with real newlines
     ## Can have multiple varnames - Don't prefix the varname with $
+
     local newline_mode=false
-    if [ "${1:-}" = "newline" ] || [ "${1:-}" = "NEWLINE" ]; then
+    if [ "${1,,}" = "newline" ]; then
         newline_mode=true
         shift
     fi
+
     local source_file=${1:-} dest_file=${2:-}
     shift 2 || true
     if [ -z "${source_file}" ] || [ -z "${dest_file}" ] ; then
@@ -156,7 +158,7 @@ render_template() {
     done
 
     if [ "${newline_mode,,}" = true ] ; then
-        awk '{ gsub(/\\n/, "\n"); print }' "${template_tmp_file}" > "${template_tmp_file}.new" && mv "${template_tmp_file}.new" "${template_tmp_file}"
+        sed -i 's/\\n/\n/g'  "${template_tmp_file}" > "${template_tmp_file}.new" && mv "${template_tmp_file}.new" "${template_tmp_file}"
     fi
 
     mv "${template_tmp_file}" "${dest_file}"
