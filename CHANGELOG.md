@@ -3,6 +3,7 @@
    ### Changed
       - render_template
       - Openbao 2.5.0
+      - Zabbix Agent 7.4.7
 
 
 ## 2026.1.0 2026-01-25 <code at nfastack dot com>
