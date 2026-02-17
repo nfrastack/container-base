@@ -2,6 +2,7 @@
 
    ### Changed
       - render_template
+      - transform_var env update
       - Openbao 2.5.0
       - Zabbix Agent 7.4.7
       - Tailscale 1.94.2
