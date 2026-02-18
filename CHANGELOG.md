@@ -2,10 +2,13 @@
 
    ### Changed
       - render_template
+      - build_env
+      - Mod prepare_service
       - transform_var env update
       - Openbao 2.5.0
       - Zabbix Agent 7.4.7
       - Tailscale 1.94.2
+      - Fluent-bit 4.2.3
 
 
 ## 2026.1.0 2026-01-25 <code at nfastack dot com>

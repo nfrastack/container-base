@@ -1,6 +1,110 @@
-# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+# SPDX-FileCopyrightText: © 2026 Nfrastack <code@nfrastack.com>
 #
 # SPDX-License-Identifier: MIT
+
+_container_build_env_import() {
+    local val="${1}"
+    if [ -z "${val}" ] || [ -z "${IMAGE_NAME}" ]; then
+        return 0
+    fi
+
+    local base_env_dir="/container/build/${IMAGE_NAME//\//_}/env"
+    if [ ! -d "${base_env_dir}" ]; then
+        return 0
+    fi
+
+    local top_files=()
+    local f
+    for f in "${base_env_dir}"/*; do
+        if [ -f "${f}" ]; then
+            top_files+=("${f}")
+        fi
+    done
+
+    if [ ${#top_files[@]} -gt 0 ]; then
+        local -a top_sorted
+        readarray -t top_sorted < <(printf '%s\n' "${top_files[@]}" | LC_ALL=C sort -V)
+        for f in "${top_sorted[@]}"; do
+            print_debug "[build_env_import] Sourcing ${f} (top-level)"
+            source "${f}"
+        done
+    fi
+
+    local subdirs=()
+    local candidate bn
+    for candidate in "${base_env_dir}"/*; do
+        if [ -d "${candidate}" ]; then
+            bn=$(basename "${candidate}")
+            subdirs+=("${bn}")
+        fi
+    done
+
+    if [ ${#subdirs[@]} -eq 0 ]; then
+        return 0
+    fi
+
+    local -a sorted
+    readarray -t sorted < <(printf '%s\n' "${subdirs[@]}" | LC_ALL=C sort -V)
+
+    local _buildlog="/container/build/build.log"
+    local -a ordered_images
+    if [ -f "${_buildlog}" ]; then
+        while IFS= read -r line; do
+            local img
+            img=$(printf '%s' "${line}" | sed -n 's/.*IMAGE: \([^ ]*\).*/\1/p')
+            if [ -n "${img}" ]; then
+                ordered_images+=("${img//\//_}")
+            fi
+        done < <(grep 'IMAGE:' "${_buildlog}" || true)
+    fi
+
+    local sd oi fpath sibling curr_dir tmp_files sib_files remaining_files f
+    for sd in "${sorted[@]}"; do
+        curr_dir="${base_env_dir}/${sd}"
+
+        for oi in "${ordered_images[@]}"; do
+            fpath="${curr_dir}/${oi}"
+            if [ -f "${fpath}" ]; then
+                print_debug "[build_env_import] Sourcing ${fpath} (current image)"
+                source "${fpath}"
+            fi
+            sibling="/container/build/${oi}/env/${sd}"
+            if [ -d "${sibling}" ]; then
+                tmp_files=()
+                for f in "${sibling}"/*; do
+                    [ -f "${f}" ] || continue
+                    tmp_files+=("${f}")
+                done
+                if [ ${#tmp_files[@]} -gt 0 ]; then
+                    readarray -t sib_files < <(printf '%s\n' "${tmp_files[@]}" | LC_ALL=C sort -V)
+                    for f in "${sib_files[@]}"; do
+                        print_debug "[build_env_import] Sourcing ${f} (from other image ${oi})"
+                        source "${f}"
+                    done
+                fi
+            fi
+        done
+
+        remaining_files=()
+        if [ -d "${curr_dir}" ]; then
+            for f in "${curr_dir}"/*; do
+                [ -f "${f}" ] || continue
+                remaining_files+=("${f}")
+            done
+            if [ ${#remaining_files[@]} -gt 0 ]; then
+                readarray -t remaining_files < <(printf '%s\n' "${remaining_files[@]}" | LC_ALL=C sort -V)
+                for f in "${remaining_files[@]}"; do
+                    print_debug "[build_env_import] Sourcing ${f} (current image remaining)"
+                    source "${f}"
+                done
+            fi
+        fi
+
+        if [ "${sd}" = "${val}" ]; then
+            break
+        fi
+    done
+}
 
 check_container_restarted() {
     [ ! -f "/container/state/restart" ]
@@ -97,12 +201,14 @@ get_defaults() {
                             ;;
                         esac
 
+                        _container_build_env_import "$(basename "$0")"
                         for default in $(find /container/base/defaults/$(basename "$0") /container/defaults/$(basename "$0") -type f ! -name "*.enc* " ! -name "*.age" -print -maxdepth 1 2>/dev/null); do
                             print_debug "Container: Getting defaults for '${default}' (single usual)"
                             # shellcheck source=/override/defaults/
                             source "${default}"
                         done
 
+                        _container_build_env_import "$(basename "$0")"
                         for default in $(find /override/base/defaults/$(basename "$0") /override/defaults/$(basename "$0") -type f ! -name "*.enc* " ! -name "*.age" -print -maxdepth 1 2>/dev/null); do
                             print_debug "Container Override: Getting defaults for '${default}' (single usual)"
                             # shellcheck source=/override/defaults/
@@ -121,10 +227,12 @@ get_defaults() {
                                 output_off
                             ;;
                         esac
+                        _container_build_env_import "$(basename "$PWD")"
                         for default in $(find /container/base/defaults/$(basename "$PWD") /container/defaults/$(basename "$PWD") -type f ! -name "*.enc* " ! -name "*.age" -print -maxdepth 1 2>/dev/null); do
                             print_debug "Container: Getting defaults for '${default}' (single wildcard)"
                             source "${default}"
                         done
+                        _container_build_env_import "$(basename "$PWD")"
                         for default in $(find /override/base/defaults/$(basename "$PWD") /override/defaults/$(basename "$PWD") -type f ! -name "*.enc* " ! -name "*.age" -print -maxdepth 1 2>/dev/null); do
                             print_debug "Container Override: Getting defaults for '${default}' (single wildcard)"
                             source "${default}"
@@ -141,6 +249,7 @@ get_defaults() {
             * )
                 defaults=$(echo "$1" | tr "," "\n")
                 for default in $defaults; do
+                        _container_build_env_import "${default}"
                     for default_script in $(find /container/base/defaults/${default} /container/defaults/${default} -type f ! -name "*.enc* " ! -name "*.age" -print -maxdepth 1 2>/dev/null); do
                             print_debug "Container: Getting defaults for '${default_script}' (wildcard)"
                             # shellcheck source=/container/defaults/
