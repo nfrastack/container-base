@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+# SPDX-FileCopyrightText: © 2026 Nfrastack <code@nfrastack.com>
 #
 # SPDX-License-Identifier: MIT
 
@@ -36,6 +36,9 @@ container_build_log() {
                 le="${ts} | IMAGE: ${IMAGE_NAME} unknown | ${IMAGE_REPO_URL}"
             fi
             echo "${le}" | tee -a /container/build/"${IMAGE_NAME/\//_}"/build.log /container/build/build.log > /dev/null
+            if [ -n "${BUILD_ENV}" ]; then
+                _container_build_env "${BUILD_ENV}"
+            fi
         ;;
         remove )
             le="${ts} | REMOVE: ${2}"
