@@ -21,12 +21,44 @@ _container_build_env_import() {
         fi
     done
 
+    local container_env_dir="/run/s6/basedir/env"
+    local container_env_pattern=""
+    if [ -d "${container_env_dir}" ]; then
+        local -a container_env_vars=()
+        local cv
+        for cv in "${container_env_dir}"/*; do
+            [ -f "${cv}" ] || continue
+            container_env_vars+=("$(basename "${cv}")")
+        done
+        if [ ${#container_env_vars[@]} -gt 0 ]; then
+            local joined
+            joined=$(printf '%s|' "${container_env_vars[@]}")
+            joined=${joined%|}
+            container_env_pattern="^[[:space:]]*(export[[:space:]]+)?(${joined})([[:space:]]*=|$)"
+        fi
+    fi
+
+    _source_respecting_container_env() {
+        local file="$1"
+        local label="$2"
+        if [ -n "${container_env_pattern}" ] && grep -E -q "${container_env_pattern}" "${file}" 2>/dev/null; then
+            local tmpf
+            tmpf=$(mktemp) || return 1
+            grep -Ev "${container_env_pattern}" "${file}" > "${tmpf}" || true
+            print_debug "[build_env_import] Sourcing ${file} (${label}) with container overrides preserved"
+            source "${tmpf}"
+            rm -f "${tmpf}"
+        else
+            print_debug "[build_env_import] Sourcing ${file} (${label})"
+            source "${file}"
+        fi
+    }
+
     if [ ${#top_files[@]} -gt 0 ]; then
         local -a top_sorted
         readarray -t top_sorted < <(printf '%s\n' "${top_files[@]}" | LC_ALL=C sort -V)
         for f in "${top_sorted[@]}"; do
-            print_debug "[build_env_import] Sourcing ${f} (top-level)"
-            source "${f}"
+            _source_respecting_container_env "${f}" "top-level"
         done
     fi
 
@@ -65,8 +97,7 @@ _container_build_env_import() {
         for oi in "${ordered_images[@]}"; do
             fpath="${curr_dir}/${oi}"
             if [ -f "${fpath}" ]; then
-                print_debug "[build_env_import] Sourcing ${fpath} (current image)"
-                source "${fpath}"
+                _source_respecting_container_env "${fpath}" "current image"
             fi
             sibling="/container/build/${oi}/env/${sd}"
             if [ -d "${sibling}" ]; then
@@ -78,8 +109,7 @@ _container_build_env_import() {
                 if [ ${#tmp_files[@]} -gt 0 ]; then
                     readarray -t sib_files < <(printf '%s\n' "${tmp_files[@]}" | LC_ALL=C sort -V)
                     for f in "${sib_files[@]}"; do
-                        print_debug "[build_env_import] Sourcing ${f} (from other image ${oi})"
-                        source "${f}"
+                        _source_respecting_container_env "${f}" "from other image ${oi}"
                     done
                 fi
             fi
@@ -94,8 +124,7 @@ _container_build_env_import() {
             if [ ${#remaining_files[@]} -gt 0 ]; then
                 readarray -t remaining_files < <(printf '%s\n' "${remaining_files[@]}" | LC_ALL=C sort -V)
                 for f in "${remaining_files[@]}"; do
-                    print_debug "[build_env_import] Sourcing ${f} (current image remaining)"
-                    source "${f}"
+                    _source_respecting_container_env "${f}" "current image remaining"
                 done
             fi
         fi
