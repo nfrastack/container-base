@@ -1,14 +1,13 @@
-## 2026.2.0pre 2026-02-01 <code at nfastack dot com>
+## 2026.2.0 2026-02-19 <code at nfastack dot com>
 
-   ### Changed
-      - render_template
-      - build_env
-      - Mod prepare_service
-      - transform_var env update
-      - Openbao 2.5.0
+   ### Added
+      - render_template function
+      - build_env function
+      - transform_var env function
+      - OpenBao 2.5.0
       - Zabbix Agent 7.4.7
       - Tailscale 1.94.2
-      - Fluent-bit 4.2.3
+      - Fluent-Bit 4.2.3
 
 
 ## 2026.1.0 2026-01-25 <code at nfastack dot com>
