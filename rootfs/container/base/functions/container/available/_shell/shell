@@ -16,16 +16,25 @@ fi
 
 if test $(find /container/state/startup -mmin +10) ; then d_e_o; showoff ; fi
 
+source /container/base/defaults/container
+if var_true "${CONTAINER_SHELL_IMPORT_BUILDENV}"; then
+    _container_build_env_import silent
+fi
+
+if var_true "${CONTAINER_SHELL_IMPORT_RUNENV}"; then
+    _container_run_env_import silent
+fi
+
 zcat () {
-    if [ -f "$@" ] ; then
-        case "$@" in
-            *.zst* )    $(which zstdcat) "$@" ;;
-            *.bz*)      $(which zcat) "$@" ;;
-            *.gz*)      $(which zcat) "$@" ;;
-            *.xz)       $(which zcat) "$@" ;;
+    if [ -f "${1}" ] ; then
+        case "$1" in
+            *.zst* )    $(which zstdcat) "${1}" ;;
+            *.bz*)      $(which zcat) "${1}" ;;
+            *.gz*)      $(which zcat) "${1}" ;;
+            *.xz)       $(which zcat) "${1}" ;;
         esac
     else
-        echo "'$@' is not a valid file!"
+        echo "'${1}' is not a valid file!"
     fi
 }
 

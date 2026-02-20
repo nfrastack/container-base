@@ -204,3 +204,104 @@ update_template() {
     done
 }
 
+write_file() {
+    ## Usage: write_file [-a] <user> <file> [file...]
+    ## herdocs work
+    local append="false"
+    if [ "${1}" = "-a" ]; then
+        append="true"
+        shift
+    fi
+    if [ -z "${1}" ]; then
+        print_error "[write_file] Missing user or filename"
+        return 1
+    fi
+
+    local ucan="${1}"
+    local user=""
+    local owner_spec=""
+
+    if [[ "${ucan}" == *:* ]]; then
+        local userpart="${ucan%%:*}"
+        local grouppart="${ucan##*:}"
+        if getent passwd "${userpart}" >/dev/null 2>&1; then
+            user="${userpart}"
+            if [ -n "${grouppart}" ] && getent group "${grouppart}" >/dev/null 2>&1; then
+                owner_spec="${user}:${grouppart}"
+            else
+                owner_spec="${user}"
+                if [ -n "${grouppart}" ]; then
+                    print_debug "Group '${grouppart}' not found; using owner '${owner_spec}'"
+                fi
+            fi
+            shift || true
+        else
+            user="${SUDO_USER:-root}"
+            owner_spec="${user}"
+        fi
+    else
+        if getent passwd "${ucan}" >/dev/null 2>&1; then
+            user="${ucan}"
+            owner_spec="${user}"
+            shift || true
+        else
+            user="${SUDO_USER:-root}"
+            owner_spec="${user}"
+        fi
+    fi
+
+    if [ $# -lt 1 ]; then
+        print_error "[write_file] Missing filename(s)"
+        return 1
+    fi
+
+    local -a targets=()
+    local -a modes=()
+    local arg
+    for arg in "$@"; do
+        if [[ "${arg}" == *:* ]]; then
+            local base="${arg%%:*}"
+            local cand_mode="${arg##*:}"
+            if [[ "${cand_mode}" =~ ^[0-7]{3,4}$ ]] && [ -n "${base}" ]; then
+                targets+=("${base}")
+                modes+=("${cand_mode}")
+                continue
+            fi
+        fi
+        targets+=("${arg}")
+        modes+=("")
+    done
+
+    local i
+    for i in "${!targets[@]}"; do
+        f="${targets[$i]}"
+        if [ "${append}" = "true" ]; then
+            print_debug "[write_file] Appending to '${f}' as user '${user}'"
+        else
+            print_debug "[write_file] Writing to '${f}' as user '${user}'"
+        fi
+        local parent_dir
+        parent_dir=$(dirname "${f}")
+            if [ ! -d "${parent_dir}" ]; then
+                mkdir -p "${parent_dir}"
+            fi
+    done
+
+    if [ "${append}" = "true" ]; then
+        silent sudo -u root tee -a -- "${targets[@]}"
+    else
+        silent sudo -u root tee -- "${targets[@]}"
+    fi
+
+    for i in "${!targets[@]}"; do
+        if [ -n "${modes[$i]}" ]; then
+            chmod "${modes[$i]}" "${targets[$i]}" || true
+            print_debug "[write_file] Set mode ${modes[$i]} on ${targets[$i]}"
+        fi
+        if [ -n "${owner_spec}" ]; then
+            chown "${owner_spec}" "${targets[$i]}" || true
+            print_debug "[write_file] Set owner ${owner_spec} on ${targets[$i]}"
+        fi
+    done
+}
+

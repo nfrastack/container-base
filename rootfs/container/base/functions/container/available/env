@@ -1,0 +1,373 @@
+# SPDX-FileCopyrightText: © 2026 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+_container_build_env() {
+    if [ $# -eq 0 ] || [ -z "${IMAGE_NAME}" ]; then
+        return 0
+    fi
+
+    local tokens=()
+    local entry folder kv outdir outfile
+
+    if [ $# -eq 1 ]; then
+        eval "set -- $1"
+        for entry in "$@"; do
+            tokens+=("${entry}")
+        done
+    else
+        tokens=("$@")
+    fi
+
+    for entry in "${tokens[@]}"; do
+        case "${entry}" in
+            */*=*)
+                folder="${entry%%/*}"
+                kv="${entry#*/}"
+            ;;
+            *=*)
+                folder=""
+                kv="${entry}"
+            ;;
+            *)
+                continue
+            ;;
+        esac
+
+        if [ -n "${folder}" ]; then
+            buildenvfile="/container/build/${IMAGE_NAME//\//_}/env/${folder}/${IMAGE_NAME//\//_}"
+        else
+            buildenvfile="/container/build/${IMAGE_NAME//\//_}/env/${IMAGE_NAME//\//_}"
+        fi
+
+        mkdir -p "$(dirname "${buildenvfile}")"
+        local _bn _bv _esc
+        _bn="${kv%%=*}"
+        _bv="${kv#*=}"
+        _esc=$(printf '%s' "${_bv}" | sed "s/'/'\\\\''/g")
+        printf "%s='%s'\n" "${_bn}" "${_esc}" >> "${buildenvfile}"
+        chmod 0644 "${buildenvfile}"
+    done
+}
+
+_container_run_env() {
+    if [ $# -eq 0 ] || [ -z "${IMAGE_NAME}" ]; then
+        return 0
+    fi
+
+    local tokens=()
+    local entry folder kv outdir outfile
+
+    if [ $# -eq 1 ]; then
+        eval "set -- $1"
+        for entry in "$@"; do
+            tokens+=("${entry}")
+        done
+    else
+        tokens=("$@")
+    fi
+
+    for entry in "${tokens[@]}"; do
+        case "${entry}" in
+            */*=*)
+                folder="${entry%%/*}"
+                kv="${entry#*/}"
+            ;;
+            *=*)
+                folder=""
+                kv="${entry}"
+            ;;
+            *)
+                continue
+            ;;
+        esac
+
+        if [ -n "${folder}" ]; then
+            runenvfile="/container/state/env/${folder}/${IMAGE_NAME//\//_}"
+        else
+            runenvfile="/container/state/env/${IMAGE_NAME//\//_}"
+        fi
+
+        mkdir -p "$(dirname "${runenvfile}")"
+        local _bn _bv _esc
+        _bn="${kv%%=*}"
+        _bv="${kv#*=}"
+        _esc=$(printf '%s' "${_bv}" | sed "s/'/'\\\\''/g")
+        printf "%s='%s'\n" "${_bn}" "${_esc}" >> "${runenvfile}"
+        chmod 0644 "${runenvfile}"
+    done
+}
+
+_container_build_env_import() {
+    local silent_mode=false
+    if [ "${1}" = "silent" ]; then
+        silent_mode=true
+        shift
+    fi
+    local val="${1}"
+    if [ -z "${val}" ] || [ -z "${IMAGE_NAME}" ]; then
+        return 0
+    fi
+
+    local base_env_dir="/container/build/${IMAGE_NAME//\//_}/env"
+    if [ ! -d "${base_env_dir}" ]; then
+        return 0
+    fi
+
+    local top_files=()
+    local f
+    for f in "${base_env_dir}"/*; do
+        if [ -f "${f}" ]; then
+            top_files+=("${f}")
+        fi
+    done
+
+    local container_env_dir="/run/s6/basedir/env"
+    local container_env_pattern=""
+    if [ -d "${container_env_dir}" ]; then
+        local -a container_env_vars=()
+        local cv
+        for cv in "${container_env_dir}"/*; do
+            [ -f "${cv}" ] || continue
+            container_env_vars+=("$(basename "${cv}")")
+        done
+        if [ ${#container_env_vars[@]} -gt 0 ]; then
+            local joined
+            joined=$(printf '%s|' "${container_env_vars[@]}")
+            joined=${joined%|}
+            container_env_pattern="^[[:space:]]*(export[[:space:]]+)?(${joined})([[:space:]]*=|$)"
+        fi
+    fi
+
+    _env_print_debug() {
+        if [ "$(basename "$0")" = "shell" ]; then
+            return 0
+        fi
+        print_debug "$@"
+    }
+
+    _source_respecting_container_env() {
+        local file="$1"
+        local label="$2"
+        if [ -n "${container_env_pattern}" ] && grep -E -q "${container_env_pattern}" "${file}" 2>/dev/null; then
+            local tmpf
+            tmpf=$(mktemp) || return 1
+            grep -Ev "${container_env_pattern}" "${file}" > "${tmpf}" || true
+            if var_false "${silent_mode}" ; then  "[build_env_import] Sourcing ${file} (${label}) with container overrides preserved"; fi
+            source "${tmpf}"
+            rm -f "${tmpf}"
+        else
+            if var_false "${silent_mode}" ; then print_debug "[build_env_import] Sourcing ${file} (${label})"; fi
+            source "${file}"
+        fi
+    }
+
+    if [ ${#top_files[@]} -gt 0 ]; then
+        local -a top_sorted
+        readarray -t top_sorted < <(printf '%s\n' "${top_files[@]}" | LC_ALL=C sort -V)
+        for f in "${top_sorted[@]}"; do
+            _source_respecting_container_env "${f}" "top-level"
+        done
+    fi
+
+    local subdirs=()
+    local candidate bn
+    for candidate in "${base_env_dir}"/*; do
+        if [ -d "${candidate}" ]; then
+            bn=$(basename "${candidate}")
+            subdirs+=("${bn}")
+        fi
+    done
+
+    if [ ${#subdirs[@]} -eq 0 ]; then
+        return 0
+    fi
+
+    local -a sorted
+    readarray -t sorted < <(printf '%s\n' "${subdirs[@]}" | LC_ALL=C sort -V)
+
+    local _buildlog="/container/build/build.log"
+    local -a ordered_images
+    if [ -f "${_buildlog}" ]; then
+        while IFS= read -r line; do
+            local img
+            img=$(printf '%s' "${line}" | sed -n 's/.*IMAGE: \([^ ]*\).*/\1/p')
+            if [ -n "${img}" ]; then
+                ordered_images+=("${img//\//_}")
+            fi
+        done < <(grep 'IMAGE:' "${_buildlog}" || true)
+    fi
+
+    local sd oi fpath sibling curr_dir tmp_files sib_files remaining_files f
+    for sd in "${sorted[@]}"; do
+        curr_dir="${base_env_dir}/${sd}"
+
+        for oi in "${ordered_images[@]}"; do
+            fpath="${curr_dir}/${oi}"
+            if [ -f "${fpath}" ]; then
+                _source_respecting_container_env "${fpath}" "current image"
+            fi
+            sibling="/container/build/${oi}/env/${sd}"
+            if [ -d "${sibling}" ]; then
+                tmp_files=()
+                for f in "${sibling}"/*; do
+                    [ -f "${f}" ] || continue
+                    tmp_files+=("${f}")
+                done
+                if [ ${#tmp_files[@]} -gt 0 ]; then
+                    readarray -t sib_files < <(printf '%s\n' "${tmp_files[@]}" | LC_ALL=C sort -V)
+                    for f in "${sib_files[@]}"; do
+                        _source_respecting_container_env "${f}" "from other image ${oi}"
+                    done
+                fi
+            fi
+        done
+
+        remaining_files=()
+        if [ -d "${curr_dir}" ]; then
+            for f in "${curr_dir}"/*; do
+                [ -f "${f}" ] || continue
+                remaining_files+=("${f}")
+            done
+            if [ ${#remaining_files[@]} -gt 0 ]; then
+                readarray -t remaining_files < <(printf '%s\n' "${remaining_files[@]}" | LC_ALL=C sort -V)
+                for f in "${remaining_files[@]}"; do
+                    _source_respecting_container_env "${f}" "current image remaining"
+                done
+            fi
+        fi
+
+        if [ "${sd}" = "${val}" ]; then
+            break
+        fi
+    done
+}
+
+_container_run_env_import() {
+    local silent_mode=false
+    if [ "${1}" = "silent" ]; then
+        silent_mode=true
+        shift
+    fi
+    local val="${1}"
+
+    local base_env_dir="/container/state/env"
+    if [ ! -d "${base_env_dir}" ]; then
+        return 0
+    fi
+
+    local top_files=()
+    local f
+    for f in "${base_env_dir}"/*; do
+        [ -f "${f}" ] || continue
+        top_files+=("${f}")
+    done
+
+    local container_env_dir="/run/s6/basedir/env"
+    local container_env_pattern=""
+    if [ -d "${container_env_dir}" ]; then
+        local -a container_env_vars=()
+        local cv
+        for cv in "${container_env_dir}"/*; do
+            [ -f "${cv}" ] || continue
+            container_env_vars+=("$(basename "${cv}")")
+        done
+        if [ ${#container_env_vars[@]} -gt 0 ]; then
+            local joined
+            joined=$(printf '%s|' "${container_env_vars[@]}")
+            joined=${joined%|}
+            container_env_pattern="^[[:space:]]*(export[[:space:]]+)?(${joined})([[:space:]]*=|$)"
+        fi
+    fi
+
+
+    _source_respecting_run_env() {
+        local file="$1" label="$2"
+        if [ -n "${container_env_pattern}" ] && grep -E -q "${container_env_pattern}" "${file}" 2>/dev/null; then
+            local tmpf
+            tmpf=$(mktemp) || return 1
+            grep -Ev "${container_env_pattern}" "${file}" > "${tmpf}" || true
+            if var_false "${silent_mode}" ; then print_debug "[run_env_import] Sourcing ${file} (${label}) with container overrides preserved"; fi
+            source "${tmpf}"
+            rm -f "${tmpf}"
+        else
+            if var_false "${silent_mode}" ; then print_debugprint_debug "[run_env_import] Sourcing ${file} (${label})"; fi
+            source "${file}"
+        fi
+    }
+
+    if [ ${#top_files[@]} -gt 0 ]; then
+        local -a top_sorted
+        readarray -t top_sorted < <(printf '%s\n' "${top_files[@]}" | LC_ALL=C sort -V)
+        for f in "${top_sorted[@]}"; do
+            _source_respecting_run_env "${f}" "top-level"
+        done
+    fi
+
+    local subdirs=()
+    local candidate bn
+    for candidate in "${base_env_dir}"/*; do
+        [ -d "${candidate}" ] || continue
+        bn=$(basename "${candidate}")
+        subdirs+=("${bn}")
+    done
+
+    if [ ${#subdirs[@]} -eq 0 ]; then
+        return 0
+    fi
+
+    local -a sorted
+    readarray -t sorted < <(printf '%s\n' "${subdirs[@]}" | LC_ALL=C sort -V)
+
+    local _buildlog="/container/build/build.log"
+    local -a ordered_images
+    if [ -f "${_buildlog}" ]; then
+        while IFS= read -r line; do
+            local img
+            img=$(printf '%s' "${line}" | sed -n 's/.*IMAGE: \([^ ]*\).*/\1/p')
+            [ -n "${img}" ] && ordered_images+=("${img//\//_}")
+        done < <(grep 'IMAGE:' "${_buildlog}" || true)
+    fi
+
+    local sd oi fpath sibling curr_dir tmp_files sib_files remaining_files
+    for sd in "${sorted[@]}"; do
+        curr_dir="${base_env_dir}/${sd}"
+
+        for oi in "${ordered_images[@]}"; do
+            fpath="${curr_dir}/${oi}"
+            [ -f "${fpath}" ] && _source_respecting_run_env "${fpath}" "current image"
+            sibling="/container/build/${oi}/env/${sd}"
+            if [ -d "${sibling}" ]; then
+                tmp_files=()
+                for f in "${sibling}"/*; do
+                    [ -f "${f}" ] || continue
+                    tmp_files+=("${f}")
+                done
+                if [ ${#tmp_files[@]} -gt 0 ]; then
+                    readarray -t sib_files < <(printf '%s\n' "${tmp_files[@]}" | LC_ALL=C sort -V)
+                    for f in "${sib_files[@]}"; do
+                        _source_respecting_run_env "${f}" "from other image ${oi}"
+                    done
+                fi
+            fi
+        done
+
+        remaining_files=()
+        if [ -d "${curr_dir}" ]; then
+            for f in "${curr_dir}"/*; do
+                [ -f "${f}" ] || continue
+                remaining_files+=("${f}")
+            done
+            if [ ${#remaining_files[@]} -gt 0 ]; then
+                readarray -t remaining_files < <(printf '%s\n' "${remaining_files[@]}" | LC_ALL=C sort -V)
+                for f in "${remaining_files[@]}"; do
+                    _source_respecting_run_env "${f}" "current image remaining"
+                done
+            fi
+        fi
+
+        if [ "${sd}" = "${val}" ]; then
+            break
+        fi
+    done
+}

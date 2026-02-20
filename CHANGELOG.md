@@ -1,3 +1,11 @@
+## 2026.02.1 2026-02-20 <code at nfastack dot com>
+
+   ### Added
+      - write_file function
+      - container runtime environment building and parsing
+      - shell container buildtime environment parsing
+
+
 ## 2026.2.0 2026-02-19 <code at nfastack dot com>
 
    ### Added
