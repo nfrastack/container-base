@@ -383,7 +383,7 @@ liftoff() {
     fi
     case "$(dirname "$0")" in
         "/var/run/s6/etc/cont-init.d" | "/etc/cont-init.d" | /container/base/init/init* | /container/init/init* )
-            echo "${liftoff_prefix} $(log_prefix) $(basename "$0") initialized" | silent tee -a /container/state/init/"$(basename "$0")"
+            echo "${liftoff_prefix}$(log_prefix) $(basename "$0") initialized" | tee -a -- /container/state/init/"$(basename "$0")" >/dev/null 2>&1
 
             if [ -n "${CONTAINER_REMOVE_INIT_EXCLUDE}" ]; then
                 for init_allow in "$(echo "${CONTAINER_REMOVE_INIT_EXCLUDE}" | tr ',' '\n')"; do
@@ -417,9 +417,9 @@ liftoff() {
         ;;
         *)
             if [ ! -f /container/state/run/"$(basename "$PWD")" ]; then
-                echo "$(log_prefix) $(basename "$PWD") initialized" | silent tee -a /container/state/run/"$(basename "$PWD")"
+                echo "$(log_prefix) $(basename "$PWD") initialized" | tee -a -- /container/state/run/"$(basename "$PWD")" >/dev/null 2>&1
             else
-                echo "$(log_prefix) $(basename "$PWD") reinitialized" | silent tee -a /container/state/run/"$(basename "$PWD")"
+                echo "$(log_prefix) $(basename "$PWD") reinitialized" | tee -a -- /container/state/run/"$(basename "$PWD")" >/dev/null 2>&1
             fi
         ;;
     esac

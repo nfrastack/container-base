@@ -9,31 +9,24 @@ d_e_o
 
 if var_false "${CONTAINER_SKIP_SANITY_CHECK}" ; then
     output_off
-    files_init=$(find /container/base/init/init.d/ /container/init/init.d/ -maxdepth 1 ! -name *.enc* ! -name .nfrastack ! -name zzz-container -type f 2>/dev/null | wc -l)
-    declare -a files_init_name
-    declare -a length_of_files_init_name
-    for f in /container/init/init.d/*; do
-        files_init_name[length_of_files_init_name + 1]=filename
-        files_init_name[${#files_init_name[@]}+1]=$(echo "$f" | sed -e "s#filename##g" -e "s#/container/init/init.d/##g" );
-    done
+    tmp_all=$(mktemp)
+    tmp_done=$(mktemp)
 
-    init_complete=$(find /container/state/init/* -maxdepth 1 ! -name *.enc* ! -name *.enc* ! -name .nfrastack -type f 2>/dev/null | wc -l)
-    declare -a init_complete_name
-    declare -a length_of_init_complete_name
-    for f in /container/state/init/*; do
-        init_complete_name[length_of_init_complete_name + 1]=filename
-        init_complete_name[${#init_complete_name[@]}+1]=$(echo "$f" | sed -e "s#filename##g" -e "s#/container/state/init/##g" -e "s#-init##g");
-    done
+    find /container/base/init/init.d/ /container/init/init.d/ -maxdepth 1 -type f \
+        ! -name '*.enc*' ! -name '.nfrastack' ! -name 'zzz-container' -printf '%f\n' 2>/dev/null | sort -V > "${tmp_all}"
 
-    uninitialized_scripts=()
-    for i in "${files_init_name[@]}"; do
-        skip=
-        for j in "${init_complete_name[@]}"; do
-            [[ $i == "$j" ]] && { skip=1; break; }
-        done
-        [[ -n $skip ]] || uninitialized_scripts+=("$i")
-    done
-    declare uninitialized_scripts
+    # state files may have a trailing '-init' suffix we want to ignore when comparing
+    find /container/state/init/ -maxdepth 1 -type f \
+        ! -name '*.enc*' ! -name '.nfrastack' -printf '%f\n' 2>/dev/null | sed -E 's/-init$//' | sort -V > "${tmp_done}"
+
+    files_init=$(wc -l < "${tmp_all}" 2>/dev/null || echo 0)
+    init_complete=$(wc -l < "${tmp_done}" 2>/dev/null || echo 0)
+
+    # compute scripts present in init.d but not recorded in /container/state/init
+    mapfile -t uninitialized_scripts < <(comm -23 "${tmp_all}" "${tmp_done}" 2>/dev/null)
+
+    rm -f "${tmp_all}" "${tmp_done}"
+    declare -p uninitialized_scripts >/dev/null 2>&1 || true
 
     if [ "$files_init" != "$init_complete" ]; then
         if [ "$init_complete" -gt "$files_init" ] ; then
@@ -59,8 +52,9 @@ if var_false "${CONTAINER_SKIP_SANITY_CHECK}" ; then
                 image_string="${image_string}"
 
                 if [ -n "${IMAGE_REPO_URL}" ] ; then
-                    image_url="Repository/Issues/Support: ${IMAGE_REPO_URL}"
+                    image_url="Repository: ${IMAGE_REPO_URL}"
                 fi
+
             fi
             cat << EOF
 
@@ -90,7 +84,7 @@ $(echo "${uninitialized_scripts[@]}" | tr ' ' '\n' | uniq -u)
 
 $image_string
 $image_url
-
+Support: https://www.nfrastack.com
 EOF
             exit 1
         fi
