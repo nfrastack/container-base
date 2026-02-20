@@ -1,3 +1,9 @@
+## 2026.02.2 2026-02-20 <code at nfastack dot com>
+
+   ### Changed
+      - Fix init routines when CONTAINER_LOG_LEVEL=DEBUG set
+
+
 ## 2026.02.1 2026-02-20 <code at nfastack dot com>
 
    ### Added
