@@ -179,12 +179,32 @@ set_env() {
         local image_name="${2}"
     fi
 
-    if [[ -n "${!var_name}" ]] && [ "${!var_name}" != "${var_value}" ] ; then
-        if [[ ! -f "${var_override_log_file}" ]]; then
-            touch "${var_override_log_file}"
-        fi
-        if ! grep -q "^.* | .* | ${var_name}" ${var_override_log_file}; then
-            echo "$(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z') | ${image_name} | $(caller | awk '{print $2}') | ${var_name} | ${!var_name} | ${var_value}" | silent tee -a ${var_override_log_file}
+    local cur_val="${!var_name}"
+    local new_val="${var_value}"
+
+    local cur_norm=""
+    local new_norm=""
+    case "${cur_val,,}" in
+        true|yes|on|1) cur_norm="true" ;;
+        false|no|off|0) cur_norm="false" ;;
+        *) cur_norm="" ;;
+    esac
+    case "${new_val,,}" in
+        true|yes|on|1) new_norm="true" ;;
+        false|no|off|0) new_norm="false" ;;
+        *) new_norm="" ;;
+    esac
+
+    if [[ -n "${cur_val}" ]] && [ "${cur_val}" != "${var_value}" ] ; then
+        if [ -n "${cur_norm}" ] && [ -n "${new_norm}" ] && [ "${cur_norm}" = "${new_norm}" ]; then
+            :
+        else
+            if [[ ! -f "${var_override_log_file}" ]]; then
+                touch "${var_override_log_file}"
+            fi
+            if ! grep -q "^.* | .* | ${var_name}" ${var_override_log_file}; then
+                echo "$(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z') | ${image_name} | $(caller | awk '{print $2}') | ${var_name} | ${!var_name} | ${var_value}" | silent tee -a ${var_override_log_file}
+            fi
         fi
     fi
 
