@@ -15,7 +15,6 @@ if var_false "${CONTAINER_SKIP_SANITY_CHECK}" ; then
     find /container/base/init/init.d/ /container/init/init.d/ -maxdepth 1 -type f \
         ! -name '*.enc*' ! -name '.nfrastack' ! -name 'zzz-container' -printf '%f\n' 2>/dev/null | sort -V > "${tmp_all}"
 
-    # state files may have a trailing '-init' suffix we want to ignore when comparing
     find /container/state/init/ -maxdepth 1 -type f \
         ! -name '*.enc*' ! -name '.nfrastack' -printf '%f\n' 2>/dev/null | sed -E 's/-init$//' | sort -V > "${tmp_done}"
 
