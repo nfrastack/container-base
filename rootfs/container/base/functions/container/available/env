@@ -153,7 +153,7 @@ _container_build_env_import() {
             local tmpf
             tmpf=$(mktemp) || return 1
             grep -Ev "${container_env_pattern}" "${file}" > "${tmpf}" || true
-            if var_false "${silent_mode}" ; then  "[build_env_import] Sourcing ${file} (${label}) with container overrides preserved"; fi
+            if var_false "${silent_mode}" ; then print_debug "[build_env_import] Sourcing ${file} (${label}) with container overrides preserved"; fi
             source "${tmpf}"
             rm -f "${tmpf}"
         else
@@ -291,7 +291,7 @@ _container_run_env_import() {
             source "${tmpf}"
             rm -f "${tmpf}"
         else
-            if var_false "${silent_mode}" ; then print_debugprint_debug "[run_env_import] Sourcing ${file} (${label})"; fi
+            if var_false "${silent_mode}" ; then print_debug "[run_env_import] Sourcing ${file} (${label})"; fi
             source "${file}"
         fi
     }
