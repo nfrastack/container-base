@@ -368,6 +368,23 @@ transform_var() {
                                 seg_name="${segment}"
                                 seg_default=""
                             fi
+                            # support simple case modifiers appended to the variable name
+                            # ',,' -> all lower-case, '^^' -> all upper-case
+                            # '^'  -> first-letter upper-case, ','  -> first-letter lower-case
+                            seg_mod=""
+                            if [[ "${seg_name}" == *,,* ]]; then
+                                seg_mod="lower_all"
+                                seg_name="${seg_name%,,}"
+                            elif [[ "${seg_name}" == *^^ ]]; then
+                                seg_mod="upper_all"
+                                seg_name="${seg_name%^^}"
+                            elif [[ "${seg_name}" == *^ ]]; then
+                                seg_mod="upper_first"
+                                seg_name="${seg_name%^}"
+                            elif [[ "${seg_name}" == *, ]]; then
+                                seg_mod="lower_first"
+                                seg_name="${seg_name%,}"
+                            fi
                             if [ -z "${!seg_name}" ] && [ ${sourced} -eq 0 ]; then
                                 if [ -d /container/defaults ]; then
                                     for _default in /container/defaults/*; do
@@ -389,6 +406,23 @@ transform_var() {
                                 seg_val="${!seg_name}"
                             else
                                 seg_val="${seg_default}"
+                            fi
+                            # apply case modifier if requested
+                            if [ -n "${seg_mod}" ]; then
+                                case "${seg_mod}" in
+                                    lower_all)
+                                        seg_val="${seg_val,,}"
+                                    ;;
+                                    upper_all)
+                                        seg_val="${seg_val^^}"
+                                    ;;
+                                    upper_first)
+                                        seg_val="${seg_val^}"
+                                    ;;
+                                    lower_first)
+                                        seg_val="${seg_val,}"
+                                    ;;
+                                esac
                             fi
                             if [ -z "${segment_values}" ]; then
                                 segment_values="${seg_val}"

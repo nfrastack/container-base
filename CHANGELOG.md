@@ -1,3 +1,9 @@
+## 2026.02.3 2026-02-22 <code at nfastack dot com>
+
+   ### Changed
+      - Update env parsing routines to support lowercase and uppercase
+
+
 ## 2026.02.2 2026-02-20 <code at nfastack dot com>
 
    ### Changed
