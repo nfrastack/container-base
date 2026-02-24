@@ -1,3 +1,8 @@
+## 2026.02.4pre 2026-02-22 <code at nfastack dot com>
+
+   ### Added
+      - OpenBao 2.5.1
+
 ## 2026.02.3 2026-02-22 <code at nfastack dot com>
 
    ### Changed

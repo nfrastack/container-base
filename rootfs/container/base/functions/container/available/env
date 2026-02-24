@@ -161,8 +161,6 @@ _container_build_env_import() {
             if var_false "${silent_mode}" ; then print_debug "[build_env_import] Sourcing ${file} (${label})"; fi
         fi
 
-        # Parse assignments line-by-line instead of sourcing the file to avoid executing arbitrary code
-        # and to run transform_var per-variable immediately.
         if [ -r "${src}" ]; then
             while IFS= read -r line || [ -n "${line}" ]; do
                 case "${line}" in

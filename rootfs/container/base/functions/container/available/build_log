@@ -39,6 +39,7 @@ container_build_log() {
             if [ -n "${BUILD_ENV}" ]; then
                 _container_build_env "${BUILD_ENV}"
             fi
+            _container_build_env_import
         ;;
         remove )
             le="${ts} | REMOVE: ${2}"
