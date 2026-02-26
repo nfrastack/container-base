@@ -13,25 +13,21 @@ if var_false "${CONTAINER_SKIP_SANITY_CHECK}" ; then
     tmp_done=$(mktemp)
 
     find /container/base/init/init.d/ /container/init/init.d/ -maxdepth 1 -type f \
-        ! -name '*.enc*' ! -name '.nfrastack' ! -name 'zzz-container' -printf '%f\n' 2>/dev/null | sort -V > "${tmp_all}"
+        ! -name '*.enc*' ! -name '.nfrastack' ! -name 'zzz-container' -print 2>/dev/null | sed 's#.*/##' | sort -V > "${tmp_all}"
 
     find /container/state/init/ -maxdepth 1 -type f \
-        ! -name '*.enc*' ! -name '.nfrastack' -printf '%f\n' 2>/dev/null | sed -E 's/-init$//' | sort -V > "${tmp_done}"
+        ! -name '*.enc*' ! -name '.nfrastack' -print 2>/dev/null | sed -E 's#.*/##' | sed -E 's/-init$//' | sort -V > "${tmp_done}"
+
 
     files_init=$(wc -l < "${tmp_all}" 2>/dev/null || echo 0)
     init_complete=$(wc -l < "${tmp_done}" 2>/dev/null || echo 0)
-
-    # compute scripts present in init.d but not recorded in /container/state/init
     mapfile -t uninitialized_scripts < <(comm -23 "${tmp_all}" "${tmp_done}" 2>/dev/null)
-
     rm -f "${tmp_all}" "${tmp_done}"
     declare -p uninitialized_scripts >/dev/null 2>&1 || true
 
-    if [ "$files_init" != "$init_complete" ]; then
-        if [ "$init_complete" -gt "$files_init" ] ; then
-            :
-        else
-            if [ -n "${IMAGE_NAME}" ] ; then
+    # If any scripts in init.d are not present in /container/state/init, treat as uninitialized
+    if [ "${#uninitialized_scripts[@]}" -gt 0 ]; then
+        if [ -n "${IMAGE_NAME}" ] ; then
                 if [ -f "/container/build/${IMAGE_NAME/\//_}/CHANGELOG.md" ] ; then
                     image_version=$(head -n1 /container/build/"${IMAGE_NAME/\//_}"/CHANGELOG.md | awk '{print $2}')
                     elif [ -f /container/build/docker-"${IMAGE_NAME/\//_}"/CHANGELOG.md ] ; then
@@ -67,7 +63,7 @@ if var_false "${CONTAINER_SKIP_SANITY_CHECK}" ; then
 **********************************************************************************************************************
 **********************************************************************************************************************
 
-$(echo "${uninitialized_scripts[@]}" | tr ' ' '\n' | uniq -u)
+            $(printf "%s\n" "${uninitialized_scripts[@]}" | uniq -u)
 
 **********************************************************************************************************************
 **********************************************************************************************************************
@@ -84,9 +80,9 @@ $(echo "${uninitialized_scripts[@]}" | tr ' ' '\n' | uniq -u)
 $image_string
 $image_url
 Support: https://www.nfrastack.com
+
 EOF
             exit 1
-        fi
     fi
     output_on
 fi
