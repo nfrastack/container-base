@@ -11,6 +11,10 @@ package() {
             * )
                 case "${1}" in
                     go )
+                        # allow overriding golang version via second argument: package build go <version>
+                        if [ -n "${2}" ]; then
+                            GOLANG_VERSION="${2}"
+                        fi
                         if ! command -v go >/dev/null 2>&1 ; then
                             echo "Go not installed, installing..."
                             mkdir -p /usr/src/go
@@ -21,7 +25,232 @@ package() {
                             ln -sf /usr/src/go/bin/gfmt /usr/local/bin/
                         fi
                     ;;
+                    python )
+                        # allow overriding python version via second argument: package build python <version> or <base_version>
+                        if [ -n "${2}" ]; then
+                            PYTHON_VERSION="${2}"
+                        fi
+                       PYTHON_BUILD_DEPS_ALPINE="  \
+                                                    bzip2-dev \
+                                                    findutils \
+                                                    gcc \
+                                                    libffi-dev \
+                                                    linux-headers \
+                                                    make \
+                                                    musl-dev \
+                                                    ncurses-dev \
+                                                    openssl-dev \
+                                                    readline-dev \
+                                                    scanelf \
+                                                    sqlite-dev \
+                                                    tk-dev \
+                                                    xz-dev \
+                                                    zlib-dev \
+                                                "
+                        PYTHON_BUILD_DEPS_DEBIAN=" \
+                                                    build-essential \
+                                                    libbz2-dev \
+                                                    libffi-dev \
+                                                    libgdbm-dev \
+                                                    liblzma-dev \
+                                                    libncurses5-dev \
+                                                    libnss3-dev \
+                                                    libreadline-dev \
+                                                    libsqlite3-dev \
+                                                    libssl-dev \
+                                                    pax-utils \
+                                                    tk-dev \
+                                                    zlib1g-dev \
+                                                 "
+                        package update
+                        package upgrade
+                        package install \
+                                        PYTHON_BUILD_DEPS
+                        mkdir -p /usr/src/python
+                        case "${PYTHON_VERSION}" in
+                            [0-9]*.[0-9]* )
+                                PVLATEST=$(curl -sS https://www.python.org/ftp/python/ \
+                                    | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' \
+                                    | grep "^${PYTHON_VERSION}\." \
+                                    | sort -V \
+                                    | tail -n1)
+                                if [ -n "${PVLATEST}" ]; then
+                                    PYTHON_VERSION="$PVLATEST"
+                                fi
+                            ;;
+                            * )
+                                :
+                            ;;
+                        esac
+                        curl -sSL https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-${PYTHON_VERSION}.tar.xz | tar xvfJ - --strip 1 -C /usr/src/python
+                        cd /usr/src/python
+                        case "$(container_info distro)" in
+                            alpine )
+                                clib=musl
+                            ;;
+                            debian|ubuntu )
+                                 clib=gnu
+                            ;;
+                        esac
+                        ./configure \
+                            --build="$(uname -m)-linux-${clib}" \
+                            --enable-loadable-sqlite-extensions \
+                            --enable-option-checking=fatal \
+                            --enable-shared \
+                            --with-lto \
+                            --with-ensurepip
+
+                        EXTRA_CFLAGS="-DTHREAD_STACK_SIZE=0x100000"
+                        LDFLAGS="${LDFLAGS:--Wl,--strip-all}"
+
+                        case "$(container_info arch)" in
+                            x86_64 | aarch64)
+                                EXTRA_CFLAGS="${EXTRA_CFLAGS:-} -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer"
+                            ;;
+                            *)
+                                EXTRA_CFLAGS="${EXTRA_CFLAGS:-} -fno-omit-frame-pointer"
+                            ;;
+                        esac
+
+                        make -j "$(nproc)" "EXTRA_CFLAGS=${EXTRA_CFLAGS:-}" "LDFLAGS=${LDFLAGS:-}"
+                        rm -f python
+                        make -j "$(nproc)" "EXTRA_CFLAGS=${EXTRA_CFLAGS:-}" "LDFLAGS=${LDFLAGS:--Wl,-rpath=\$ORIGIN/../lib}" python
+                        make install
+                        find /usr/local -depth \( -type d \( -name test -o -name tests -o -name idle_test \) -o -type f \( -name '*.pyc' -o -name '*.pyo' -o -name 'libpython*.a' \) \) -exec rm -rf '{}' +
+                        case "$(container_info distro)" in
+                            alpine ) \
+                                        find /usr/local -type f -executable -not \( -name '*tkinter*' \) -exec scanelf --needed --nobanner --format '%n#p' '{}' ';' \
+                                        | tr ',' '\n' \
+                                        | sort -u \
+                                        | awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
+                                        | xargs -rt apk add --no-network -t .PYTHON_RUN_DEPS
+                                        export PYTHONDONTWRITEBYTECODE=1
+                            ;;
+                            debian|ubuntu ) : ;;
+                        esac
+
+                        for src in idle3 pip3 pydoc3 python3 python3-config; do
+                            dst="$(echo "$src" | tr -d 3)"
+                            if [ -s "/usr/local/bin/$src" ] && [ ! -e "/usr/local/bin/$dst" ]; then
+                                ln -svT "/usr/local/bin/$src" "/usr/local/bin/$dst"
+                            fi
+                        done
+                        container_build_log add "Python" "${PYTHON_VERSION}" "python.org"
+                    ;;
+                    ruby )
+                        # allow overriding ruby version via second argument: package build ruby <version>
+                        if [ -n "${2}" ]; then
+                            RUBY_VERSION="${2}"
+                        fi
+                        RUBY_VERSION=${RUBY_VERSION:-${RUBY_VERSION}}
+                        RUBY_BUILD_DEPS_ALPINE="  \
+                                                    autoconf \
+                                                    automake \
+                                                    bison \
+                                                    build-base \
+                                                    libffi-dev \
+                                                    libtool \
+                                                    make \
+                                                    musl-dev \
+                                                    openssl-dev \
+                                                    pkgconfig \
+                                                    readline-dev \
+                                                    yaml-dev \
+                                                    zlib-dev \
+                                                "
+                        RUBY_BUILD_DEPS_DEBIAN=" \
+                                                    autoconf \
+                                                    automake \
+                                                    bison \
+                                                    build-essential \
+                                                    libffi-dev \
+                                                    libreadline-dev \
+                                                    libssl-dev \
+                                                    libtool \
+                                                    libyaml-dev \
+                                                    make \
+                                                    pkg-config \
+                                                    zlib1g-dev \
+                                                 "
+                        RUBY_RUN_DEPS_ALPINE=" \
+                                                icu-libs \
+                                                libffi \
+                                                libstdc++ \
+                                                openssl \
+                                                zlib \
+                                             "
+                        case "$(container_info distro)" in
+                            debian|ubuntu)
+                                if apt-cache show libffi8 >/dev/null 2>&1; then
+                                    _ffi_pkg=libffi8
+                                elif apt-cache show libffi7 >/dev/null 2>&1; then
+                                    _ffi_pkg=libffi7
+                                else
+                                    _ffi_pkg=libffi-dev
+                                fi
+                                _icu_pkg=""
+                                for _p in libicu71 libicu70 libicu67 libicu66 libicu; do
+                                    if apt-cache show "${_p}" >/dev/null 2>&1; then
+                                        _icu_pkg="${_p}"
+                                        break
+                                    fi
+                                done
+                                if [ -z "${_icu_pkg}" ]; then
+                                    _icu_pkg=libicu-dev
+                                fi
+                                RUBY_RUN_DEPS_DEBIAN=" \
+                                                        ${_ffi_pkg} \
+                                                        ${_icu_pkg} \
+                                                        libreadline8 \
+                                                        libyaml-0-2 \
+                                                        zlib1g \
+                                                     "
+                            ;;
+                        esac
+
+                        package update
+                        package upgrade
+                        package install \
+                                        RUBY_BUILD_DEPS \
+                                        RUBY_RUN_DEPS
+                        mkdir -p /usr/src/ruby
+                        case "${RUBY_VERSION}" in
+                            [0-9]*.[0-9]* )
+                                rubymm="${RUBY_VERSION}"
+                                rubylatest=$(curl -sS https://cache.ruby-lang.org/pub/ruby/${rubymm}/ | grep -Eo "ruby-${rubymm}\\.[0-9]+\\.tar.gz" | sed -E 's/ruby-//' | sed 's/\.tar\.gz//' | sort -V | tail -n1)
+                                if [ -n "${rubylatest}" ]; then
+                                    RUBY_VERSION="${rubylatest}"
+                                fi
+                            ;;
+                            * )
+                                :
+                            ;;
+                        esac
+                        curl -sSL https://cache.ruby-lang.org/pub/ruby/${RUBY_VERSION%.*}/ruby-${RUBY_VERSION}.tar.gz | tar xz -C /usr/src/ruby --strip 1
+                        cd /usr/src/ruby
+                        ./configure \
+                                    --prefix=/usr/local \
+                                    --enable-shared \
+                                    --disable-install-doc
+                        make -j "$(nproc)"
+                        make install
+                        find /usr/local -depth \( -type d -name test -o -name tests -o -name ruby-test \) -exec rm -rf '{}' + || :
+                        case "$(container_info distro)" in
+                            alpine )
+                                find /usr/local -type f -executable -not \( -name '*tkinter*' \) -exec scanelf --needed --nobanner --format '%n#p' '{}' ';' \
+                                    | tr ',' '\n' \
+                                    | sort -u \
+                                    | awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
+                                    | xargs -rt apk add --no-network -t .RUBY_RUN_DEPS || :
+                                ;;
+                            debian|ubuntu ) : ;;
+                        esac
+                        container_build_log add "Ruby" "${RUBY_VERSION}" "ruby-lang.org"
+                    ;;
                     yq )
+                        if [ -n "${2}" ]; then
+                            YQ_VERSION="${2}"
+                        fi
                         YQ_REPO_URL=${YQ_REPO_URL:-"https://github.com/mikefarah/yq"}
                         YQ_VERSION=${YQ_VERSION:-$(curl -s ${YQ_REPO_URL/github.com/api.github.com\/repos}/releases/latest | sed -n 's/.*"tag_name": "\([^"]*\)".*/\1/p')}
                         clone_git_repo \
