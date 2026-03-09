@@ -58,7 +58,6 @@ package() {
                                                     libreadline-dev \
                                                     libsqlite3-dev \
                                                     libssl-dev \
-                                                    pax-utils \
                                                     tk-dev \
                                                     zlib1g-dev \
                                                  "
@@ -90,6 +89,7 @@ package() {
                             ;;
                             debian|ubuntu )
                                  clib=gnu
+                                 echo "/usr/local/lib" > /etc/ld.so.conf.d/usrlocal.conf
                             ;;
                         esac
                         ./configure \
@@ -115,6 +115,8 @@ package() {
                         make -j "$(nproc)" "EXTRA_CFLAGS=${EXTRA_CFLAGS:-}" "LDFLAGS=${LDFLAGS:-}"
                         rm -f python
                         make -j "$(nproc)" "EXTRA_CFLAGS=${EXTRA_CFLAGS:-}" "LDFLAGS=${LDFLAGS:--Wl,-rpath=\$ORIGIN/../lib}" python
+
+                        rm -rf ./Lib/test ./Lib/idle_test ./Lib/idlelib/idle_test ./Lib/distutils/tests
                         make install
                         find /usr/local -depth \( -type d \( -name test -o -name tests -o -name idle_test \) -o -type f \( -name '*.pyc' -o -name '*.pyo' -o -name 'libpython*.a' \) \) -exec rm -rf '{}' +
                         case "$(container_info distro)" in
@@ -126,7 +128,9 @@ package() {
                                         | xargs -rt apk add --no-network -t .PYTHON_RUN_DEPS
                                         export PYTHONDONTWRITEBYTECODE=1
                             ;;
-                            debian|ubuntu ) : ;;
+                            debian|ubuntu )
+                                ldconfig
+                            ;;
                         esac
 
                         for src in idle3 pip3 pydoc3 python3 python3-config; do
@@ -135,6 +139,7 @@ package() {
                                 ln -svT "/usr/local/bin/$src" "/usr/local/bin/$dst"
                             fi
                         done
+                        ldconfig
                         container_build_log add "Python" "${PYTHON_VERSION}" "python.org"
                     ;;
                     ruby )
@@ -181,6 +186,8 @@ package() {
                                              "
                         case "$(container_info distro)" in
                             debian|ubuntu)
+                                echo "/usr/local/lib" > /etc/ld.so.conf.d/usrlocal.conf
+
                                 if apt-cache show libffi8 >/dev/null 2>&1; then
                                     _ffi_pkg=libffi8
                                 elif apt-cache show libffi7 >/dev/null 2>&1; then
@@ -243,8 +250,11 @@ package() {
                                     | awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
                                     | xargs -rt apk add --no-network -t .RUBY_RUN_DEPS || :
                                 ;;
-                            debian|ubuntu ) : ;;
+                            debian|ubuntu )
+                                ldconfig
+                            ;;
                         esac
+                        ldconfig
                         container_build_log add "Ruby" "${RUBY_VERSION}" "ruby-lang.org"
                     ;;
                     yq )
@@ -279,6 +289,10 @@ package() {
                 echo "** Not performing cleanup of temporary files and package manager caches in develop mode **"
             ;;
             * )
+                package remove \
+                                PYTHON_BUILD_DEPS \
+                                RUBY_BUILD_DEPS
+
                 case "${distro}" in
                     "alpine" )
                         rm -rf /var/cache/apk/*

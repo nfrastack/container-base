@@ -1,9 +1,10 @@
-## 2026.03.0pre 2026-03-10 <code at nfastack dot com>
+## 2026.3.0 2026-03-09 <code at nfastack dot com>
 
    ### Added
-      - Python and Ruby functions
-      - Version override for go, yq functions
-      - OpenBao 2.5.1
+      - OpenBAO 2.5.1
+      - Add package build functions for Ruby and Python
+      - Allow version override for go/yq
+
 
 ## 2026.02.3 2026-02-22 <code at nfastack dot com>
 

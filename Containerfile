@@ -35,7 +35,7 @@ ARG     \
         ZABBIX_VERSION
 
 ENV     \
-        PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/command \
+        PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/local/lib;/usr/sbin:/usr/bin:/sbin:/bin:/command \
         S6_KEEP_ENV=1 \
         IMAGE_NAME="nfrastack/base" \
         IMAGE_REPO_URL="https://github.com/nfrastack/container-base/"
