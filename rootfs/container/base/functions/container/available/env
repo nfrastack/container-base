@@ -144,7 +144,11 @@ _container_build_env_import() {
         if [ "$(basename "$0")" = "shell" ]; then
             return 0
         fi
-        print_debug "$@"
+        if command -v print_debug >/dev/null 2>&1; then
+            print_debug "$@"
+        else
+            return 0
+        fi
     }
 
     _source_respecting_container_env() {
@@ -156,9 +160,9 @@ _container_build_env_import() {
             tmpf=$(mktemp)
             grep -Ev "${container_env_pattern}" "${file}" > "${tmpf}"
             src="${tmpf}"
-            if var_false "${silent_mode}" ; then print_debug "[build_env_import] Sourcing ${file} (${label}) with container overrides preserved"; fi
+            if var_false "${silent_mode}" ; then _env_print_debug "[build_env_import] Sourcing ${file} (${label}) with container overrides preserved"; fi
         else
-            if var_false "${silent_mode}" ; then print_debug "[build_env_import] Sourcing ${file} (${label})"; fi
+            if var_false "${silent_mode}" ; then _env_print_debug "[build_env_import] Sourcing ${file} (${label})"; fi
         fi
 
         if [ -r "${src}" ]; then
@@ -170,7 +174,6 @@ _container_build_env_import() {
                     local vname vval
                     vname="${line%%=*}"
                     vval="${line#*=}"
-                    # trim possible surrounding single or double quotes
                     if [[ "${vval}" == "'"*"'" ]]; then
                         vval="${vval:1:-1}"
                     elif [[ "${vval}" == '"'*'"' ]]; then
@@ -310,9 +313,9 @@ _container_run_env_import() {
             tmpf=$(mktemp) || return 1
             grep -Ev "${container_env_pattern}" "${file}" > "${tmpf}" || true
             src="${tmpf}"
-            if var_false "${silent_mode}" ; then print_debug "[run_env_import] Sourcing ${file} (${label}) with container overrides preserved"; fi
+            if var_false "${silent_mode}" ; then _env_print_debug "[run_env_import] Sourcing ${file} (${label}) with container overrides preserved"; fi
         else
-            if var_false "${silent_mode}" ; then print_debug "[run_env_import] Sourcing ${file} (${label})"; fi
+            if var_false "${silent_mode}" ; then _env_print_debug "[run_env_import] Sourcing ${file} (${label})"; fi
         fi
 
         if [ -r "${src}" ]; then
