@@ -12,7 +12,7 @@ case "${DEBUG_MODE,,}" in
         :
     ;;
     * )
-        if [ "$(dirname "$0")" = "/var/run/s6/etc/cont-init.d" ] || [ "$(dirname "$0")" = "/etc/cont-init.d" ] || [[ "$(dirname "$0")" =~ ^\/container\/init\/init ]] ; then
+        if [ "$(dirname "$0")" = "/var/run/s6/etc/cont-init.d" ] || [ "$(dirname "$0")" = "/etc/cont-init.d" ] || [[ "$(dirname "$0")" =~ ^\/container\/init\/init.d ]] ; then
             if [ "${DEBUG_MODE}" = "$(basename \""$0"\")" ] ; then
                 print_notice "Enabling Debug mode for $(basename \""$0"\") scripts"
                 set -x
