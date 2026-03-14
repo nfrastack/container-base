@@ -290,6 +290,7 @@ package() {
             ;;
             * )
                 output_off
+                set +x
                 package remove \
                                 PYTHON_BUILD_DEPS \
                                 RUBY_BUILD_DEPS
@@ -325,6 +326,7 @@ package() {
                         rm -f "${symlink}"
                     fi
                 done
+                output_on
             ;;
         esac
     }
