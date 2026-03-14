@@ -1,3 +1,14 @@
+## 2026.3.1 2026-03-14 <code at nfastack dot com>
+
+   ### Added
+      - Zabbix 7.4.8
+
+   ### Changed
+      - Speedup clone_git_repo function
+      - Performance optimizations
+      - Environmetn variable parsing upgrades when weird edge cases arise down-down-down stream
+
+
 ## 2026.3.0 2026-03-09 <code at nfastack dot com>
 
    ### Added

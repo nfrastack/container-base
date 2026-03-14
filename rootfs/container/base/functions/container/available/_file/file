@@ -25,11 +25,8 @@ create_folder() {
 
     if [ -n "${1}" ]; then
         for folder in $(echo "${1}" | tr ',' ' '); do
-            echo "** FOLDER_PRE is .$folder."
-            # Trim leading and trailing whitespace without spawning external commands
             folder="${folder#"${folder%%[![:space:]]*}"}"
             folder="${folder%"${folder##*[![:space:]]}"}"
-            echo "** FOLDER_XARGS is .$folder."
             if [ ! -d "${folder}" ] ; then
                 mkdir -p "${folder}"
             fi

@@ -74,6 +74,18 @@ get_base_function() {
 
 get_defaults_advanced() {
     output_off
+
+   _env_print_debug() {
+        if [ "$(basename "$0")" = "shell" ]; then
+            return 0
+        fi
+        if command -v print_debug >/dev/null 2>&1; then
+            print_debug "$@"
+        else
+            return 0
+        fi
+    }
+
     _source_name="$(caller | awk '{print $2}')"
     _source_base="$(basename "${_source_name}")"
     _source_dir="$(dirname "${_source_name}")"
@@ -82,21 +94,21 @@ get_defaults_advanced() {
         if [ -f "${_source_dir}/_${_source_base}/${_source_base}.advanced" ]; then
             source "${_source_dir}/_${_source_base}/${_source_base}.advanced"
             if [ "${_source_name}" != "/container/base/defaults/container" ] ; then
-                print_debug "Sourcing ${_source_dir}/_${_source_base}/${_source_base}.advanced"
+                _env_print_debug "Sourcing ${_source_dir}/_${_source_base}/${_source_base}.advanced"
             fi
         elif [ -f "${_source_dir}/_${_source_base}/${_source_base}" ]; then
             source "${_source_dir}/_${_source_base}/${_source_base}"
             if [ "${_source_name}" != "/container/base/defaults/container" ] ; then
-                print_debug "Sourcing ${_source_dir}/_${_source_base}/${_source_base}"
+                _env_print_debug "Sourcing ${_source_dir}/_${_source_base}/${_source_base}"
             fi
         else
             if [ "${_source_name}" != "/container/base/defaults/container" ] ; then
-                print_debug "Nothing to source from ${_source_dir}/_${source_base}"
+                _env_print_debug "Nothing to source from ${_source_dir}/_${source_base}"
             fi
         fi
     else
         if [ "${_source_name}" != "/container/base/defaults/container" ] ; then
-            print_debug "${_source_dir}/_${_source_base} doesn't exist"
+            _env_print_debug "${_source_dir}/_${_source_base} doesn't exist"
         fi
     fi
     output_on
@@ -367,23 +379,6 @@ transform_var() {
                                 seg_name="${segment}"
                                 seg_default=""
                             fi
-                            # support simple case modifiers appended to the variable name
-                            # ',,' -> all lower-case, '^^' -> all upper-case
-                            # '^'  -> first-letter upper-case, ','  -> first-letter lower-case
-                            seg_mod=""
-                            if [[ "${seg_name}" == *,,* ]]; then
-                                seg_mod="lower_all"
-                                seg_name="${seg_name%,,}"
-                            elif [[ "${seg_name}" == *^^ ]]; then
-                                seg_mod="upper_all"
-                                seg_name="${seg_name%^^}"
-                            elif [[ "${seg_name}" == *^ ]]; then
-                                seg_mod="upper_first"
-                                seg_name="${seg_name%^}"
-                            elif [[ "${seg_name}" == *, ]]; then
-                                seg_mod="lower_first"
-                                seg_name="${seg_name%,}"
-                            fi
                             if [ -z "${!seg_name}" ] && [ ${sourced} -eq 0 ]; then
                                 if [ -d /container/defaults ]; then
                                     for _default in /container/defaults/*; do
@@ -405,23 +400,6 @@ transform_var() {
                                 seg_val="${!seg_name}"
                             else
                                 seg_val="${seg_default}"
-                            fi
-                            # apply case modifier if requested
-                            if [ -n "${seg_mod}" ]; then
-                                case "${seg_mod}" in
-                                    lower_all)
-                                        seg_val="${seg_val,,}"
-                                    ;;
-                                    upper_all)
-                                        seg_val="${seg_val^^}"
-                                    ;;
-                                    upper_first)
-                                        seg_val="${seg_val^}"
-                                    ;;
-                                    lower_first)
-                                        seg_val="${seg_val,}"
-                                    ;;
-                                esac
                             fi
                             if [ -z "${segment_values}" ]; then
                                 segment_values="${seg_val}"
