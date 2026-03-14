@@ -289,6 +289,7 @@ package() {
                 echo "** Not performing cleanup of temporary files and package manager caches in develop mode **"
             ;;
             * )
+                output_off
                 package remove \
                                 PYTHON_BUILD_DEPS \
                                 RUBY_BUILD_DEPS

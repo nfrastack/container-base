@@ -25,7 +25,9 @@ create_folder() {
 
     if [ -n "${1}" ]; then
         for folder in $(echo "${1}" | tr ',' ' '); do
+            echo "** FOLDER_PRE is .$folder."
             folder=$(echo "$folder" | xargs)
+            echo "** FOLDER_XARGS is .$folder."
             if [ ! -d "${folder}" ] ; then
                 mkdir -p "${folder}"
             fi
