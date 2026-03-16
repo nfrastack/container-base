@@ -57,10 +57,10 @@ clone_git_repo() {
                 _git_heads=$(awk '{ if ($2 ~ /^refs\/heads\//) { sub("refs/heads/", "", $2); print $2 } }' "/tmp/git_refs_${repo_name}" | tr '\n' ' ')
                 _git_tags=$(awk '{ if ($2 ~ /^refs\/tags\//) { sub("refs/tags/", "", $2); print $2 } }' "/tmp/git_refs_${repo_name}" | tr '\n' ' ')
                 export GIT_REPO_REFS_${repo_name^^}="/tmp/git_refs_${repo_name}"
-                echo "[clone_git_repo] Remote heads: ${_git_heads}" | tee -a /container/build/"${IMAGE_NAME/\//_}"/build.log /container/build/build.log > /dev/null
-                echo "[clone_git_repo] Remote tags: ${_git_tags}" | tee -a /container/build/"${IMAGE_NAME/\//_}"/build.log /container/build/build.log > /dev/null
+                echo "[clone_git_repo] Remote heads: ${_git_heads}"
+                echo "[clone_git_repo] Remote tags: ${_git_tags}"
             else
-                echo "[clone_git_repo] Warning: unable to query remote refs for ${1}" | tee -a /container/build/"${IMAGE_NAME/\//_}"/build.log /container/build/build.log > /dev/null
+                #echo "[clone_git_repo] Warning: unable to query remote refs for ${1}"
             fi
 
             clone_no_single=""
@@ -80,7 +80,7 @@ clone_git_repo() {
                 else
                     if [ -f "/tmp/git_refs_${repo_name}" ]; then
                         if ! grep -q -E "refs/(heads|tags)/${2}$" "/tmp/git_refs_${repo_name}" ; then
-                            echo "[clone_git_repo] ERROR: requested ref '${2}' not found in remote refs" | tee -a /container/build/"${IMAGE_NAME/\//_}"/build.log /container/build/build.log > /dev/null
+                            echo "[clone_git_repo] ERROR: requested ref '${2}' not found in remote refs"
                             exit 1
                         fi
                     fi
@@ -104,11 +104,11 @@ clone_git_repo() {
                 if [[ "${2}" =~ ^[0-9a-fA-F]{40}$ ]] ; then
                     branchname="cloned_${repo_name}_${2:0:7}"
                     git switch -c "${branchname}" "${2}" 2>/dev/null || git checkout -b "${branchname}" "${2}" 2>/dev/null
-                    echo "[clone_git_repo] Created branch ${branchname} for commit ${2}" | tee -a /container/build/"${IMAGE_NAME/\//_}"/build.log /container/build/build.log > /dev/null
+                    echo "[clone_git_repo] Created branch ${branchname} for commit ${2}"
                 elif [ -f "/tmp/git_refs_${repo_name}" ] && grep -q -E "refs/tags/${2}$" "/tmp/git_refs_${repo_name}" ; then
                     branchname="tag_${repo_name}_${2}"
                     git switch -c "${branchname}" "refs/tags/${2}" 2>/dev/null || git checkout -b "${branchname}" "refs/tags/${2}" 2>/dev/null
-                    echo "[clone_git_repo] Created branch ${branchname} for tag ${2}" | tee -a /container/build/"${IMAGE_NAME/\//_}"/build.log /container/build/build.log > /dev/null
+                    echo "[clone_git_repo] Created branch ${branchname} for tag ${2}"
                 fi
             fi
         fi
