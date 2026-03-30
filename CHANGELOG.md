@@ -1,10 +1,11 @@
-## 2026.3.2pre 2026-03-30 <code at nfastack dot com>
+## 2026.3.2 2026-03-29 <code at nfastack dot com>
 
    ### Added
       - OpenBao 2.5.2
 
    ### Changed
-      - Fix clone_git_repo noise that ended up in build.log from 2026.3.1
+      - Fix clone_git_repo function noise in build.log introduced in 2026.3.1
+
 
 ## 2026.3.1 2026-03-14 <code at nfastack dot com>
 
