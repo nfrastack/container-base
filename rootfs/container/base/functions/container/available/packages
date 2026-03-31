@@ -473,6 +473,18 @@ package() {
                                 echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" | slient tee -a /etc/apk/repositories
                                 return
                             ;;
+                            "node" )
+                                return
+                            ;;
+                            "mariadb" )
+                                return
+                            ;;
+                            "postgres" )
+                                return
+                            ;;
+                            "yarn" )
+                                return
+                            ;;
                         esac
 
                         if [ -n "${3}" ] ; then
