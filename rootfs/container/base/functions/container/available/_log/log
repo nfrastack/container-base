@@ -33,7 +33,7 @@ print_debug() {
 
     case "${CONTAINER_LOG_FILE_LEVEL,,}" in
         "debug" )
-            echo -e "$(log_prefix)[DEBUG] $SCRIPTPATH/$(basename "$0") ** [${SERVICE_NAME}] $1" >> "${CONTAINER_LOG_FILE_PATH%/}"/"${CONTAINER_LOG_FILE_NAME}"
+            echo -e "$(log_prefix)[DEBUG] $SCRIPTPATH/$(basename "$0") ** [${SERVICE_NAME}] $1" >> "${CONTAINER_LOG_FILE_PATH%/}"/"${CONTAINER_LOG_FILE_NAME}" 2>/dev/null
         ;;
     esac
     output_on
