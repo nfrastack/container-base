@@ -57,14 +57,8 @@ clone_git_repo() {
                 _git_heads=$(awk '{ if ($2 ~ /^refs\/heads\//) { sub("refs/heads/", "", $2); print $2 } }' "/tmp/git_refs_${repo_name}" | tr '\n' ' ')
                 _git_tags=$(awk '{ if ($2 ~ /^refs\/tags\//) { sub("refs/tags/", "", $2); print $2 } }' "/tmp/git_refs_${repo_name}" | tr '\n' ' ')
                 export GIT_REPO_REFS_${repo_name^^}="/tmp/git_refs_${repo_name}"
-                if tty -s ; then
-                    _tty=$(tty)
-                    echo "[clone_git_repo] Remote heads: ${_git_heads}" > "${_tty}" 2>/dev/null || true
-                    echo "[clone_git_repo] Remote tags: ${_git_tags}" > "${_tty}" 2>/dev/null || true
-                else
-                    echo "[clone_git_repo] Remote heads: ${_git_heads}" >&2
-                    echo "[clone_git_repo] Remote tags: ${_git_tags}" >&2
-                fi
+                echo "[clone_git_repo] Remote heads: ${_git_heads}" >&2
+                echo "[clone_git_repo] Remote tags: ${_git_tags}" >&2
             else
                 echo "[clone_git_repo] Warning: unable to query remote refs for ${1}"
             fi
