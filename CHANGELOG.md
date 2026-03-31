@@ -1,10 +1,12 @@
-## dev 2026-03-31 <code at nfastack dot com>
+## 2026.3.3 2026-03-31 <code at nfastack dot com>
 
    ### Added
       - Fluent-bit 5.0.1
 
    ### Changed
-      - Further TTY clone_git_repo fixes
+      - Further clone_git_repo fixes with tty detection
+      - Logging edge case with downstream images
+
 
 ## 2026.3.2 2026-03-29 <code at nfastack dot com>
 
