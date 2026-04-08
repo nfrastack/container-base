@@ -92,6 +92,12 @@ _container_run_env() {
         local _bn _bv _esc
         _bn="${kv%%=*}"
         _bv="${kv#*=}"
+        if [[ "${_bn}" == */* ]]; then
+            if command -v print_debug >/dev/null 2>&1; then
+                print_debug "[run_env] Skipping variable with slash in name: ${_bn}"
+            fi
+            continue
+        fi
         _esc=$(printf '%s' "${_bv}" | sed "s/'/'\\\\''/g")
         printf "%s='%s'\n" "${_bn}" "${_esc}" >> "${runenvfile}"
         chmod 0644 "${runenvfile}"
