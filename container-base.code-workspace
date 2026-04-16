@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "container-base",
+			"path": "."
+		},
+		{
+			"name": "gha",
+			"path": "../gha"
+		}
+	],
+	"settings": {}
+}

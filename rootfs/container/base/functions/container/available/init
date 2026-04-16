@@ -322,6 +322,17 @@ prepare_service() {
                         get_defaults single
                     ;;
                     "single-functions" )
+
+                if command -v _container_run_env_import >/dev/null 2>&1; then
+                    case "$(dirname "$0")" in
+                        "/var/run/s6/etc/cont-init.d" | "/etc/cont-init.d" | /container/base/init/init* | /container/init/init* | . )
+                            _container_run_env_import silent "$(basename "$0")"
+                        ;;
+                        *)
+                            _container_run_env_import silent "$(basename "$PWD")"
+                        ;;
+                    esac
+                fi
                         get_functions single
                     ;;
                     * )
@@ -369,6 +380,17 @@ prepare_service() {
                 get_defaults
                 get_functions
                 set +a
+            ;;
+        esac
+    fi
+
+    if command -v _container_run_env_import >/dev/null 2>&1; then
+        case "$(dirname "$0")" in
+            "/var/run/s6/etc/cont-init.d" | "/etc/cont-init.d" | /container/base/init/init* | /container/init/init* | . )
+                _container_run_env_import silent "$(basename "$0")"
+            ;;
+            *)
+                _container_run_env_import silent "$(basename "$PWD")"
             ;;
         esac
     fi
