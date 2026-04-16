@@ -3,6 +3,9 @@
    ### Added
       - Fluent-bit 5.0.3
 
+   ### Chanted
+      - Alter prepare_service to appropriately pull in runtime_env
+
 ## 2026.3.3 2026-03-31 <code at nfastack dot com>
 
    ### Added
