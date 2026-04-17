@@ -206,7 +206,9 @@ update_template() {
 }
 
 write_file() {
-    ## Usage: write_file [-a] <user> <file> [file...]
+    ## Usage: write_file [-a] <user> <file[:mode]> [file...]
+    ##        or: write_file [-a] <file[:mode] | user[:group]@file[:mode]> [file...]
+    ## Per-target ownership can be specified with: user[:group]@/path/to/file:0640
     ## herdocs work
     local append="false"
     if [ "${1}" = "-a" ]; then
@@ -258,28 +260,64 @@ write_file() {
 
     local -a targets=()
     local -a modes=()
+    local -a towners=()
     local arg
     for arg in "$@"; do
-        if [[ "${arg}" == *:* ]]; then
-            local base="${arg%%:*}"
-            local cand_mode="${arg##*:}"
+        local file_arg="${arg}"
+        local file_owner=""
+
+        # support per-target owner prefix: user[:group]@/path/to/file
+        if [[ "${file_arg}" == *@* ]]; then
+            file_owner="${file_arg%%@*}"
+            file_arg="${file_arg#*@}"
+        fi
+
+        # support trailing :mode (octal)
+        local mode=""
+        if [[ "${file_arg}" == *:* ]]; then
+            local base="${file_arg%%:*}"
+            local cand_mode="${file_arg##*:}"
             if [[ "${cand_mode}" =~ ^[0-7]{3,4}$ ]] && [ -n "${base}" ]; then
-                targets+=("${base}")
-                modes+=("${cand_mode}")
-                continue
+                file_arg="${base}"
+                mode="${cand_mode}"
             fi
         fi
-        targets+=("${arg}")
-        modes+=("")
+
+        targets+=("${file_arg}")
+        modes+=("${mode}")
+        towners+=("${file_owner}")
     done
 
     local i
     for i in "${!targets[@]}"; do
         f="${targets[$i]}"
-        if [ "${append}" = "true" ]; then
-            print_debug "[write_file] Appending to '${f}' as user '${user}'"
+        local effective_owner
+        if [ -n "${towners[$i]}" ]; then
+            # validate user portion if possible
+            if [[ "${towners[$i]}" == *:* ]]; then
+                local u="${towners[$i]%%:*}"
+                if getent passwd "${u}" >/dev/null 2>&1; then
+                    effective_owner="${towners[$i]}"
+                else
+                    effective_owner="${owner_spec}"
+                    print_debug "Owner '${towners[$i]}' not found; using default '${effective_owner}'"
+                fi
+            else
+                if getent passwd "${towners[$i]}" >/dev/null 2>&1; then
+                    effective_owner="${towners[$i]}"
+                else
+                    effective_owner="${owner_spec}"
+                    print_debug "Owner '${towners[$i]}' not found; using default '${effective_owner}'"
+                fi
+            fi
         else
-            print_debug "[write_file] Writing to '${f}' as user '${user}'"
+            effective_owner="${owner_spec}"
+        fi
+
+        if [ "${append}" = "true" ]; then
+            print_debug "[write_file] Appending to '${f}' as user '${effective_owner}'"
+        else
+            print_debug "[write_file] Writing to '${f}' as user '${effective_owner}'"
         fi
         local parent_dir
         parent_dir=$(dirname "${f}")
@@ -299,9 +337,30 @@ write_file() {
             chmod "${modes[$i]}" "${targets[$i]}" || true
             print_debug "[write_file] Set mode ${modes[$i]} on ${targets[$i]}"
         fi
-        if [ -n "${owner_spec}" ]; then
-            chown "${owner_spec}" "${targets[$i]}" || true
-            print_debug "[write_file] Set owner ${owner_spec} on ${targets[$i]}"
+        local final_owner
+        if [ -n "${towners[$i]}" ]; then
+            # if towners validated earlier, use it; otherwise fall back to global owner_spec
+            if [[ "${towners[$i]}" == *:* ]]; then
+                local u2="${towners[$i]%%:*}"
+                if getent passwd "${u2}" >/dev/null 2>&1; then
+                    final_owner="${towners[$i]}"
+                else
+                    final_owner="${owner_spec}"
+                fi
+            else
+                if getent passwd "${towners[$i]}" >/dev/null 2>&1; then
+                    final_owner="${towners[$i]}"
+                else
+                    final_owner="${owner_spec}"
+                fi
+            fi
+        else
+            final_owner="${owner_spec}"
+        fi
+
+        if [ -n "${final_owner}" ]; then
+            chown "${final_owner}" "${targets[$i]}" || true
+            print_debug "[write_file] Set owner ${final_owner} on ${targets[$i]}"
         fi
     done
 }
