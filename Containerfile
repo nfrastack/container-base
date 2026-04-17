@@ -2,11 +2,9 @@
 #
 # SPDX-License-Identifier: MIT
 
-ARG \
-    DISTRO \
-    DISTRO_VARIANT
+ARG BASE_IMAGE
 
-FROM docker.io/${DISTRO}:${DISTRO_VARIANT}
+FROM ${BASE_IMAGE}
 
 LABEL \
         org.opencontainers.image.title="Base" \

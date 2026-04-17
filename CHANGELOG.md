@@ -3,8 +3,9 @@
    ### Added
       - Fluent-bit 5.0.3
 
-   ### Chanted
+   ### Changed
       - Alter prepare_service to appropriately pull in runtime_env
+      - write_file takes user:group@file:755 syntax
 
 ## 2026.3.3 2026-03-31 <code at nfastack dot com>
 

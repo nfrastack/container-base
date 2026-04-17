@@ -5,9 +5,8 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    continue-on-error: true
     strategy:
+      fail-fast: false
       matrix:
         build:
           #- { distro: "alpine", distro_variant: "edge", latest: "false", distro_latest: "false", arch: "linux/amd64,linux/arm64" }
@@ -23,40 +22,24 @@ jobs:
           - core
           - faflopza
           - faflopzaze
-    env:
-      DISTRO: ${{ matrix.build.distro }}
-      DISTRO_VARIANT: ${{ matrix.build.distro_variant }}
-      LATEST: ${{ matrix.build.latest || 'true' }}
-      DISTRO_LATEST: ${{ matrix.build.distro_latest || 'false' }}
-      IMAGE_VARIANT: ${{ matrix.image_variant }}
-      ARCH: ${{ matrix.build.arch || 'linux/amd64,linux/arm64' }}
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v5
-      - name: Download Encrypted Files
-        uses: actions/download-artifact@v4
-        with:
-          name: encrypted-artifacts
-          path: ./
-      - name: Set Modules
-        id: set_modules
-        run: |
-          case "${IMAGE_VARIANT}" in
-              "core" )
-                  echo "IMAGE_BASE_MODULES=+age,+cron,+logrotate,+s6overlay,+msmtp," >> $GITHUB_ENV
-              ;;
-              "faflopza" )
-                  echo "IMAGE_BASE_MODULES=+age,+cron,+logrotate,+s6overlay,+msmtp," >> $GITHUB_ENV
-                  echo "IMAGE_MODULES=+fail2ban,+fluentbit,+openbao,+zabbix" >> $GITHUB_ENV
-              ;;
-              "faflopzaze" )
-                  echo "IMAGE_BASE_MODULES=+age,+cron,+logrotate,+s6overlay,+msmtp," >> $GITHUB_ENV
-                  echo "IMAGE_MODULES=+fail2ban,+fluentbit,+openbao,+zabbix,+zerotier" >> $GITHUB_ENV
-              ;;
-          esac
-      - name: Build Image
-        uses: nfrastack/gha/.github/actions/build_base_image@main
-        with:
-          docker_username: ${{ secrets.DOCKER_USERNAME }}
-          docker_password: ${{ secrets.DOCKER_PASSWORD }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+        include:
+          - image_variant: core
+            image_base_modules: "+age,+cron,+logrotate,+s6overlay,+msmtp,"
+            image_modules: ""
+          - image_variant: faflopza
+            image_base_modules: "+age,+cron,+logrotate,+s6overlay,+msmtp,"
+            image_modules: "+fail2ban,+fluentbit,+openbao,+zabbix"
+          - image_variant: faflopzaze
+            image_base_modules: "+age,+cron,+logrotate,+s6overlay,+msmtp,"
+            image_modules: "+fail2ban,+fluentbit,+openbao,+zabbix,+zerotier"
+    uses: nfrastack/gha/.github/workflows/container-build_base.yml@main
+    with:
+      distro: ${{ matrix.build.distro }}
+      distro_variant: ${{ matrix.build.distro_variant }}
+      image_variant: ${{ matrix.image_variant }}
+      latest: ${{ matrix.build.latest || 'false' }}
+      distro_latest: ${{ matrix.build.distro_latest || 'false' }}
+      platforms: ${{ matrix.build.arch || 'linux/amd64,linux/arm64' }}
+      image_base_modules: ${{ matrix.image_base_modules }}
+      image_modules: ${{ matrix.image_modules }}
+    secrets: inherit
