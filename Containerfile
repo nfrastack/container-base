@@ -167,6 +167,7 @@ RUN echo "" && \
     package remove IMAGE_BASE_BUILD_DEPS && \
     package cleanup && \
     \
+    ls -l /container/base/init/init.d && \
     rm -rf \
             /container/base/modules \
             /etc/*.apk.new \
