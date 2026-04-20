@@ -224,32 +224,43 @@ write_file() {
     local user=""
     local owner_spec=""
 
-    if [[ "${ucan}" == *:* ]]; then
-        local userpart="${ucan%%:*}"
-        local grouppart="${ucan##*:}"
-        if getent passwd "${userpart}" >/dev/null 2>&1; then
-            user="${userpart}"
-            if [ -n "${grouppart}" ] && getent group "${grouppart}" >/dev/null 2>&1; then
-                owner_spec="${user}:${grouppart}"
-            else
-                owner_spec="${user}"
-                if [ -n "${grouppart}" ]; then
-                    print_debug "Group '${grouppart}' not found; using owner '${owner_spec}'"
-                fi
-            fi
-            shift || true
-        else
-            user="${SUDO_USER:-root}"
-            owner_spec="${user}"
-        fi
+    # If the first argument looks like a target (contains an owner@file form),
+    # treat it as a filename (possibly with an owner prefix) and do not
+    # interpret it as the global owner specification. This avoids
+    # mis-parsing strings like "user:group@/path/to/file:0640" as
+    # a user:group pair where the trailing ":0640" would be mistaken
+    # for the group portion.
+    if [[ "${ucan}" == *@* ]]; then
+        user="${SUDO_USER:-root}"
+        owner_spec="${user}"
     else
-        if getent passwd "${ucan}" >/dev/null 2>&1; then
-            user="${ucan}"
-            owner_spec="${user}"
-            shift || true
+        if [[ "${ucan}" == *:* ]]; then
+            local userpart="${ucan%%:*}"
+            local grouppart="${ucan##*:}"
+            if getent passwd "${userpart}" >/dev/null 2>&1; then
+                user="${userpart}"
+                if [ -n "${grouppart}" ] && getent group "${grouppart}" >/dev/null 2>&1; then
+                    owner_spec="${user}:${grouppart}"
+                else
+                    owner_spec="${user}"
+                    if [ -n "${grouppart}" ]; then
+                        print_debug "Group '${grouppart}' not found; using owner '${owner_spec}'"
+                    fi
+                fi
+                shift || true
+            else
+                user="${SUDO_USER:-root}"
+                owner_spec="${user}"
+            fi
         else
-            user="${SUDO_USER:-root}"
-            owner_spec="${user}"
+            if getent passwd "${ucan}" >/dev/null 2>&1; then
+                user="${ucan}"
+                owner_spec="${user}"
+                shift || true
+            else
+                user="${SUDO_USER:-root}"
+                owner_spec="${user}"
+            fi
         fi
     fi
 
