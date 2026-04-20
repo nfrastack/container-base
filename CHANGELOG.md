@@ -1,11 +1,13 @@
-## 2026.4.0pre 2026-04-13 <code at nfastack dot com>
+## 2026.4.0 2026-04-20 <code at nfastack dot com>
 
    ### Added
       - Fluent-bit 5.0.3
+      - OpenBao 2.5.3
 
    ### Changed
       - Alter prepare_service to appropriately pull in runtime_env
-      - write_file takes user:group@file:755 syntax
+      - write_file function now can set user:group@file:755 style syntaxes
+
 
 ## 2026.3.3 2026-03-31 <code at nfastack dot com>
 
