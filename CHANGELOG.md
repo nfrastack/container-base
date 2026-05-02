@@ -1,3 +1,8 @@
+## 2026.5.0beta 2026-05-02 <code at nfastack dot com>
+
+   ### Added
+      - Fluent-bit 5.0.4
+
 ## 2026.4.0 2026-04-20 <code at nfastack dot com>
 
    ### Added
