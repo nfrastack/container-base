@@ -5,6 +5,9 @@
       - Tailscale 1.98.0
       - Zabbix Agent 7.4.10
 
+   ### Changed
+      - Quiet down some package output
+
 ## 2026.4.0 2026-04-20 <code at nfastack dot com>
 
    ### Added

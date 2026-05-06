@@ -19,7 +19,8 @@ package() {
                             echo "Go not installed, installing..."
                             mkdir -p /usr/src/go
                             GOLANG_VERSION="${GOLANG_VERSION:-"$(curl -sSL https://golang.org/VERSION?m=text | head -n1 | sed "s|^go||g")"}"
-                            curl -sSLk https://dl.google.com/go/go"${GOLANG_VERSION}".linux-"$(container_info arch alt)".tar.gz | tar xvfz - --strip 1 -C /usr/src/go
+                            echo "Downloading Go ${GOLANG_VERSION} binary and installing..."
+                            curl -sSLk https://dl.google.com/go/go"${GOLANG_VERSION}".linux-"$(container_info arch alt)".tar.gz | tar xfz - --strip 1 -C /usr/src/go
                             ln -sf /usr/src/go/bin/go /usr/local/bin/
                             ln -sf /usr/src/go/bin/godoc /usr/local/bin/
                             ln -sf /usr/src/go/bin/gfmt /usr/local/bin/
@@ -81,7 +82,8 @@ package() {
                                 :
                             ;;
                         esac
-                        curl -sSL https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-${PYTHON_VERSION}.tar.xz | tar xvfJ - --strip 1 -C /usr/src/python
+                        echo "Downloading Python ${PYTHON_VERSION} source code and building from source..."
+                        curl -sSL https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-${PYTHON_VERSION}.tar.xz | tar xfJ - --strip 1 -C /usr/src/python
                         cd /usr/src/python
                         case "$(container_info distro)" in
                             alpine )
