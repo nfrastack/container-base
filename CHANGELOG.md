@@ -1,7 +1,9 @@
-## 2026.5.0beta 2026-05-02 <code at nfastack dot com>
+## 2026.5.0beta 2026-05-06++ <code at nfastack dot com>
 
    ### Added
       - Fluent-bit 5.0.4
+      - Tailscale 1.98.0
+      - Zabbix Agent 7.4.10
 
 ## 2026.4.0 2026-04-20 <code at nfastack dot com>
 
