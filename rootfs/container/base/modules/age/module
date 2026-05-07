@@ -48,7 +48,7 @@ install() {
                     mkdir -p /usr/src/age
 
                     echo "Downloading age from ${_url}"
-                    curl -sSL "${_url}" | tar xfz --strip 1 -C /usr/src/age
+                    curl -sSL "${_url}" | tar xfz - --strip 1 -C /usr/src/age
 
                     mkdir -p "$(dirname "${AGE_BINARY}")"
                     cp /usr/src/age/age "${AGE_BINARY}"
