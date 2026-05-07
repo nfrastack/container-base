@@ -13,17 +13,10 @@ AGE_ASSETS=" \
 dependencies() {
     case "$(container_info distro)" in
         alpine )
-            case "$(container_info variant)" in
-                3.1[7-9]* | 3.2[0-9]* )
-                    :
-                ;;
-                *)
-                    echo "Unsupported version"
-                    exit 5
-                ;;
-            esac
-       ;;
+            :
+        ;;
         debian )
+            :
         ;;
     esac
 }
@@ -32,30 +25,84 @@ install() {
     set -e
     if [ ! -f "${AGE_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
         dependencies
-        package build go
-        package update
 
-        clone_git_repo "${AGE_REPO_URL}" "${AGE_VERSION}"
+        case "$(container_info distro)" in
+            alpine )
+                _variant="$(container_info variant)"
+                _major="$(echo "${_variant}" | cut -d. -f1)"
+                _minor="$(echo "${_variant}" | cut -d. -f2)"
+                _major=${_major:-0}
+                _minor=${_minor:-0}
 
-        go build \
-                -ldflags "-w -s" \
-                -o /usr/local/bin/age \
-                -a ./cmd/age
+                if [ "${_major}" -eq 3 ] && [ "${_minor}" -lt 17 ]; then
+                    _arch_tag="$(container_info arch alt)"
+                    if [ -z "${_arch_tag}" ]; then
+                        case "$(container_info arch)" in
+                            x86_64) _arch_tag=amd64 ;;
+                            aarch64) _arch_tag=arm64 ;;
+                            *) _arch_tag=amd64 ;;
+                        esac
+                    fi
 
-        if [ -d "$(dirname "$0")"/rootfs ]; then
-            cp -aR "$(dirname "$0")"/rootfs /
-        fi
+                    _url="${AGE_REPO_URL}/releases/download/${AGE_VERSION}/age-${AGE_VERSION}-linux-${_arch_tag}.tar.gz"
+                    mkdir -p /usr/src/age
 
-        container_build_log add age "${AGE_VERSION}" "${AGE_REPO_URL}"
+                    echo "Downloading age from ${_url}"
+                    curl -sSL "${_url}" | tar xfz --strip 1 -C /usr/src/age
+
+                    mkdir -p "$(dirname "${AGE_BINARY}")"
+                    cp /usr/src/age/age "${AGE_BINARY}"
+                    chmod 0755 "${AGE_BINARY}"
+
+                    if [ -d "$(dirname "$0")"/rootfs ]; then
+                        cp -aR "$(dirname "$0")"/rootfs /
+                    fi
+
+                    container_build_log add age "${AGE_VERSION}" "${AGE_REPO_URL}"
+                else
+                    # Alpine 3.17+ - build from source
+                    package build go
+                    package update
+
+                    clone_git_repo "${AGE_REPO_URL}" "${AGE_VERSION}"
+
+                    go build \
+                            -ldflags "-w -s" \
+                            -o /usr/local/bin/age \
+                            -a ./cmd/age
+
+                    if [ -d "$(dirname "$0")"/rootfs ]; then
+                        cp -aR "$(dirname "$0")"/rootfs /
+                    fi
+
+                    container_build_log add age "${AGE_VERSION}" "${AGE_REPO_URL}"
+                fi
+            ;;
+            debian )
+                package build go
+                package update
+
+                clone_git_repo "${AGE_REPO_URL}" "${AGE_VERSION}"
+
+                go build \
+                        -ldflags "-w -s" \
+                        -o /usr/local/bin/age \
+                        -a ./cmd/age
+
+                if [ -d "$(dirname "$0")"/rootfs ]; then
+                    cp -aR "$(dirname "$0")"/rootfs /
+                fi
+
+                container_build_log add age "${AGE_VERSION}" "${AGE_REPO_URL}"
+            ;;
+        esac
     fi
 }
 
 remove() {
     if [ -f "${AGE_BINARY}" ]; then
         dependencies
-
         rm -rf "${AGE_ASSETS}"
-
         container_build_log remove age
     fi
 }
