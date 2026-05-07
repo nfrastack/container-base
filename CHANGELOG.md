@@ -1,4 +1,4 @@
-## 2026.5.0beta 2026-05-07 <code at nfastack dot com>
+## 2026.5.0 2026-05-07 <code at nfrastack dot com>
 
    ### Added
       - Fluent-bit 5.0.4
@@ -7,7 +7,8 @@
 
    ### Changed
       - Quiet down some package output
-      - Add Age to < Alpine 3.17 variants
+      - Add Age to < Alpine 3.17 releases to support secret decryption
+
 
 ## 2026.4.0 2026-04-20 <code at nfastack dot com>
 
