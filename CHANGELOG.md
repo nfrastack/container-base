@@ -1,8 +1,12 @@
-## 2026.5.1pre 2026-05-07 <code at nfrastack dot com>
+## 2026.5.1 2026-05-07 <code at nfrastack dot com>
 
    ### Added
       - Tailscale 1.98.1
       - Fluent-bit 5.0.5
+
+   ### Changed
+      - Workaround kernel freature with write_file not wanting to write to files created with mktemp
+
 
 ## 2026.5.0 2026-05-07 <code at nfrastack dot com>
 
@@ -54,7 +58,7 @@
    ### Changed
       - Speedup clone_git_repo function
       - Performance optimizations
-      - Environmetn variable parsing upgrades when weird edge cases arise down-down-down stream
+      - Environment variable parsing upgrades when weird edge cases arise down-down-down stream
 
 
 ## 2026.3.0 2026-03-09 <code at nfastack dot com>
