@@ -337,11 +337,31 @@ write_file() {
             fi
     done
 
-    if [ "${append}" = "true" ]; then
-        silent sudo -u root tee -a -- "${targets[@]}"
-    else
-        silent sudo -u root tee -- "${targets[@]}"
-    fi
+    # Buffer stdin once so it can be replayed to each target independently. When the target already exists in a world-writable sticky directory
+    # (eg /tmp), tee must run as the file's owner: the kernel's fs.protected_regular sysctl refuses O_CREAT opens by anyone other than the file owner
+    # Opens fail silently
+    local _wf_buf
+    _wf_buf=$(mktemp)
+    cat > "${_wf_buf}"
+
+    for i in "${!targets[@]}"; do
+        local _tgt="${targets[$i]}"
+        local _writer="root"
+        if [ -e "${_tgt}" ]; then
+            local _existing_owner
+            _existing_owner=$(stat -c "%U" "${_tgt}" 2>/dev/null)
+            if [ -n "${_existing_owner}" ] && [ "${_existing_owner}" != "UNKNOWN" ] && getent passwd "${_existing_owner}" >/dev/null 2>&1; then
+                _writer="${_existing_owner}"
+            fi
+        fi
+        if [ "${append}" = "true" ]; then
+            silent sudo -u "${_writer}" tee -a -- "${_tgt}" < "${_wf_buf}"
+        else
+            silent sudo -u "${_writer}" tee -- "${_tgt}" < "${_wf_buf}"
+        fi
+    done
+
+    rm -f "${_wf_buf}"
 
     for i in "${!targets[@]}"; do
         if [ -n "${modes[$i]}" ]; then
