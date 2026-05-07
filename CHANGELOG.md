@@ -2,6 +2,7 @@
 
    ### Added
       - Tailscale 1.98.1
+      - Fluent-bit 5.0.5
 
 ## 2026.5.0 2026-05-07 <code at nfrastack dot com>
 
