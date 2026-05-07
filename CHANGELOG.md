@@ -1,3 +1,8 @@
+## 2026.5.1pre 2026-05-07 <code at nfrastack dot com>
+
+   ### Added
+      - Tailscale 1.98.1
+
 ## 2026.5.0 2026-05-07 <code at nfrastack dot com>
 
    ### Added
