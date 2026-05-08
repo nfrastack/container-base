@@ -1,3 +1,9 @@
+## 2026.5.2 2026-05-08 <code at nfrastack dot com>
+
+   ### Added
+      - transform_var file supports wildcards
+
+
 ## 2026.5.1 2026-05-07 <code at nfrastack dot com>
 
    ### Added
