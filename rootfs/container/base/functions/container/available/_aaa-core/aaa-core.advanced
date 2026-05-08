@@ -421,9 +421,23 @@ transform_var() {
             ## usage: transform_var file VAR
             ##    ie: transform_var file 'XYZ_DB_PASSWORD'
             ##        (will allow for "$XYZ_DB_PASSWORD_FILE" to fill in the value of "$XYZ_DB_PASSWORD" from a file, especially for Docker's secrets feature)
-            local variables
+            ##        Wildcards work eg 'XYZ_*' to look for anything at the *
+            local variables variable file_variable _secret_file _env_var _target
             variables=$(echo "$@" | tr " " "\n")
             for variable in $variables; do
+                if [[ "${variable}" == *\** ]]; then
+                    for _env_var in $(compgen -e); do
+                        [[ "${_env_var}" == ${variable}_FILE ]] || continue
+                        _target="${_env_var%_FILE}"
+                        if [ ! -f "${!_env_var}" ]; then
+                            print_error "[transform_var (file)] ${_env_var} set as environment variable, however file '${!_env_var}' doesn't exist"
+                            return 1
+                        fi
+                        print_debug "[transform_var (file)] Resolving ${_target} from ${_env_var}=${!_env_var}"
+                        export "${_target}"="$(cat "${!_env_var}")"
+                    done
+                    continue
+                fi
                 if [ -v "${variable}"_FILE ]; then
                     # If <VAR>_FILE exists, use it
                     file_variable=${variable}_FILE
