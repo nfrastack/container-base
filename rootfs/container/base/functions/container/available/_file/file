@@ -184,7 +184,9 @@ update_template() {
         template_variables=($@)
         template_user=$(stat -c %U "${template_file}")
         template_tmp_file=$(mktemp)
-        cp -a "${template_file}" "${template_tmp_file}"
+        template_rendered_file=$(mktemp)
+        cp -L --remove-destination "${template_file}" "${template_tmp_file}"
+        chmod 0644 "${template_tmp_file}"
         # Keep the compatibilty: {{VAR}} => ${VAR}
         for template_variable in ${template_variables[@]}; do
             sed -ri "s/[{]{2}$template_variable[}]{2}/\${$template_variable}/g" "${template_tmp_file}"
@@ -192,16 +194,17 @@ update_template() {
         done
         (
             export ${template_variables[@]}
-            local IFS=":"; sudo -HEu ${template_user} envsubst "${template_variables[*]/#/$}" < "${template_tmp_file}" > "${template_file}"
+            local IFS=":"; sudo -HEu ${template_user} envsubst "${template_variables[*]/#/$}" < "${template_tmp_file}" > "${template_rendered_file}"
         )
         if var_true "${newline_mode}" ; then
             # Convert escaped newlines to real newlines
-            sed -i 's/\\n/\n/g' "${template_file}"
+            sed -i 's/\\n/\n/g' "${template_rendered_file}"
         fi
+        chown "${template_user}" "${template_rendered_file}" 2>/dev/null || true
+        chmod 0644 "${template_rendered_file}"
+        rm -f "${template_file}"
+        mv "${template_rendered_file}" "${template_file}"
         rm -f "${template_tmp_file}"
-        continue
-
-        mv "${template_tmp_file}" "${template_file}"
     done
 }
 
