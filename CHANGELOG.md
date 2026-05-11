@@ -1,3 +1,11 @@
+## 2026.5.3pre 2026-05-10 <code at nfrastack dot com>
+
+   ### Added
+      - S6 Overlay 3.2.3.0
+
+   ### Changed
+      - Dereference update_template
+
 ## 2026.5.2 2026-05-08 <code at nfrastack dot com>
 
    ### Added
