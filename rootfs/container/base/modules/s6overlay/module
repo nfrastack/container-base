@@ -93,6 +93,11 @@ install() {
                     /package/admin/s6-overlay/etc/s6-linux-init/skel/rc.init \
                     /package/admin/s6-overlay/etc/s6-rc/scripts/services-up
 
+        sed -i \
+               -e "/^info: container permissions/d" \
+               -e "/^info: \/run permissions: uid/d" \
+                   /package/admin/s6-overlay/libexec/preinit
+
         cat << EOS6 > /command/with-contenv
 #!/command/execlineb -S0
 
