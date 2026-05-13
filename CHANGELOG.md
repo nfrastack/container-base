@@ -1,3 +1,12 @@
+## 2026.5.4 2026-05-13 <code at nfrastack dot com>
+
+   ### Added
+      - Support wildcards for transform_var env
+
+   ### Changed
+      - Fix bracketed [env:VAR] tokens when text follows closing bracket in transform_var env
+
+
 ## 2026.5.3 2026-05-11 <code at nfrastack dot com>
 
    ### Added

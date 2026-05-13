@@ -310,8 +310,20 @@ transform_var() {
             ## Resolve environment token references in variable values inline
             ## Usage: transform_var env VAR1 VAR2 ...
             ## Value: env:RANDOM_ENV_VAR_VALUE or 'prefix[env:FIRST_VAR]:[env:SECOND_VAR]end'
-            local variables
+            ## Wildcards are possible `transform_var env 'ENV_*'` resolves env: tokens in every ENV_* var.
+            local variables _env_var _expanded
             variables=$(echo "$@" | tr " " "\n")
+            _expanded=""
+            for variable in $variables; do
+                if [[ "${variable}" == *\** ]]; then
+                    for _env_var in $(compgen -e); do
+                        [[ "${_env_var}" == ${variable} ]] && _expanded="${_expanded} ${_env_var}"
+                    done
+                else
+                    _expanded="${_expanded} ${variable}"
+                fi
+            done
+            variables="${_expanded}"
             for variable in $variables; do
                 if [ -v "${variable}" ]; then
                     local orig_val s sourced
@@ -349,11 +361,9 @@ transform_var() {
                             remainder="${s:pos_br}"
                             remainder="${remainder#\[}"
                             spec_and_rest="${remainder#env:}"
-                            if [[ "${spec_and_rest}" == *] ]]; then
+                            if [[ "${spec_and_rest}" == *]* ]]; then
                                 until="${spec_and_rest%%]*}"
-                                rest_after_token="${spec_and_rest#*$until}"
-                                rest_after_token="${rest_after_token#] }"
-                                rest_after_token="${rest_after_token#]}"
+                                rest_after_token="${spec_and_rest#*]}"
                             else
                                 until="${spec_and_rest}"
                                 rest_after_token=""
