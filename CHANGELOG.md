@@ -1,3 +1,9 @@
+## 2026.5.5 2026-05-26 <code at nfrastack dot com>
+
+   ### Changed
+      - Fix parsing CONTAINER_(INIT|SHUTDOWN)_(PRE|POST)_COMMAND_${command_name} to allow for originally documented UPPERCASE key name
+
+
 ## 2026.5.4 2026-05-13 <code at nfrastack dot com>
 
    ### Added

@@ -20,13 +20,15 @@ for fullpath_basefinish in /container/base/finish/finish.d/* ; do
         basefinish=$(basename $fullpath_basefinish)
         command_name=$(echo "${basefinish}" | sed -E 's/^[0-9]+-//' | tr ' -' '__')
         if [ "${basefinish}" != "zzz-container" ] ; then
-            pre_command="CONTAINER_SHUTDOWN_PRE_COMMAND_${command_name}"
-            if [ -n "${!pre_command}" ]; then
-                if [ -f "${!pre_command}" ] && [ ! -x "${!pre_command}" ]; then
-                    chmod +x "${!pre_command}"
+            pre_command="CONTAINER_SHUTDOWN_PRE_COMMAND_${command_name^^}"
+            pre_command_lower="CONTAINER_SHUTDOWN_PRE_COMMAND_${command_name}"
+            pre_cmd_val="${!pre_command:-${!pre_command_lower}}"
+            if [ -n "${pre_cmd_val}" ]; then
+                if [ -f "${pre_cmd_val}" ] && [ ! -x "${pre_cmd_val}" ]; then
+                    chmod +x "${pre_cmd_val}"
                 fi
                 print_debug "Executing command from ${pre_command}"
-                eval "${!pre_command}"
+                eval "${pre_cmd_val}"
             fi
             if [ -f /override/base/finish/pre/${basefinish} ] && [ -x /override/base/finish/pre/${basefinish} ] ; then
                 /override/base/finish/pre/${basefinish}
@@ -38,13 +40,15 @@ for fullpath_basefinish in /container/base/finish/finish.d/* ; do
             else
                 "${fullpath_basefinish}"
             fi
-            post_command="CONTAINER_SHUTDOWN_POST_COMMAND_${command_name}"
-            if [ -n "${!post_command}" ]; then
-                if [ -f "${!post_command}" ] && [ ! -x "${!post_command}" ]; then
-                    chmod +x "${!post_command}"
+            post_command="CONTAINER_SHUTDOWN_POST_COMMAND_${command_name^^}"
+            post_command_lower="CONTAINER_SHUTDOWN_POST_COMMAND_${command_name}"
+            post_cmd_val="${!post_command:-${!post_command_lower}}"
+            if [ -n "${post_cmd_val}" ]; then
+                if [ -f "${post_cmd_val}" ] && [ ! -x "${post_cmd_val}" ]; then
+                    chmod +x "${post_cmd_val}"
                 fi
                 print_debug "Executing command from ${post_command}"
-                eval "${!post_command}"
+                eval "${post_cmd_val}"
             fi
             if [ -f /override/base/inint/post/${basefinish} ] && [ -x /override/base/finish/post/${basefinish} ] ; then
                 /override/base/finish/post/${basefinish}
@@ -59,14 +63,16 @@ for fullpath_contfinish in /container/finish/finish.d/* ; do
     if [ -x "${fullpath_contfinish}" ] && [ ! -d "${fullpath_contfinish}" ] ; then
         contfinish=$(basename $fullpath_contfinish)
         command_name=$(echo "${contfinish}" | sed -E 's/^[0-9]+-//' | tr ' -' '__')
-        pre_command="CONTAINER_SHUTDOWN_PRE_COMMAND_${command_name}"
-            if [ -n "${!pre_command}" ]; then
-                if [ -f "${!pre_command}" ] && [ ! -x "${!pre_command}" ]; then
-                    chmod +x "${!pre_command}"
-                fi
-                print_debug "Executing command from ${pre_command}"
-                eval "${!pre_command}"
+        pre_command="CONTAINER_SHUTDOWN_PRE_COMMAND_${command_name^^}"
+        pre_command_lower="CONTAINER_SHUTDOWN_PRE_COMMAND_${command_name}"
+        pre_cmd_val="${!pre_command:-${!pre_command_lower}}"
+        if [ -n "${pre_cmd_val}" ]; then
+            if [ -f "${pre_cmd_val}" ] && [ ! -x "${pre_cmd_val}" ]; then
+                chmod +x "${pre_cmd_val}"
             fi
+            print_debug "Executing command from ${pre_command}"
+            eval "${pre_cmd_val}"
+        fi
         if [ -f /override/finish/pre/${contfinish} ] && [ -x /override/finish/pre/${contfinish} ] ; then
             /override/finish/pre/${contfinish}
         elif [ -f /container/finish/pre/${contfinish} ] && [ -x /container/finish/pre/${contfinish} ] ; then
@@ -77,13 +83,15 @@ for fullpath_contfinish in /container/finish/finish.d/* ; do
         else
             "${fullpath_contfinish}"
         fi
-        post_command="CONTAINER_SHUTDOWN_POST_COMMAND_${command_name}"
-        if [ -n "${!post_command}" ]; then
-            if [ -f "${!post_command}" ] && [ ! -x "${!post_command}" ]; then
-                chmod +x "${!post_command}"
+        post_command="CONTAINER_SHUTDOWN_POST_COMMAND_${command_name^^}"
+        post_command_lower="CONTAINER_SHUTDOWN_POST_COMMAND_${command_name}"
+        post_cmd_val="${!post_command:-${!post_command_lower}}"
+        if [ -n "${post_cmd_val}" ]; then
+            if [ -f "${post_cmd_val}" ] && [ ! -x "${post_cmd_val}" ]; then
+                chmod +x "${post_cmd_val}"
             fi
             print_debug "Executing command from ${post_command}"
-            eval "${!post_command}"
+            eval "${post_cmd_val}"
         fi
         if [ -f /override/inint/post/${contfinish} ] && [ -x /override/finish/post/${contfinish} ] ; then
             /override/finish/post/${contfinish}
