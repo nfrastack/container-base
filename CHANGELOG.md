@@ -1,3 +1,9 @@
+## 2026.5.7 2026-05-27 <code at nfrastack dot com>
+
+   ### Changed
+      - Change package build to be runtime always to not introduce breaking changes
+
+
 ## 2026.5.6 2026-05-27 <code at nfrastack dot com>
 
    ### Changed
