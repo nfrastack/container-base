@@ -71,23 +71,23 @@ package() {
 
                 case "${1}" in
                     go )
-                        # allow overriding golang version via second argument: package build go <version> [runtime]
-                        local KEEP_RUNTIME="false"
+                        # allow overriding golang version via second argument: package build go <version> [buildtime]
+                        local KEEP_RUNTIME="true"
                         local _args=("$@")
                         local _i
                         for _i in "${!_args[@]}"; do
                             if [ "${_i}" -eq 0 ]; then
                                 continue
                             fi
-                            if [ "${_args[$_i]}" = "runtime" ]; then
-                                KEEP_RUNTIME="true"
+                            if [ "${_args[$_i]}" = "buildtime" ]; then
+                                KEEP_RUNTIME="false"
                                 continue
                             fi
                             if [ -z "${GOLANG_VERSION}" ] && [ -n "${_args[$_i]}" ]; then
                                 GOLANG_VERSION="${_args[$_i]}"
                             fi
                         done
-                        if [ -n "${2}" ] && [ "${2}" != "runtime" ] && [ -z "${GOLANG_VERSION}" ]; then
+                        if [ -n "${2}" ] && [ "${2}" != "buildtime" ] && [ -z "${GOLANG_VERSION}" ]; then
                             GOLANG_VERSION="${2}"
                         fi
                         if ! command -v go >/dev/null 2>&1 ; then
@@ -99,31 +99,31 @@ package() {
                             ln -sf /usr/src/go/bin/go /usr/local/bin/
                             ln -sf /usr/src/go/bin/godoc /usr/local/bin/
                             ln -sf /usr/src/go/bin/gfmt /usr/local/bin/
-                                container_build_log add "Go" "${GOLANG_VERSION}" "golang.org"
-                                        if var_true "${KEEP_RUNTIME}"; then
-                                                        mkdir -p "/run/container/build/${IMAGE_NAME/\//_}"
-                                                        grep -Fxq "go" "/run/container/build/${IMAGE_NAME/\//_}/keep.list" 2>/dev/null || printf '%s\n' "go" >> "/run/container/build/${IMAGE_NAME/\//_}/keep.list"
-                                                    fi
+                            container_build_log add "Go" "${GOLANG_VERSION}" "golang.org"
+                            if var_true "${KEEP_RUNTIME}"; then
+                                mkdir -p "/run/container/build/${IMAGE_NAME/\//_}"
+                                grep -Fxq "go" "/run/container/build/${IMAGE_NAME/\//_}/keep.list" 2>/dev/null || printf '%s\n' "go" >> "/run/container/build/${IMAGE_NAME/\//_}/keep.list"
+                            fi
                         fi
                     ;;
                     python )
-                        # allow overriding python version via additional arguments: package build python <version> [runtime]
-                        local KEEP_RUNTIME="false"
+                        # allow overriding python version via additional arguments: package build python <version> [buildtime]
+                        local KEEP_RUNTIME="true"
                         local _args=("$@")
                         local _i
                         for _i in "${!_args[@]}"; do
                             if [ "${_i}" -eq 0 ]; then
                                 continue
                             fi
-                                    if [ "${_args[$_i]}" = "runtime" ]; then
-                                KEEP_RUNTIME="true"
+                                    if [ "${_args[$_i]}" = "buildtime" ]; then
+                                KEEP_RUNTIME="false"
                                 continue
                             fi
                             if [ -z "${PYTHON_VERSION}" ] && [ -n "${_args[$_i]}" ]; then
                                 PYTHON_VERSION="${_args[$_i]}"
                             fi
                         done
-                        if [ -n "${2}" ] && [ "${2}" != "runtime" ] && [ -z "${PYTHON_VERSION}" ]; then
+                        if [ -n "${2}" ] && [ "${2}" != "buildtime" ] && [ -z "${PYTHON_VERSION}" ]; then
                             PYTHON_VERSION="${2}"
                         fi
                        PYTHON_BUILD_DEPS_ALPINE="  \
@@ -359,23 +359,24 @@ package() {
                         container_build_log add "Ruby" "${RUBY_VERSION}" "ruby-lang.org"
                     ;;
                     yq )
-                        # allow optional version and 'runtime' flag: package build yq <version> [runtime]
-                        local KEEP_RUNTIME="false"
+                        # allow optional version and 'buildtime' flag: package build yq <version>
+                        # Default: keep for runtime. Use 'buildtime' to mark for removal at cleanup.
+                        local KEEP_RUNTIME="true"
                         local _args=("$@")
                         local _i
                         for _i in "${!_args[@]}"; do
                             if [ "${_i}" -eq 0 ]; then
                                 continue
                             fi
-                            if [ "${_args[$_i]}" = "runtime" ]; then
-                                KEEP_RUNTIME="true"
+                            if [ "${_args[$_i]}" = "buildtime" ]; then
+                                KEEP_RUNTIME="false"
                                 continue
                             fi
                             if [ -z "${YQ_VERSION}" ] && [ -n "${_args[$_i]}" ]; then
                                 YQ_VERSION="${_args[$_i]}"
                             fi
                         done
-                        if [ -n "${2}" ] && [ "${2}" != "runtime" ] && [ -z "${YQ_VERSION}" ]; then
+                        if [ -n "${2}" ] && [ "${2}" != "buildtime" ] && [ -z "${YQ_VERSION}" ]; then
                             YQ_VERSION="${2}"
                         fi
                         YQ_REPO_URL=${YQ_REPO_URL:-"https://github.com/mikefarah/yq"}
@@ -400,23 +401,24 @@ package() {
                                     fi
                         ;;
                     node|nodejs )
-                        # support optional version and 'runtime' flag: package build node <version> [runtime]
-                        local KEEP_RUNTIME="false"
+                        # support optional version and 'buildtime' flag: package build node <version>
+                        # Default: keep for runtime. Use 'buildtime' to mark for removal at cleanup.
+                        local KEEP_RUNTIME="true"
                         local _args=("$@")
                         local _i
                         for _i in "${!_args[@]}"; do
                             if [ "${_i}" -eq 0 ]; then
                                 continue
                             fi
-                            if [ "${_args[$_i]}" = "runtime" ]; then
-                                KEEP_RUNTIME="true"
+                            if [ "${_args[$_i]}" = "buildtime" ]; then
+                                KEEP_RUNTIME="false"
                                 continue
                             fi
                             if [ -z "${NODE_VERSION}" ] && [ -n "${_args[$_i]}" ]; then
                                 NODE_VERSION="${_args[$_i]}"
                             fi
                         done
-                        if [ -n "${2}" ] && [ "${2}" != "runtime" ] && [ -z "${NODE_VERSION}" ]; then
+                        if [ -n "${2}" ] && [ "${2}" != "buildtime" ] && [ -z "${NODE_VERSION}" ]; then
                             NODE_VERSION="${2}"
                         fi
                         if [ -z "${NODE_VERSION}" ]; then
