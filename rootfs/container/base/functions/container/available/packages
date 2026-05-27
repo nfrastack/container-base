@@ -9,10 +9,85 @@ package() {
                 echo "** Not performing cleanup of temporary files and package manager caches in develop mode **"
             ;;
             * )
+                # Support package build remove <name>
+                if [ "${1}" = "remove" ]; then
+                    shift
+                    _pkg_to_remove="${1}"
+                    BUILD_DIR="/container/build/${IMAGE_NAME/\//_}"
+                    case "${_pkg_to_remove}" in
+                        go )
+                            rm -rf /usr/src/go
+                            for symlink in /usr/local/bin/go /usr/local/bin/godoc /usr/local/bin/gfmt; do
+                                if [ -L "${symlink}" ]; then
+                                    _target="$(readlink -f "${symlink}" 2>/dev/null)"
+                                    case "${_target}" in
+                                        */usr/src/go/* | */usr/local/go/* ) rm -f "${symlink}" || :;;
+                                    esac
+                                fi
+                            done
+                            container_build_log remove "Go"
+                        ;;
+                        node | nodejs )
+                            # remove recorded repos and keyrings
+                            if [ -f "${BUILD_DIR}/repos.list" ]; then
+                                while IFS= read -r _r; do rm -f "${_r}" 2>/dev/null || :; done < "${BUILD_DIR}/repos.list"
+                            fi
+
+                            if [ -f "${BUILD_DIR}/keyrings.list" ]; then
+                                while IFS= read -r _k; do rm -f "${_k}" 2>/dev/null || :; done < "${BUILD_DIR}/keyrings.list"
+                            fi
+                            package remove nodejs
+                            rm -rf \
+                                    /usr/src/node \
+                                    /usr/src/node_* \
+                                    /usr/local/bin/node \
+                                    /usr/local/bin/npm \
+                                    /usr/local/bin/npx
+                            container_build_log remove "Node.js"
+                        ;;
+                        python )
+                            package remove PYTHON_BUILD_DEPS
+                            rm -rf /usr/src/python
+                            for src in idle3 pip3 pydoc3 python3 python3-config; do
+                                dst="$(echo "$src" | tr -d 3)"
+                                if [ -L "/usr/local/bin/${dst}" ] && [ "$(readlink -f "/usr/local/bin/${dst}" 2>/dev/null)" = "/usr/local/bin/${src}" ]; then
+                                    rm -f "/usr/local/bin/${dst}"
+                                fi
+                            done
+                            container_build_log remove "Python"
+                        ;;
+                        yq )
+                            rm -f /usr/local/bin/yq
+                            rm -rf /usr/src/yq
+                            container_build_log remove "YQ"
+                        ;;
+                        * )
+                            echo "Unknown build remove target: ${_pkg_to_remove}" >&2
+                            return 1
+                        ;;
+                    esac
+                    return
+                fi
+
                 case "${1}" in
                     go )
-                        # allow overriding golang version via second argument: package build go <version>
-                        if [ -n "${2}" ]; then
+                        # allow overriding golang version via second argument: package build go <version> [runtime]
+                        local KEEP_RUNTIME="false"
+                        local _args=("$@")
+                        local _i
+                        for _i in "${!_args[@]}"; do
+                            if [ "${_i}" -eq 0 ]; then
+                                continue
+                            fi
+                            if [ "${_args[$_i]}" = "runtime" ]; then
+                                KEEP_RUNTIME="true"
+                                continue
+                            fi
+                            if [ -z "${GOLANG_VERSION}" ] && [ -n "${_args[$_i]}" ]; then
+                                GOLANG_VERSION="${_args[$_i]}"
+                            fi
+                        done
+                        if [ -n "${2}" ] && [ "${2}" != "runtime" ] && [ -z "${GOLANG_VERSION}" ]; then
                             GOLANG_VERSION="${2}"
                         fi
                         if ! command -v go >/dev/null 2>&1 ; then
@@ -24,11 +99,31 @@ package() {
                             ln -sf /usr/src/go/bin/go /usr/local/bin/
                             ln -sf /usr/src/go/bin/godoc /usr/local/bin/
                             ln -sf /usr/src/go/bin/gfmt /usr/local/bin/
+                                container_build_log add "Go" "${GOLANG_VERSION}" "golang.org"
+                                        if var_true "${KEEP_RUNTIME}"; then
+                                                        mkdir -p "/run/container/build/${IMAGE_NAME/\//_}"
+                                                        grep -Fxq "go" "/run/container/build/${IMAGE_NAME/\//_}/keep.list" 2>/dev/null || printf '%s\n' "go" >> "/run/container/build/${IMAGE_NAME/\//_}/keep.list"
+                                                    fi
                         fi
                     ;;
                     python )
-                        # allow overriding python version via second argument: package build python <version> or <base_version>
-                        if [ -n "${2}" ]; then
+                        # allow overriding python version via additional arguments: package build python <version> [runtime]
+                        local KEEP_RUNTIME="false"
+                        local _args=("$@")
+                        local _i
+                        for _i in "${!_args[@]}"; do
+                            if [ "${_i}" -eq 0 ]; then
+                                continue
+                            fi
+                                    if [ "${_args[$_i]}" = "runtime" ]; then
+                                KEEP_RUNTIME="true"
+                                continue
+                            fi
+                            if [ -z "${PYTHON_VERSION}" ] && [ -n "${_args[$_i]}" ]; then
+                                PYTHON_VERSION="${_args[$_i]}"
+                            fi
+                        done
+                        if [ -n "${2}" ] && [ "${2}" != "runtime" ] && [ -z "${PYTHON_VERSION}" ]; then
                             PYTHON_VERSION="${2}"
                         fi
                        PYTHON_BUILD_DEPS_ALPINE="  \
@@ -143,6 +238,10 @@ package() {
                         done
                         ldconfig
                         container_build_log add "Python" "${PYTHON_VERSION}" "python.org"
+                                    if var_true "${KEEP_RUNTIME}"; then
+                                        mkdir -p "/run/container/build/${IMAGE_NAME/\//_}"
+                                        grep -Fxq "python" "/run/container/build/${IMAGE_NAME/\//_}/keep.list" 2>/dev/null || printf '%s\n' "python" >> "/run/container/build/${IMAGE_NAME/\//_}/keep.list"
+                                    fi
                     ;;
                     ruby )
                         # allow overriding ruby version via second argument: package build ruby <version>
@@ -260,7 +359,23 @@ package() {
                         container_build_log add "Ruby" "${RUBY_VERSION}" "ruby-lang.org"
                     ;;
                     yq )
-                        if [ -n "${2}" ]; then
+                        # allow optional version and 'runtime' flag: package build yq <version> [runtime]
+                        local KEEP_RUNTIME="false"
+                        local _args=("$@")
+                        local _i
+                        for _i in "${!_args[@]}"; do
+                            if [ "${_i}" -eq 0 ]; then
+                                continue
+                            fi
+                            if [ "${_args[$_i]}" = "runtime" ]; then
+                                KEEP_RUNTIME="true"
+                                continue
+                            fi
+                            if [ -z "${YQ_VERSION}" ] && [ -n "${_args[$_i]}" ]; then
+                                YQ_VERSION="${_args[$_i]}"
+                            fi
+                        done
+                        if [ -n "${2}" ] && [ "${2}" != "runtime" ] && [ -z "${YQ_VERSION}" ]; then
                             YQ_VERSION="${2}"
                         fi
                         YQ_REPO_URL=${YQ_REPO_URL:-"https://github.com/mikefarah/yq"}
@@ -278,8 +393,57 @@ package() {
                                               " \
                                     -o /usr/local/bin/yq \
                                     &&
-                            container_build_log add "YQ" "${YQ_VERSION}" "${YQ_REPO_URL}"
+                                    container_build_log add "YQ" "${YQ_VERSION}" "${YQ_REPO_URL}"
+                                    if var_true "${KEEP_RUNTIME}"; then
+                                        mkdir -p "/run/container/build/${IMAGE_NAME/\//_}"
+                                        grep -Fxq "yq" "/run/container/build/${IMAGE_NAME/\//_}/keep.list" 2>/dev/null || printf '%s\n' "yq" >> "/run/container/build/${IMAGE_NAME/\//_}/keep.list"
+                                    fi
                         ;;
+                    node|nodejs )
+                        # support optional version and 'runtime' flag: package build node <version> [runtime]
+                        local KEEP_RUNTIME="false"
+                        local _args=("$@")
+                        local _i
+                        for _i in "${!_args[@]}"; do
+                            if [ "${_i}" -eq 0 ]; then
+                                continue
+                            fi
+                            if [ "${_args[$_i]}" = "runtime" ]; then
+                                KEEP_RUNTIME="true"
+                                continue
+                            fi
+                            if [ -z "${NODE_VERSION}" ] && [ -n "${_args[$_i]}" ]; then
+                                NODE_VERSION="${_args[$_i]}"
+                            fi
+                        done
+                        if [ -n "${2}" ] && [ "${2}" != "runtime" ] && [ -z "${NODE_VERSION}" ]; then
+                            NODE_VERSION="${2}"
+                        fi
+                        if [ -z "${NODE_VERSION}" ]; then
+                            NODE_VERSION="${NODE_VERSION:-"$(curl -s https://nodejs.org/dist/index.json | grep -B2 '"lts"' | grep '"version":' | head -n 1 | sed -E 's/.*"version": *"(v[^\"]+)".*/\1/' | sed 's/^v//')"}"
+                        fi
+                        case "$(container_info distro)" in
+                            debian|ubuntu )
+                                package repo key https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key nodeauto.gpg
+                                NODE_SUITE="$(container_info variant)"
+                                if ! curl -fs -o /dev/null "https://deb.nodesource.com/node_${NODE_VERSION:0:2}.x/dists/${NODE_SUITE}/Release"; then
+                                    NODE_SUITE="nodistro"
+                                fi
+                                package repo add nodejsauto "https://deb.nodesource.com/node_${NODE_VERSION:0:2}.x ${NODE_SUITE} main" nodeauto.gpg
+                                package update
+                                package install nodejs
+                            ;;
+                            alpine )
+                                package update
+                                package install nodejs npm
+                            ;;
+                        esac
+                        container_build_log add "Node.js" "${NODE_VERSION}" "nodejs.org"
+                            if var_true "${KEEP_RUNTIME}"; then
+                            mkdir -p "/run/container/build/${IMAGE_NAME/\//_}"
+                            grep -Fxq "nodejs" "/run/container/build/${IMAGE_NAME/\//_}/keep.list" 2>/dev/null || printf '%s\n' "nodejs" >> "/run/container/build/${IMAGE_NAME/\//_}/keep.list"
+                        fi
+                    ;;
                 esac
             ;;
         esac
@@ -319,15 +483,10 @@ package() {
                         /var/log/{*,.??*} \
                         /var/tmp/{*,.??*}
 
-                for symlink in \
-                                    /usr/local/bin/go \
-                                    /usr/local/bin/godoc \
-                                    /usr/local/bin/gfmt \
-                                ; do \
-                    if [ -L "${symlink}" ] && ! [ -e "${symlink}" ]; then
-                        rm -f "${symlink}"
-                    fi
-                done
+                if [ -f "/run/container/build/${IMAGE_NAME/\//_}/keep.list" ]; then
+                    rm -f "/run/container/build/${IMAGE_NAME/\//_}/keep.list"
+                fi
+
                 output_on
             ;;
         esac
@@ -473,6 +632,8 @@ package() {
                         case "${2,,}" in
                             "testing" )
                                 echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" | slient tee -a /etc/apk/repositories
+                                mkdir -p "/container/build/${IMAGE_NAME/\//_}"
+                                printf '%s\n' "/etc/apk/repositories" >> "/container/build/${IMAGE_NAME/\//_}/repos.list"
                                 return
                             ;;
                             "node" )
@@ -493,6 +654,8 @@ package() {
                             _package_repo_name="${2}"
                             shift 2
                             echo "$@" > /etc/apk/repositories/"${_package_repo_name}"
+                            mkdir -p "/container/build/${IMAGE_NAME/\//_}"
+                            printf '%s\n' "/etc/apk/repositories/${_package_repo_name}" >> "/container/build/${IMAGE_NAME/\//_}/repos.list"
                         fi
                     ;;
                     "debian" | "ubuntu" )
@@ -500,6 +663,8 @@ package() {
                         case "${2,,}" in
                             backports )
                                 echo "deb http://deb.debian.org/debian $(container_info variant)-backports main" | silent tee -a /etc/apt/sources.list.d/backports.list
+                                mkdir -p "/container/build/${IMAGE_NAME/\//_}"
+                                printf '%s\n' "/etc/apt/sources.list.d/backports.list" >> "/container/build/${IMAGE_NAME/\//_}/repos.list"
                                 return
                             ;;
                             node )
@@ -549,6 +714,8 @@ package() {
                         else
                             echo "deb ${repo_line}" > /etc/apt/sources.list.d/"${_package_repo_name}".list
                         fi
+                        mkdir -p "/container/build/${IMAGE_NAME/\//_}"
+                        printf '%s\n' "/etc/apt/sources.list.d/${_package_repo_name}.list" >> "/container/build/${IMAGE_NAME/\//_}/repos.list"
                     ;;
                 esac
             ;;
@@ -562,6 +729,8 @@ package() {
                         local key_url="${2}"
                         local keyring_name="${3:-example-archive-keyring.gpg}"
                         curl -fsSL "${key_url}" | gpg --dearmor --batch --yes -o "/usr/share/keyrings/${keyring_name}"
+                        mkdir -p "/container/build/${IMAGE_NAME/\//_}"
+                        printf '%s\n' "/usr/share/keyrings/${keyring_name}" >> "/container/build/${IMAGE_NAME/\//_}/keyrings.list"
                     ;;
                 esac
             ;;

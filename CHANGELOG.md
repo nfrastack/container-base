@@ -1,3 +1,11 @@
+## 2026.5.6 2026-05-27 <code at nfrastack dot com>
+
+   ### Changed
+      - Changes to package function - fix build node routine
+      - Add runtime argument to persist output for use in running container
+      - Optimize cleanup function
+
+
 ## 2026.5.5 2026-05-26 <code at nfrastack dot com>
 
    ### Changed
