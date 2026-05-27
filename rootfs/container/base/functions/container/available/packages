@@ -133,6 +133,7 @@ package() {
                                                     libffi-dev \
                                                     linux-headers \
                                                     make \
+                                                    mpdecimal-dev \
                                                     musl-dev \
                                                     ncurses-dev \
                                                     openssl-dev \
@@ -149,6 +150,7 @@ package() {
                                                     libffi-dev \
                                                     libgdbm-dev \
                                                     liblzma-dev \
+                                                    libmpdec-dev \
                                                     libncurses5-dev \
                                                     libnss3-dev \
                                                     libreadline-dev \
@@ -238,10 +240,10 @@ package() {
                         done
                         ldconfig
                         container_build_log add "Python" "${PYTHON_VERSION}" "python.org"
-                                    if var_true "${KEEP_RUNTIME}"; then
-                                        mkdir -p "/run/container/build/${IMAGE_NAME/\//_}"
-                                        grep -Fxq "python" "/run/container/build/${IMAGE_NAME/\//_}/keep.list" 2>/dev/null || printf '%s\n' "python" >> "/run/container/build/${IMAGE_NAME/\//_}/keep.list"
-                                    fi
+                        if var_true "${KEEP_RUNTIME}"; then
+                            mkdir -p "/run/container/build/${IMAGE_NAME/\//_}"
+                            grep -Fxq "python" "/run/container/build/${IMAGE_NAME/\//_}/keep.list" 2>/dev/null || printf '%s\n' "python" >> "/run/container/build/${IMAGE_NAME/\//_}/keep.list"
+                        fi
                     ;;
                     ruby )
                         # allow overriding ruby version via second argument: package build ruby <version>
