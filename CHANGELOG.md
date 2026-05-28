@@ -1,3 +1,10 @@
+## 2026.5.8 2026-05-28 <code at nfrastack dot com>
+
+   ### Changed
+      - Properly cleanup buildtime binaries introduced in > 2026.5.6
+      - Tailscale 1.98.3 module
+
+
 ## 2026.5.7 2026-05-27 <code at nfrastack dot com>
 
    ### Changed

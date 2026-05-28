@@ -61,7 +61,7 @@ install() {
                     container_build_log add age "${AGE_VERSION}" "${AGE_REPO_URL}"
                 else
                     # Alpine 3.17+ - build from source
-                    package build go
+                    package build go buildtime
                     package update
 
                     clone_git_repo "${AGE_REPO_URL}" "${AGE_VERSION}"
@@ -79,7 +79,7 @@ install() {
                 fi
             ;;
             debian )
-                package build go
+                package build go buildtime
                 package update
 
                 clone_git_repo "${AGE_REPO_URL}" "${AGE_VERSION}"
