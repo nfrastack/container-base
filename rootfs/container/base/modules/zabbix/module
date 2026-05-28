@@ -89,7 +89,7 @@ install() {
     if [ ! -f "${ZABBIX_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
         dependencies
         if [ "${build_zabbixagent2}" = "true" ] ; then
-            package build go
+            package build go buildtime
         fi
         package update
         package install \

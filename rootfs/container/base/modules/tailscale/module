@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-TAILSCALE_VERSION=${TAILSCALE_VERSION:-"v1.98.1"}
+TAILSCALE_VERSION=${TAILSCALE_VERSION:-"v1.98.3"}
 TAILSCALE_REPO_URL=${TAILSCALE_REPO_URL:-"https://github.com/tailscale/tailscale"}
 
 TAILSCALE_USER=${TAILSCALE_USER:-"tailscale"}
@@ -64,7 +64,7 @@ install() {
     set -e
     if [ ! -f "${TAILSCALE_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
         dependencies
-        package build go
+        package build go buildtime
         package update
         package install \
                         TAILSCALE_BUILD_DEPS \

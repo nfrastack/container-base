@@ -50,7 +50,7 @@ install() {
     set -e
     if [ ! -f "${OPENBAO_BINARY}" ] || var_true "${CONTAINER_MODULE_REINSTALL}" ; then
         dependencies
-        package build go
+        package build go buildtime
         package update
         package install \
                         OPENBAO_BUILD_DEPS \
