@@ -61,6 +61,7 @@ clone_git_repo() {
                 echo "[clone_git_repo] Remote tags: ${_git_tags}" >&2
             else
                 echo "[clone_git_repo] Warning: unable to query remote refs for ${1}"
+                rm -f "/tmp/git_refs_${repo_name}"
             fi
 
             clone_no_single=""
