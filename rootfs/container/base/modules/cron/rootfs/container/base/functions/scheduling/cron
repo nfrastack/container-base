@@ -81,6 +81,10 @@ EOF
 }
 
 nfra_configure_scheduling_cron_run() {
+    if [ "${SCHEDULING_LOG_TYPE,,}" = "file" ]; then
+        cron_log_file="-L ${SCHEDULING_LOG_LOCATION%/}/cron.log"
+    fi
+
     print_debug "Parsing all files from ${CONTAINER_SCHEDULING_LOCATION}"
     temp_crontab=$(date +%s)
     mkdir -p /container/state/cron/
@@ -92,15 +96,13 @@ nfra_configure_scheduling_cron_run() {
     crontab /container/state/cron/"${temp_crontab}"
     print_start "Starting cron"
     case $(container_info distro) in
-        "alpine" | "debian" | "ubuntu" )
+        "alpine" )
             output_on
-            if [ "${SCHEDULING_LOG_TYPE,,}" = "file" ]; then
-                "${SCHEDULING_BINARY}" -f -d "${SCHEDULING_LOG_LEVEL}" 2>&1 | \
-                    TZ="${TIMEZONE}" awk '{ print strftime("%Y-%m-%d %H:%M:%S %Z"), $0; fflush() }' >> \
-                    "${SCHEDULING_LOG_LOCATION%/}/cron.log"
-            else
-                exec "${SCHEDULING_BINARY}" -f -l "${SCHEDULING_LOG_LEVEL}"
-            fi
+            exec "${SCHEDULING_BINARY}" -f -l "${SCHEDULING_LOG_LEVEL}" ${cron_log_file}
+        ;;
+        "debian" | "ubuntu" )
+            output_on
+            exec "${SCHEDULING_BINARY}" -f -l "${SCHEDULING_LOG_LEVEL}" ${cron_log_file}
         ;;
     esac
 }
