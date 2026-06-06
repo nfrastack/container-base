@@ -8,7 +8,7 @@ clone_git_repo() {
     ## It will automatically create a folder in /usr/src/<repo name> eg repo and also expose a variable called GIT_REPO_SRC and GIT_REPO_SRC_<REPONAME> in caps
     ## Any special characters get removed other than numbers and letters
 
-    if [[ "${BASH_SOURCE}" =~ ^\/container\/base\/functions\/container\/[build.d|run.d] ]] ; then set +x; fi
+    if [[ "${BASH_SOURCE}" =~ ^\/container\/base\/functions\/container\/(build\.d|run\.d) ]] ; then set +x; fi
     if [ ${DEBUG_MODE,,} = "true" ] ; then set -x ; fi
     if ! [ -x "$(command -v git)" ]; then
         echo '[clone_git_repo] Git is not installed'
@@ -80,7 +80,7 @@ clone_git_repo() {
                     git -c advice.detachedHead=false checkout "${2}"
                 else
                     if [ -f "/tmp/git_refs_${repo_name}" ]; then
-                        if ! grep -q -E "refs/(heads|tags)/${2}$" "/tmp/git_refs_${repo_name}" ; then
+                        if ! awk -v ref="${2}" 'BEGIN{e=1} { if ($2 == "refs/heads/" ref || $2 == "refs/tags/" ref) { e=0 } } END{exit e}' "/tmp/git_refs_${repo_name}" ; then
                             echo "[clone_git_repo] ERROR: requested ref '${2}' not found in remote refs"
                             exit 1
                         fi
@@ -106,9 +106,9 @@ clone_git_repo() {
                     branchname="cloned_${repo_name}_${2:0:7}"
                     git switch -c "${branchname}" "${2}" 2>/dev/null || git checkout -b "${branchname}" "${2}" 2>/dev/null
                     #echo "[clone_git_repo] Created branch ${branchname} for commit ${2}"
-                elif [ -f "/tmp/git_refs_${repo_name}" ] && grep -q -E "refs/tags/${2}$" "/tmp/git_refs_${repo_name}" ; then
+                elif [ -f "/tmp/git_refs_${repo_name}" ] && awk -v ref="${2}" 'BEGIN{e=1} { if ($2 == "refs/tags/" ref) { e=0 } } END{exit e}' "/tmp/git_refs_${repo_name}" ; then
                     branchname="tag_${repo_name}_${2}"
-                    git switch -c "${branchname}" "refs/tags/${2}" 2>/dev/null || git checkout -b "${branchname}" "refs/tags/${2}" 2>/dev/null
+                    git switch -c "${branchname}" 2>/dev/null || git checkout -b "${branchname}" 2>/dev/null || true
                     #echo "[clone_git_repo] Created branch ${branchname} for tag ${2}"
                 fi
             fi
@@ -118,7 +118,7 @@ clone_git_repo() {
         exit 1
     fi
 
-    if [[ "${BASH_SOURCE}" =~ ^\/container\/base\/functions\/container\/[build.d] ]] ; then set -x; fi
+    if [[ "${BASH_SOURCE}" =~ ^\/container\/base\/functions\/container\/build\.d ]] ; then set -x; fi
 }
 
 container_base() {

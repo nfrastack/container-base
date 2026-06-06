@@ -4,9 +4,8 @@
       - Zabbix Agent 7.4.11
 
    ### Changed
-      - Add timestamp prefix to cron logs
       - Cleaup temp information when clone_git_repo edge cases occur
-      
+
 ## 2026.5.8 2026-05-28 <code at nfrastack dot com>
 
    ### Changed
