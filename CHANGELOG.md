@@ -1,10 +1,12 @@
-## 2026.6.0b 2026-06-02 <code at nfrastack dot com>
+## 2026.6.0 2026-06-09 <code at nfrastack dot com>
 
-   ### Added 
+   ### Added
       - Zabbix Agent 7.4.11
+      - Fluent-Bit 5.0.7
 
    ### Changed
       - Cleaup temp information when clone_git_repo edge cases occur
+
 
 ## 2026.5.8 2026-05-28 <code at nfrastack dot com>
 
