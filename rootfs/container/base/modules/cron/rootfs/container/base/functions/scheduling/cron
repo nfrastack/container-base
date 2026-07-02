@@ -4,17 +4,17 @@
 
 nfra_configure_scheduling_cron_init() {
     rm -rf /var/spool/cron/crontabs
-    mkdir -p \
-                /var/spool/cron/crontabs \
-                /container/state/cron
+    create_folder \
+                    "/var/spool/cron/crontabs, \
+                    /container/state/cron"
 
     if [ "${SCHEDULING_LOG_TYPE,,}" = "file" ] ; then
-        mkdir -p "${SCHEDULING_LOG_LOCATION%/}"
+        create_folder "${SCHEDULING_LOG_LOCATION%/}"
         touch "${SCHEDULING_LOG_LOCATION%/}"/cron.log
         create_logrotate cron "${SCHEDULING_LOG_LOCATION%/}"/cron.log
     fi
 
-    if [ ! -d "${CONTAINER_SCHEDULING_LOCATION%/}" ]; then mkdir -p "${CONTAINER_SCHEDULING_LOCATION%/}" ; fi
+    if [ ! -d "${CONTAINER_SCHEDULING_LOCATION%/}" ]; then create_folder "${CONTAINER_SCHEDULING_LOCATION%/}" ; fi
     ## Docker Build and Runtime overrides
     cronenv=$(mktemp)
     set -o posix; set -f ; set | grep -E '^CRON_'| sed "s|CRON_||g" | tee -- "${cronenv}" >/dev/null 2>&1
@@ -85,9 +85,9 @@ nfra_configure_scheduling_cron_run() {
         cron_log_file="-L ${SCHEDULING_LOG_LOCATION%/}/cron.log"
     fi
 
-    print_debug "Parsing all files from ${CONTAINER_SCHEDULING_LOCATION}"
+    print_debug "Parsing all files from ${CONTAINER_SCHEDULING_LOCATION%/}"
     temp_crontab=$(date +%s)
-    mkdir -p /container/state/cron/
+    create_folder /container/state/cron/
     echo 'MAILTO=""' | tee -- "${temp_crontab}" >/dev/null 2>&1
     if dir_notempty "${CONTAINER_SCHEDULING_LOCATION_OVERRIDE}" ; then cp -R "${CONTAINER_SCHEDULING_LOCATION_OVERRIDE}"/* "${CONTAINER_SCHEDULING_LOCATION}"; fi
     if dir_empty "${CONTAINER_SCHEDULING_LOCATION}" ; then echo "# Intentionally empty" > "${CONTAINER_SCHEDULING_LOCATION}"/empty ; fi

@@ -4,17 +4,17 @@
 
 nfra_configure_scheduling_cron_init() {
     rm -rf /var/spool/cron/crontabs
-    mkdir -p \
-                /var/spool/cron/crontabs \
-                /container/state/cron
+    create_folder \
+                    "/var/spool/cron/crontabs, \
+                    /container/state/cron"
 
     if [ "${SCHEDULING_LOG_TYPE,,}" = "file" ] ; then
-        mkdir -p "${SCHEDULING_LOG_LOCATION%/}"
+        create_folder "${SCHEDULING_LOG_LOCATION%/}"
         touch "${SCHEDULING_LOG_LOCATION%/}"/cron.log
         create_logrotate cron "${SCHEDULING_LOG_LOCATION%/}"/cron.log
     fi
 
-    if [ ! -d "${CONTAINER_SCHEDULING_LOCATION}" ]; then mkdir -p "${CONTAINER_SCHEDULING_LOCATION}" ; fi
+    if [ ! -d "${CONTAINER_SCHEDULING_LOCATION%/}" ]; then create_folder "${CONTAINER_SCHEDULING_LOCATION%/}" ; fi
     ## Docker Build and Runtime overrides
     cronenv=$(mktemp)
     set -o posix; set -f ; set | grep -E '^CRON_'| sed "s|CRON_||g" | tee -- "${cronenv}" >/dev/null 2>&1
@@ -53,7 +53,7 @@ EOF
         source "${default}"
         output_on
         cronenv=$(mktemp)
-        set -o posix; set -f ; set | grep -E '^CRON_'| sed "s|CRON_||g" > "${cronenv}"
+        set -o posix; set -f ; set | grep -E '^CRON_'| sed "s|CRON_||g" | tee -- "${cronenv}" >/dev/null 2>&1
         sed -i -e "/^PERIOD=/d" -e "/^BINARY=/d" "${cronenv}"
         while IFS= read -r cron_entry; do
             schedule_title="$(echo ${cron_entry} | cut -d = -f1 | tr '[:upper:]' '[:lower:]')"
@@ -61,7 +61,7 @@ EOF
             schedule_value="$(echo ${schedule_value:1:-1})"
             if [ ! -f "${CONTAINER_SCHEDULING_LOCATION%/}/${schedule_title,,}" ] ; then
                 print_debug "Adding $schedule_title with value $schedule_value to crontab"
-                cat <<EOF > "${CONTAINER_SCHEDULING_LOCATION%/}/${schedule_title,,}"
+                cat <<EOF | tee -- "${CONTAINER_SCHEDULING_LOCATION%/}/${schedule_title,,}" >/dev/null 2>&1
 # Scheduled execution of command taken from default file: '${default}'
 # Entered Value: ${schedule}
 # Generated on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')
@@ -82,15 +82,16 @@ EOF
 
 nfra_configure_scheduling_cron_run() {
     if [ "${SCHEDULING_LOG_TYPE,,}" = "file" ]; then
-        cron_log_file="-L ${SCHEDULING_LOG_LOCATION}/cron.log"
+        cron_log_file="-L ${SCHEDULING_LOG_LOCATION%/}/cron.log"
     fi
 
     print_debug "Parsing all files from ${CONTAINER_SCHEDULING_LOCATION%/}"
     temp_crontab=$(date +%s)
+    create_folder /container/state/cron/
     echo 'MAILTO=""' | tee -- "${temp_crontab}" >/dev/null 2>&1
     if dir_notempty "${CONTAINER_SCHEDULING_LOCATION_OVERRIDE}" ; then cp -R "${CONTAINER_SCHEDULING_LOCATION_OVERRIDE}"/* "${CONTAINER_SCHEDULING_LOCATION}"; fi
-    if dir_empty "${CONTAINER_SCHEDULING_LOCATION}" ; then echo "# Intentionally empty" | tee -- "${CONTAINER_SCHEDULING_LOCATION%/}"/empty >/dev/null 2>&1 ; fi
-    sed "/#/d" "${CONTAINER_SCHEDULING_LOCATION}"/* | awk 'NF' | tee -a -- /container/state/cron/${temp_crontab} >/dev/null 2>&1
+    if dir_empty "${CONTAINER_SCHEDULING_LOCATION}" ; then echo "# Intentionally empty" > "${CONTAINER_SCHEDULING_LOCATION}"/empty ; fi
+    sed "/#/d" "${CONTAINER_SCHEDULING_LOCATION%/}"/* | awk 'NF' | tee -a -- /container/state/cron/${temp_crontab} >/dev/null 2>&1
     silent crontab -r
     crontab /container/state/cron/"${temp_crontab}"
     print_start "Starting cron"
