@@ -335,7 +335,7 @@ EOF
 @INCLUDE conf.d/*.conf
 EOF
     fi
-    create_logrotate fluentbit "${FLUENTBIT_LOG_PATH%/}"/"${FLUENTBIT_LOG_FILE}"
+    call create_logrotate fluentbit "${FLUENTBIT_LOG_PATH%/}"/"${FLUENTBIT_LOG_FILE}"
 
     if var_true "${CONTAINER_ENABLE_MONITORING}" ; then
         source /container/base/defaults/*-monitoring

@@ -149,7 +149,7 @@ EOF
                                     "${ZABBIX_AGENT_LOG_PATH}" \
                                     "${ZABBIX_CONFIG_PATH}"
     chmod -R 550 "${ZABBIX_CONFIG_PATH}"
-    create_logrotate zabbix-agent "${ZABBIX_AGENT_LOG_PATH%/}"/"${ZABBIX_AGENT_LOG_FILE}" zabbix-agent-${logship_version} "${ZABBIX_USER}" root
+    call create_logrotate zabbix-agent "${ZABBIX_AGENT_LOG_PATH%/}"/"${ZABBIX_AGENT_LOG_FILE}" zabbix-agent-${logship_version} "${ZABBIX_USER}" root
     print_notice "Container configured for monitoring with '${CONTAINER_MONITORING_BACKEND} ${ZABBIX_AGENT_TYPE}'"
 }
 

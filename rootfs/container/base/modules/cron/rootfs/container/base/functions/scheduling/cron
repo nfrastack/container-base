@@ -11,7 +11,7 @@ nfra_configure_scheduling_cron_init() {
     if [ "${SCHEDULING_LOG_TYPE,,}" = "file" ] ; then
         create_folder "${SCHEDULING_LOG_LOCATION%/}"
         touch "${SCHEDULING_LOG_LOCATION%/}"/cron.log
-        create_logrotate cron "${SCHEDULING_LOG_LOCATION%/}"/cron.log
+        call create_logrotate cron "${SCHEDULING_LOG_LOCATION%/}"/cron.log
     fi
 
     if [ ! -d "${CONTAINER_SCHEDULING_LOCATION%/}" ]; then create_folder "${CONTAINER_SCHEDULING_LOCATION%/}" ; fi

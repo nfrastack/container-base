@@ -86,7 +86,7 @@ EOF
     tailscale_configure_daemon() {
         case "${TAILSCALE_LOG_TYPE,,}" in
             file )
-                create_logrotate tailscaled "${TAILSCALE_LOG_PATH%/}"/"${TAILSCALE_LOG_FILE}" tailscale tailscale
+                call create_logrotate tailscaled "${TAILSCALE_LOG_PATH%/}"/"${TAILSCALE_LOG_FILE}" tailscale tailscale
             ;;
         esac
 
