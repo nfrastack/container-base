@@ -23,7 +23,7 @@ case $(container_info distro) in
             ZABBIX_BINARY=${ZABBIX_BINARY:-"zabbix_agent2"}
         else
             ZABBIX_AGENT_TYPE=${ZABBIX_AGENT_TYPE:-"classic"}
-            ZABBIX_BINARY=${ZABBIX_BINARY:-"zabbix_agent"}
+            ZABBIX_BINARY=${ZABBIX_BINARY:-"zabbix_agentd"}
         fi
     ;;
     "debian" | "ubuntu" )
