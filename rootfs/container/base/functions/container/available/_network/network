@@ -4,7 +4,7 @@
 
 host_override() {
     ## Adds entry to /etc/hosts file
-    ## Usage CONTAINER_HOST_OVERRIDE01=destination_ip domain1 domain2 domain3
+    ## Usage CONTAINER_HOST_OVERRIDE_01=destination_ip domain1 domain2 domain3
     ## If you use a host name instead of destination_ip it will attempt to resolve it
     _hostnum=$(printenv | sort | grep -cE '^CONTAINER_HOST_OVERRIDE_([0-9].)')
     for (( _host = 01; _host <= _hostnum; _host++ )) ; do

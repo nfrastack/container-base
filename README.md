@@ -73,8 +73,6 @@ Example:
 * Disribution release varies - see the registry for availability
 * Features
   * `core` - Includes `age`, `cron`, `logrotate`, `s6overlay`, `msmtp`
-  * `faflopza` - Includes everything in core and `fail2ban`, `fluentbit`, `openbao`, `zabbix` - *This is the default image if no features requested*
-  * `faflopzaze` Includes everything in `faflopza` and `zerotier`.
 
 #### Multi-Architecture Support
 

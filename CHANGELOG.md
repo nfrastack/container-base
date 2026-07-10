@@ -1,8 +1,9 @@
 ## 2026.7.0beta 2026-07-01 <code at nfrastack dot com>
 
    ### Changed
-      - Fix not parsing cron advanced
-      
+      - Fix not parsing cron advanced file
+      - Variant safety nets
+
 ## 2026.6.0 2026-06-09 <code at nfrastack dot com>
 
    ### Added
