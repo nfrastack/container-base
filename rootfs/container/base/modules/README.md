@@ -47,6 +47,14 @@ IMAGE_MODULES="+git:https://git.repo/user/repo.git#v1.0.0"
 
 This will clone the specified repository into `/container/modules/repo` and check out the specified tag or branch (in this case, `v1.0.0`).
 
+If the repository contains multiple modules in subdirectories, use the `:<subpath>` suffix:
+
+```bash
+IMAGE_MODULES="+git:https://git.repo/user/modules.git#main:tailscale"
+```
+
+This clones the repository, checks out `main`, and installs the module from the `tailscale/` subdirectory. The same repo can supply multiple modules by repeating the entry with different subpaths.
+
 ### Module Configuration
 
 Each module can be configured using environment variables, typically prefixed with the module name (e.g., `APP_` for the 'APP' module).

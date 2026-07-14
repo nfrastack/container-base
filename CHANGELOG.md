@@ -3,6 +3,7 @@
    ### Changed
       - Fix not parsing cron advanced file
       - Variant safety nets
+      - Add subfolder parsing for modules
 
 ## 2026.6.0 2026-06-09 <code at nfrastack dot com>
 

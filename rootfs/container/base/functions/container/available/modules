@@ -5,7 +5,7 @@
 # Usage:
 # The `_container_modules_parse` function processes a comma-separated list of modules from an environment variable.
 # Modules can be added or removed using the following syntax:
-#   - To add a module: `+module_name` or `+git:<repository_url>#<branch_or_tag>`
+#   - To add a module: `+module_name` or `+git:<repository_url>#<branch_or_tag>[:<subpath>]`
 #     Example: `+git:https://github.com/user/repo.git#v1.0.0`
 #   - To remove a module: `-module_name`
 #
@@ -15,6 +15,8 @@
 #     - The repository is cloned into `/container/modules/<repository_name>`.
 #     - Optionally, a branch or tag can be specified using `#<branch_or_tag>` in the repository URL.
 #     - Example: `git:https://github.com/user/repo.git#main` (clones the `main` branch).
+#     - To target a subdirectory within the repository, append `:<subpath>` after the ref.
+#     - Example: `git:https://github.com/user/modules.git#main:tailscale` (installs from `tailscale/` subdirectory).
 
 if [ -n "${2}" ]; then _container_module_path:-"${2}" ; fi
 _container_module_path=${_container_module_path:-"/container/base/modules/"}
@@ -48,13 +50,34 @@ _container_modules_remove() {
 _container_modules_install() {
     if [[ "${1}" == git:* ]]; then
         # Handle Git-based module installation
-        local repo_url ref module_name
+        local repo_url ref subpath module_name
         repo_url=$(echo "${1}" | sed 's|^git:||' | cut -d'#' -f1) # Extract the repo URL
         ref=$(echo "${1}" | grep -o '#.*' | sed 's|#||')          # Extract the branch or tag (if specified)
-        module_name=$(basename "${repo_url}" .git)               # Derive module name from repo URL
+        subpath=""
 
-        # Define the target directory for the module
-        local target_dir="/container/modules/${module_name}"
+        # Check for optional :<subpath> suffix in the ref portion
+        if echo "${ref}" | grep -q ':'; then
+            subpath=$(echo "${ref}" | sed 's|^[^:]*:||')
+            ref=$(echo "${ref}" | sed 's|:.*||')
+        fi
+
+        # Derive module name from subpath or repo URL
+        if [ -n "${subpath}" ]; then
+            module_name=$(basename "${subpath}")
+        else
+            module_name=$(basename "${repo_url}" .git)
+        fi
+
+        # Use subpath to derive repo-level directory name
+        local repo_dir_name
+        if [ -n "${subpath}" ]; then
+            repo_dir_name=$(basename "${repo_url}" .git)
+        else
+            repo_dir_name="${module_name}"
+        fi
+
+        # Define the target directory for the cloned repository
+        local target_dir="/container/modules/${repo_dir_name}"
 
         # Clone the repository
         if [ -d "${target_dir}" ]; then
@@ -80,9 +103,15 @@ _container_modules_install() {
             fi
         fi
 
+        # Determine where to find the module script
+        local module_script_path="${target_dir}/module"
+        if [ -n "${subpath}" ]; then
+            module_script_path="${target_dir}/${subpath}/module"
+        fi
+
         # Treat the cloned repository as a local module
-        if [ -f "${target_dir}/module" ]; then
-            bash "${target_dir}/module" install
+        if [ -f "${module_script_path}" ]; then
+            bash "${module_script_path}" install
             case ${?} in
                 0 )
                     :
