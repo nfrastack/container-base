@@ -14,5 +14,5 @@ esac
 
 set_env LOGSHIPPING_AUTO_CONFIG_LOGROTATE="TRUE" nfrastack/base
 set_env LOGROTATE_COMPRESSION_VALUE="8" nfrastack/base
-set_env LOGROTATE_RETAIN_DAYS="7" nfrastack/base
+set_env LOGROTATE_RETAIN_DAYS="3" nfrastack/base
 output_on

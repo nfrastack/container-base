@@ -11,7 +11,7 @@ LOGROTATE_ASSETS=" \
                     /container/logrotate \
                     /etc/logrotate.conf \
                     /etc/logrotate.d \
-                    /etc/periodic/faily/logrotate \
+                    /etc/periodic/daily/logrotate \
                     /usr/sbin/logrotate \
                 "
 
