@@ -5,6 +5,7 @@
       - Variant safety nets
       - Add subfolder parsing for modules
       - Fix logrotate module cleanup path
+      - S6 Overlay 3.2.3.2
 
 ## 2026.6.0 2026-06-09 <code at nfrastack dot com>
 
