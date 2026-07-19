@@ -75,7 +75,17 @@ clone_git_repo() {
                 le="${ts} | CLONE: ${2} | ${1}"
                 echo "$le" | tee -a /container/build/"${IMAGE_NAME/\//_}"/build.log /container/build/build.log > /dev/null
                 if [[ "${2}" =~ ^[0-9a-fA-F]{40}$ ]] ; then
-                    git -c advice.detachedHead=false clone --depth 1 ${clone_no_single} "${url}" "${repo}"
+                    local _commit_branch=""
+                    if [ -f "/tmp/git_refs_${repo_name}" ]; then
+                        _commit_branch=$(awk -v commit="${2}" '$1 == commit && $2 ~ /^refs\/heads\// { sub("refs/heads/", "", $2); print $2; exit }' "/tmp/git_refs_${repo_name}")
+                    fi
+                    if [ -n "${_commit_branch}" ] ; then
+                        git -c advice.detachedHead=false clone --depth 1 --branch "${_commit_branch}" ${clone_no_single} "${url}" "${repo}"
+                    else
+                        git -c advice.detachedHead=false clone --depth 1 ${clone_no_single} "${url}" "${repo}"
+                        cd "${repo}"
+                        git -c advice.detachedHead=false fetch --depth 1 origin "${2}"
+                    fi
                     cd "${repo}"
                     git -c advice.detachedHead=false checkout "${2}"
                 else
