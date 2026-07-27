@@ -22,7 +22,7 @@ Allows the ability for logs to be automatically rotated on a daily basis and com
 | `LOGROTATE_COMPRESSION_TYPE`             | Logfile compression algorithm `NONE` `BZIP2` `GZIP` `ZSTD`  | `ZSTD`  | x        |         |
 | `LOGROTATE_COMPRESSION_VALUE`            | What level of compression to use                            | `8`     |          |         |
 | `LOGROTATE_COMPRESSION_EXTRA_PARAMETERS` | Pass extra parameters to the compression command (optional) |         |          |         |
-| `LOGROTATE_RETAIN_DAYS`                  | Rotate and retain logs for x days                           | `7`     | x        |         |
+| `LOGROTATE_RETAIN_DAYS`                  | Rotate and retain logs for x days                           | `3`     | x        |         |
 
 ## References
 
