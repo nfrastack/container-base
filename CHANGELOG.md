@@ -1,11 +1,15 @@
-## 2026.7.0beta 2026-07-01 <code at nfrastack dot com>
+## 2026.7.0 2026-07-27 <code at nfrastack dot com>
+
+   ### Added
+      - S6 Overlay 3.2.3.2
 
    ### Changed
       - Fix not parsing cron advanced file
       - Variant safety nets
       - Add subfolder parsing for modules
-      - Fix logrotate module cleanup path
-      - S6 Overlay 3.2.3.2
+      - Fix logrotare module cleanup path
+      - Adjust defaults
+
 
 ## 2026.6.0 2026-06-09 <code at nfrastack dot com>
 
