@@ -168,7 +168,7 @@ Only valid if appropriate module has been installed within the image. See [MODUL
 | Parameter                       | Description                                  | Default     | Advanced |
 | ------------------------------- | -------------------------------------------- | ----------- | -------- |
 | `CONTAINER_ENABLE_METRICS`      | Enable Metrics                               | `TRUE`      | x        |
-| `CONTAINER_ENABLE_MONITORING`   | Enable Monitoring of applications or metrics | `TRUE`      |          |
+| `CONTAINER_ENABLE_MONITORING`   | Enable Monitoring of applications or metrics | `FALSE`     |          |
 | `CONTAINR_MONITORING_BACKEND`   | What monitoring agent to use `zabbix`        | `zabbix`    |          |
 | `CONTAINER_ENABLE_MESSAGING`    | Enable Messaging services like SMTP          | `TRUE`      |          |
 | `CONTAINER_MESSAGING_BACKEND`   | Messaging Backend - presently only `msmtp`   | `msmtp`     |          |
