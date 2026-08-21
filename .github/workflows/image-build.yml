@@ -25,7 +25,7 @@ jobs:
           #- faflopzaze
         include:
           - image_variant: core
-            image_base_modules: "+age,+cron,+logrotate,+fail2ban,+s6overlay,+msmtp,"
+            image_base_modules: "+age,+cron,+logrotate,+s6overlay,+msmtp,"
             image_modules: ""
     uses: nfrastack/gha/.github/workflows/container-build_base.yml@main
     with:
