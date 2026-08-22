@@ -8,7 +8,7 @@ chmod -f -R 0755 \
                 > /dev/null 2>&1
 
 #if [ -n "$(ls -A "/container/state" 2>/dev/null)" ] ; then
-if [ -d /contaner/state ]; then
+if [ -d /container/state ]; then
     echo "Detected Container that has been restarted - Cleaning '/container/state' files"
     mv /container/state/startup /tmp/
     rm -rf /container/state/*
