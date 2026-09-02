@@ -1,3 +1,8 @@
+## 2026.9.0beta 2026-09-02 <code at nfrastack dot com>
+
+   ### Changed
+      - Add verification for yq building
+
 ## 2026.7.0 2026-07-27 <code at nfrastack dot com>
 
    ### Added

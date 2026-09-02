@@ -362,7 +362,7 @@ package() {
                     ;;
                     yq )
                         # allow optional version and 'buildtime' flag: package build yq <version>
-                        # Default: keep for runtime. Use 'buildtime' to mark for removal at cleanup.
+                        # efault: keep for runtime. Use 'buildtime' to mark for removal at cleanup.
                         local KEEP_RUNTIME="true"
                         local _args=("$@")
                         local _i
@@ -394,15 +394,18 @@ package() {
                                                 -w \
                                                 -X ${YQ_REPO_URL/https:\/\//}/v4/version.Version=${YQ_VERSION} \
                                               " \
-                                    -o /usr/local/bin/yq \
-                                    &&
-                                    container_build_log add "YQ" "${YQ_VERSION}" "${YQ_REPO_URL}"
-                                    if var_true "${KEEP_RUNTIME}"; then
-                                        mkdir -p "/run/container/build/${IMAGE_NAME/\//_}"
-                                        grep -Fxq "yq" "/run/container/build/${IMAGE_NAME/\//_}/keep.list" 2>/dev/null || printf '%s\n' "yq" >> "/run/container/build/${IMAGE_NAME/\//_}/keep.list"
-                                    fi
-                        ;;
-                    node|nodejs )
+                                    -o /usr/local/bin/yq
+                        container_build_log add "YQ" "${YQ_VERSION}" "${YQ_REPO_URL}"
+                        if [ ! -f /usr/local/bin/yq ]; then
+                            print_errror "YQ Compilation failed"
+                            exit 1
+                        fi
+                        if var_true "${KEEP_RUNTIME}"; then
+                            mkdir -p "/run/container/build/${IMAGE_NAME/\//_}"
+                            grep -Fxq "yq" "/run/container/build/${IMAGE_NAME/\//_}/keep.list" 2>/dev/null || printf '%s\n' "yq" >> "/run/container/build/${IMAGE_NAME/\//_}/keep.list"
+                        fi
+                    ;;
+                    node | nodejs )
                         # support optional version and 'buildtime' flag: package build node <version>
                         # Default: keep for runtime. Use 'buildtime' to mark for removal at cleanup.
                         local KEEP_RUNTIME="true"
@@ -443,7 +446,7 @@ package() {
                             ;;
                         esac
                         container_build_log add "Node.js" "${NODE_VERSION}" "nodejs.org"
-                            if var_true "${KEEP_RUNTIME}"; then
+                        if var_true "${KEEP_RUNTIME}"; then
                             mkdir -p "/run/container/build/${IMAGE_NAME/\//_}"
                             grep -Fxq "nodejs" "/run/container/build/${IMAGE_NAME/\//_}/keep.list" 2>/dev/null || printf '%s\n' "nodejs" >> "/run/container/build/${IMAGE_NAME/\//_}/keep.list"
                         fi
