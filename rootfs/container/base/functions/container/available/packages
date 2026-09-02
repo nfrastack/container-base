@@ -387,7 +387,6 @@ package() {
                                             "${YQ_REPO_URL}" \
                                             "${YQ_VERSION}" \
                                         /usr/src/yq
-                        \
                         go build \
                                     -ldflags "\
                                                 -s \
