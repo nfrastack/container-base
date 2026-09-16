@@ -1,7 +1,8 @@
-## 2026.9.0beta 2026-09-11 <code at nfrastack dot com>
+## 2026.9.0beta 2026-09-16 <code at nfrastack dot com>
 
    ### Added
       - AGE 1.3.2
+      - run_as function
 
    ### Changed
       - Add verification for yq building
