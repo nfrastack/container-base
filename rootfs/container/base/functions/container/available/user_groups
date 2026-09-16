@@ -178,3 +178,27 @@ delete_user() {
     unset _username
 }
 
+run_as() {
+    # Drop privileges and run a command as another user with a correct HOME
+    # Syntax run_as $USER $COMMAND [ARGS...]
+    # s6-setuidgid changes uid/gid but leaves HOME behind (stays /root), which breaks anything reading
+
+    if [ -z "${1}" ] ; then
+        echo "[run_as] No username provided"
+        return 99
+    fi
+
+    if [ -z "${2}" ] ; then
+        echo "[run_as] No command provided"
+        return 99
+    fi
+
+    local _run_as_user
+    _run_as_user="${1}"
+    shift
+
+    s6-setuidgid "${_run_as_user}" env HOME="$(getent passwd "${_run_as_user}" | cut -d: -f6)" "$@"
+
+    unset _run_as_user
+}
+
