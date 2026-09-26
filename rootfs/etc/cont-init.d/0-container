@@ -23,6 +23,8 @@ fi
 mkdir -p /container/state/{init,run}
 source /container/base/functions/container/init
 
+mkdir -p "${CONTAINER_LOG_FILE_PATH}"
+
 if [ -n "${CONTAINER_INIT_PRE_COMMAND}" ]; then
     if [ -f "${CONTAINER_INIT_PRE_COMMAND}" ] && [ ! -x "${CONTAINER_INIT_PRE_COMMAND}" ]; then
         chmod +x "${CONTAINER_INIT_PRE_COMMAND}"
