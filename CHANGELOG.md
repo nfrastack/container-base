@@ -1,3 +1,8 @@
+## 2026.10.0b 2026-10-06 <code at nfrastack dot com>
+
+   ### Added
+      - package_build rust <ver> support
+
 ## 2026.9.0 2026-09-26 <code at nfrastack dot com>
 
    ### Added

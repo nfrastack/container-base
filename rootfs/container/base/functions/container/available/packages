@@ -56,6 +56,10 @@ package() {
                             done
                             container_build_log remove "Python"
                         ;;
+                        rust )
+                            rm -rf /root/.cargo /root/.rustup
+                            container_build_log remove "Rust"
+                        ;;
                         yq )
                             rm -f /usr/local/bin/yq
                             rm -rf /usr/src/yq
@@ -450,6 +454,42 @@ package() {
                             grep -Fxq "nodejs" "/run/container/build/${IMAGE_NAME/\//_}/keep.list" 2>/dev/null || printf '%s\n' "nodejs" >> "/run/container/build/${IMAGE_NAME/\//_}/keep.list"
                         fi
                     ;;
+                    rust )
+                        # allow overriding rust version via second argument: package build rust <version> [buildtime]
+                        # Default toolchain is 'stable' (latest). Pass ver to pin.
+                        local KEEP_RUNTIME="true"
+                        local _args=("$@")
+                        local _i
+                        for _i in "${!_args[@]}"; do
+                            if [ "${_i}" -eq 0 ]; then
+                                continue
+                            fi
+                            if [ "${_args[$_i]}" = "buildtime" ]; then
+                                KEEP_RUNTIME="false"
+                                continue
+                            fi
+                            if [ -z "${RUST_VERSION}" ] && [ -n "${_args[$_i]}" ]; then
+                                RUST_VERSION="${_args[$_i]}"
+                            fi
+                        done
+                        if [ -n "${2}" ] && [ "${2}" != "buildtime" ] && [ -z "${RUST_VERSION}" ]; then
+                            RUST_VERSION="${2}"
+                        fi
+                        if ! command -v cargo >/dev/null 2>&1 ; then
+                            echo "Rust not installed, installing..."
+                            RUST_VERSION="${RUST_VERSION:-stable}"
+                            echo "Installing Rust ${RUST_VERSION} toolchain via rustup..."
+                            curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain "${RUST_VERSION}"
+                            # shellcheck disable=SC1091
+                            source /root/.cargo/env
+                            export PATH="/root/.cargo/bin:${PATH}"
+                            container_build_log add "Rust" "$(rustc --version | awk '{print $2}')" "https://sh.rustup.rs"
+                            if var_true "${KEEP_RUNTIME}"; then
+                                mkdir -p "/run/container/build/${IMAGE_NAME/\//_}"
+                                grep -Fxq "rust" "/run/container/build/${IMAGE_NAME/\//_}/keep.list" 2>/dev/null || printf '%s\n' "rust" >> "/run/container/build/${IMAGE_NAME/\//_}/keep.list"
+                            fi
+                        fi
+                    ;;
                 esac
             ;;
         esac
@@ -480,7 +520,6 @@ package() {
                 rm -rf \
                         /build-assets \
                         /etc/logrotate.d/{*,.??*} \
-                        /root/{*,.??*} \
                         /tmp/{*,.??*} \
                         /usr/share/doc/{*,.??*} \
                         /usr/share/locale/{*,.??*} \
@@ -488,6 +527,12 @@ package() {
                         /usr/src/{*,.??*} \
                         /var/log/{*,.??*} \
                         /var/tmp/{*,.??*}
+
+                if grep -Fxq "rust" "/run/container/build/${IMAGE_NAME/\//_}/keep.list" 2>/dev/null; then
+                    find /root -mindepth 1 -maxdepth 1 ! -name '.cargo' ! -name '.rustup' -exec rm -rf {} +
+                else
+                    rm -rf /root/{*,.??*}
+                fi
 
                 if [ -f "/run/container/build/${IMAGE_NAME/\//_}/keep.list" ]; then
                     rm -f "/run/container/build/${IMAGE_NAME/\//_}/keep.list"
