@@ -16,15 +16,15 @@ package() {
                     BUILD_DIR="/container/build/${IMAGE_NAME/\//_}"
                     case "${_pkg_to_remove}" in
                         go )
-                            rm -rf /usr/src/go
-                            for symlink in /usr/local/bin/go /usr/local/bin/godoc /usr/local/bin/gfmt; do
+                            for symlink in /usr/local/bin/go /usr/local/bin/godoc /usr/local/bin/gofmt; do
                                 if [ -L "${symlink}" ]; then
-                                    _target="$(readlink -f "${symlink}" 2>/dev/null)"
+                                    _target="$(readlink -f "${symlink}" 2>/dev/null || readlink "${symlink}" 2>/dev/null || :)"
                                     case "${_target}" in
                                         */usr/src/go/* | */usr/local/go/* ) rm -f "${symlink}" || :;;
                                     esac
                                 fi
                             done
+                            rm -rf /usr/src/go
                             container_build_log remove "Go"
                         ;;
                         node | nodejs )
@@ -102,7 +102,7 @@ package() {
                             curl -sSLk https://dl.google.com/go/go"${GOLANG_VERSION}".linux-"$(container_info arch alt)".tar.gz | tar xfz - --strip 1 -C /usr/src/go
                             ln -sf /usr/src/go/bin/go /usr/local/bin/
                             ln -sf /usr/src/go/bin/godoc /usr/local/bin/
-                            ln -sf /usr/src/go/bin/gfmt /usr/local/bin/
+                            ln -sf /usr/src/go/bin/gofmt /usr/local/bin/
                             container_build_log add "Go" "${GOLANG_VERSION}" "golang.org"
                             if var_true "${KEEP_RUNTIME}"; then
                                 mkdir -p "/run/container/build/${IMAGE_NAME/\//_}"
@@ -524,9 +524,22 @@ package() {
                         /usr/share/doc/{*,.??*} \
                         /usr/share/locale/{*,.??*} \
                         /usr/share/man/{*,.??*} \
-                        /usr/src/{*,.??*} \
                         /var/log/{*,.??*} \
                         /var/tmp/{*,.??*}
+
+                if grep -Fxq "go" "/run/container/build/${IMAGE_NAME/\//_}/keep.list" 2>/dev/null; then
+                    find /usr/src -mindepth 1 -maxdepth 1 ! -name 'go' -exec rm -rf {} +
+                else
+                    for symlink in /usr/local/bin/go /usr/local/bin/godoc /usr/local/bin/gofmt; do
+                        if [ -L "${symlink}" ]; then
+                            _target="$(readlink -f "${symlink}" 2>/dev/null || readlink "${symlink}" 2>/dev/null || :)"
+                            case "${_target}" in
+                                */usr/src/go/* | */usr/local/go/* ) rm -f "${symlink}" || :;;
+                            esac
+                        fi
+                    done
+                    rm -rf /usr/src/{*,.??*}
+                fi
 
                 if grep -Fxq "rust" "/run/container/build/${IMAGE_NAME/\//_}/keep.list" 2>/dev/null; then
                     find /root -mindepth 1 -maxdepth 1 ! -name '.cargo' ! -name '.rustup' -exec rm -rf {} +
