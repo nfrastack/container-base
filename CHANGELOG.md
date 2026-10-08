@@ -5,6 +5,7 @@
 
    ### Changed
       - fix go symlinks hangingng around after package_build go buildtime
+      - fix yq build errors
 
 ## 2026.9.0 2026-09-26 <code at nfrastack dot com>
 

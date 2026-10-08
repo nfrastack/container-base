@@ -391,16 +391,18 @@ package() {
                                             "${YQ_REPO_URL}" \
                                             "${YQ_VERSION}" \
                                         /usr/src/yq
+                        cd /usr/src/yq
                         go build \
                                     -ldflags "\
                                                 -s \
                                                 -w \
                                                 -X ${YQ_REPO_URL/https:\/\//}/v4/version.Version=${YQ_VERSION} \
                                               " \
-                                    -o /usr/local/bin/yq
+                                    -o /usr/local/bin/yq \
+                                    .
                         container_build_log add "YQ" "${YQ_VERSION}" "${YQ_REPO_URL}"
                         if [ ! -f /usr/local/bin/yq ]; then
-                            print_errror "YQ Compilation failed"
+                            print_error "YQ Compilation failed"
                             exit 1
                         fi
                         if var_true "${KEEP_RUNTIME}"; then
